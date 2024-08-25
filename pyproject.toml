@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "repenseai"
+version = "0.0.1"
+description = "repense package to support solutions with LLMs"
+authors = ["Samuel Baptista <samuel.baptista@repense.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+anthropic = "^0.34.1"
+black = "^24.8.0"
+boto3 = "^1.35.5"
+cohere = "^5.8.1"
+flake8 = "^7.1.1"
+google-generativeai = "^0.7.2"
+groq = "^0.9.0"
+mistralai = "^1.0.2"
+mysql-connector-python = "^9.0.0"
+openai = "^1.42.0"
+pillow = "^10.4.0"
+pytest = "^8.3.2"
+python-dotenv = "^1.0.1"
+unidecode = "^1.3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
