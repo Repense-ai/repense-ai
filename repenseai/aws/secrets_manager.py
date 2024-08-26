@@ -6,23 +6,28 @@ from botocore.exceptions import ClientError
 from repenseai.utils.logs import logger
 
 
-class SecretManager:
-    def __init__(self, secret_name: str, region_name: str):
-        self._instance = None
-        self._secrets = {}
+class SecretsManager:
+    _instance = None
 
-        self.secret_name = secret_name
-        self.region_name = region_name
-
-        self.client = boto3.client(
-            service_name="secretsmanager", 
-            region_name=self.region_name
-        )
-
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(SecretManager, cls).__new__(cls)
+            cls._instance = super(SecretsManager, cls).__new__(cls)
+            cls._instance._initialized = False
         return cls._instance
+
+    def __init__(self, secret_name: str, region_name: str):
+        if not self._initialized:
+            self._secrets = {}
+
+            self.secret_name = secret_name
+            self.region_name = region_name
+
+            self.client = boto3.client(
+                service_name="secretsmanager", 
+                region_name=self.region_name
+            )
+            
+            self._initialized = True
 
     def get_secret(self, secret_key: str) -> str:
         if self._secrets.get(secret_key):
