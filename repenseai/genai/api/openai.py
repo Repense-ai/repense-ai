@@ -10,24 +10,24 @@ from io import BufferedReader
 from PIL import Image
 
 from repenseai.utils.logs import logger
+from repenseai.aws.secrets_manager import SecretsManager
 
 
 def get_api_key():
-    if "OPENAI_API_KEY" not in os.environ.keys():
-        from dotenv import load_dotenv
+    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
+    key = os.getenv("OPENAI_API_KEY") or secret_manager.get_secret("OPENAI_API_KEY")
 
-        load_dotenv()
-    if os.getenv("OPENAI_API_KEY") is not None:
-        return os.getenv("OPENAI_API_KEY")
+    if key:
+        return key
     else:
-        return os.getenv("REQUESTER_TOKEN")
+        raise Exception("OPENAI_API_KEY not found!")
 
 
 class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4-turbo",
+        model: str = "gpt-4o",
         temperature: float = 0.0,
         verbose=0,
     ):

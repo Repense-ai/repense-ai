@@ -2,17 +2,17 @@ import os
 from typing import Any, Union, List
 
 import google.generativeai as genai
+from repenseai.aws.secrets_manager import SecretsManager
 
 
 def get_api_key():
-    if "GOOGLE_API_KEY" not in os.environ.keys():
-        from dotenv import load_dotenv
+    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
+    key = os.getenv("GOOGLE_API_KEY") or secret_manager.get_secret("GOOGLE_API_KEY")
 
-        load_dotenv()
-    if os.getenv("GOOGLE_API_KEY") is not None:
-        return os.getenv("GOOGLE_API_KEY")
+    if key:
+        return key
     else:
-        return os.getenv("REQUESTER_TOKEN")
+        raise Exception("GOOGLE_API_KEY not found!")
 
 
 class ChatAPI:

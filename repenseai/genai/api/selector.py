@@ -5,10 +5,11 @@ from repenseai.config.selection_params import MODELS
 
 
 class APISelector:
-    def __init__(self, model: str, api: str) -> None:
+    def __init__(self, model: str, api: str, api_key: str = None) -> None:
         self.model = model
         self.api = api
         self.provider = MODELS[model]
+        self.api_key = api_key
 
     def __get_modules(self):
 
@@ -20,17 +21,18 @@ class APISelector:
 
     def get_api(self, **kwargs):
         self.__get_modules()
+        api_key = self.api_key if self.api_key is not None else self.module_params.API_KEY
 
         chat_api = self.module_api.ChatAPI(
-            api_key=self.module_params.API_KEY, model=self.model, **kwargs
+            api_key=api_key, model=self.model, **kwargs
         )
 
         vision_api = self.module_api.VisionAPI(
-            api_key=self.module_params.API_KEY, model=self.model, **kwargs
+            api_key=api_key, model=self.model, **kwargs
         )
 
         audio_api = self.module_api.AudioAPI(
-            api_key=self.module_params.API_KEY, model=self.model, **kwargs
+            api_key=api_key, model=self.model, **kwargs
         )
 
         api_dict = {"chat": chat_api, "vision": vision_api, "audio": audio_api}

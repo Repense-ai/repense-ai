@@ -2,18 +2,18 @@ import os
 import requests
 import json
 
-# from repenseai.utils.logs import logger
+from repenseai.utils.logs import logger
+from repenseai.aws.secrets_manager import SecretsManager
 
 
 def get_api_key():
-    if "META_API_KEY" not in os.environ.keys():
-        from dotenv import load_dotenv
+    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
+    key = os.getenv("META_API_KEY") or secret_manager.get_secret("META_API_KEY")
 
-        load_dotenv()
-    if os.getenv("META_API_KEY") is not None:
-        return os.getenv("META_API_KEY")
+    if key:
+        return key
     else:
-        return os.getenv("REQUESTER_TOKEN")
+        raise Exception("META_API_KEY not found!")
 
 
 class MetaAPI:

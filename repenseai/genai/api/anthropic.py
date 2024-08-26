@@ -8,21 +8,18 @@ from anthropic import Anthropic
 
 from typing import List, Dict, Union, Any
 
-# from io import BufferedReader
-
 from repenseai.utils.logs import logger
+from repenseai.aws.secrets_manager import SecretsManager
 
 
 def get_api_key():
-    if "ANTHROPIC_API_KEY" not in os.environ.keys():
-        from dotenv import load_dotenv
+    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
+    key = os.getenv("ANTHROPIC_API_KEY") or secret_manager.get_secret("ANTHROPIC_API_KEY")
 
-        load_dotenv()
-
-    if os.getenv("ANTHROPIC_API_KEY") is not None:
-        return os.getenv("ANTHROPIC_API_KEY")
+    if key:
+        return key
     else:
-        return os.getenv("REQUESTER_TOKEN")
+        raise Exception("ANTHROPIC_API_KEY not found!")
 
 
 class ChatAPI:
