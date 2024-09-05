@@ -47,11 +47,7 @@ jobs:
       run: |
         poetry config repositories.github https://github.com/repense-ai/repenseai/packages
         poetry config http-basic.github __token__ ${{ secrets.PACKAGE_TOKEN }}
-      env:
-        POETRY_PYPI_TOKEN_GITHUB: ${{ secrets.PACKAGE_TOKEN }}
     - name: Build and publish
       run: |
         poetry build
         poetry publish -r github
-      env:
-        POETRY_PYPI_TOKEN_GITHUB: ${{ secrets.PACKAGE_TOKEN }}
