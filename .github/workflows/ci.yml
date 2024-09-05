@@ -30,7 +30,7 @@ jobs:
         MARITACA_API_KEY: ${{ secrets.MARITACA_API_KEY }}
       run: poetry run pytest
 
-publish:
+  publish:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
