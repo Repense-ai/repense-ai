@@ -45,12 +45,12 @@ jobs:
     - name: Configure Poetry
       run: |
         poetry config repositories.github https://github.com/repense-ai/repenseai/packages
-        poetry config http-basic.github __token__ ${{ secrets.PACKAGE_TOKEN }}
+        poetry config http-basic.github ${{ github.actor }} ${{ secrets.GITHUB_TOKEN }}
     - name: Debug Poetry Config
       run: poetry config --list
     - name: Build and publish
       env:
-        GITHUB_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         poetry build
         poetry publish -r github
