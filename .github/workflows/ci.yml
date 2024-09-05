@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry install
+    - name: Run tests
+      run: poetry run pytest
+    - name: Run linter
+      run: poetry run flake8
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        pip install poetry
+    - name: Build and publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+      run: |
+        poetry config repositories.github https://github.com/repense-ai/repenseai/packages
+        poetry build
+        poetry publish -r github

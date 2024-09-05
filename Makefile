@@ -4,7 +4,7 @@ SHELL = /bin/bash
 
 -include .env
 
-##@ Installation
+.PHONY: env
 env:
 	pyenv install -s 3.10.6
 	pyenv local 3.10.6
@@ -39,9 +39,5 @@ publish: package
 
 .PHONY: lint
 lint:
-	black repenseai/ tests/	
+	black repenseai/ tests/
 	flake8 repenseai/ tests/
-
-
-
-
