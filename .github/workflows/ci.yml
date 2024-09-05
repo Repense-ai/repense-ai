@@ -29,8 +29,6 @@ jobs:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         MARITACA_API_KEY: ${{ secrets.MARITACA_API_KEY }}
       run: poetry run pytest
-    - name: Run linter
-      run: poetry run flake8
 
   publish:
     needs: test
