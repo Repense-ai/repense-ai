@@ -20,6 +20,14 @@ jobs:
         pip install poetry
         poetry install
     - name: Run tests
+      env:
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        MARITACA_API_KEY: ${{ secrets.MARITACA_API_KEY }}
       run: poetry run pytest
     - name: Run linter
       run: poetry run flake8
