@@ -49,6 +49,8 @@ jobs:
     - name: Debug Poetry Config
       run: poetry config --list
     - name: Build and publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
       run: |
         poetry build
-        poetry publish
+        poetry publish -r github
