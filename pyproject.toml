@@ -34,4 +34,4 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "github"
 url = "https://github.com/repense-ai/repenseai/packages"
-priority = "secondary"
+priority = "supplemental"
