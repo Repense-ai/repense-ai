@@ -1,6 +1,5 @@
 MODELS = {
     "gpt-4o-mini": "openai",
-    "gpt-4-turbo": "openai",
     "gpt-4o": "openai",
     "gpt-4o-2024-08-06": "openai",
     "claude-3-haiku-20240307": "anthropic",
@@ -26,7 +25,6 @@ MODELS = {
 
 COSTS = {
     "gpt-4o-mini": {"input": 0.15, "output": 0.6},
-    "gpt-4-turbo": {"input": 10.0, "output": 30.0},
     "gpt-4o": {"input": 5.0, "output": 15.0},
     "gpt-4o-2024-08-06": {"input": 2.50, "output": 10.0},
     "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},

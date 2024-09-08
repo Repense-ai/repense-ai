@@ -22,11 +22,12 @@ phases:
   pre_build:
     commands:
       - echo "Running tests..."
-      - pip install pytest
+      - source $(poetry env info --path)/bin/activate
       - python -m pytest
 
   build:
     commands:
+      - source $(poetry env info --path)/bin/activate
       - python -m poetry build
       - python -m poetry config repositories.repense-ai $CODEARTIFACT_URL
       - python -m poetry publish -r repense-ai
