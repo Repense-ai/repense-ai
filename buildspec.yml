@@ -31,6 +31,8 @@ phases:
     commands:
       - source $(python -m poetry env info --path)/bin/activate
       - python -m poetry build
+      - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain repense --domain-owner 329495585553 --query authorizationToken --output text)
+      - python -m poetry config pypi-token.repense-ai $CODEARTIFACT_AUTH_TOKEN
       - python -m poetry config repositories.repense-ai $CODEARTIFACT_URL
       - python -m poetry publish -r repense-ai
 
