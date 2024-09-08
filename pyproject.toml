@@ -17,7 +17,6 @@ flake8 = "^7.1.1"
 google-generativeai = "^0.7.2"
 groq = "^0.9.0"
 mistralai = "^1.0.2"
-mysql-connector-python = "^9.0.0"
 openai = "^1.42.0"
 pillow = "^10.4.0"
 pre-commit = "^3.8.0"
@@ -32,6 +31,6 @@ build-backend = "poetry.core.masonry.api"
 
 
 [[tool.poetry.source]]
-name = "github"
-url = "https://github.com/repense-ai/repenseai/packages"
+name = "repense-ai"
+url = "arn:aws:codeartifact:us-east-2:329495585553:repository/repense/repense-ai"
 priority = "supplemental"

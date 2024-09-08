@@ -1,0 +1,14 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.x
+    commands:
+      - pip install poetry
+  build:
+    commands:
+      - poetry build
+      - poetry config repositories.repense-ai $CODEARTIFACT_URL
+      - poetry publish -r repense-ai
+artifacts:
+  files: dist/*
