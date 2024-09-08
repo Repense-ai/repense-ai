@@ -2,13 +2,13 @@ version: 0.2
 
 env:
   secrets-manager:
-    GOOGLE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:google-api-key"
-    OPENAI_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:openai-api-key"
-    ANTHROPIC_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:anthropic-api-key"
-    MISTRAL_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:mistral-api-key"
-    COHERE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:cohere-api-key"
-    GROQ_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:groq-api-key"
-    MARITACA_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:maritaca-api-key"
+    GOOGLE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:GOOGLE_API_KEY"
+    OPENAI_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:OPENAI_API_KEY"
+    ANTHROPIC_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:ANTHROPIC_API_KEY"
+    MISTRAL_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:MISTRAL_API_KEY"
+    COHERE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:COHERE_API_KEY"
+    GROQ_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:GROQ_API_KEY"
+    MARITACA_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:MARITACA_API_KEY"
 
 phases:
   install:
