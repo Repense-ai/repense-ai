@@ -17,6 +17,7 @@ phases:
     commands:
       - pip install poetry
       - poetry install
+      - pip install pytest
 
   pre_build:
     commands:
