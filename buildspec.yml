@@ -2,13 +2,13 @@ version: 0.2
 
 env:
   secrets-manager:
-    GOOGLE_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:google-api-key"
-    OPENAI_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:openai-api-key"
-    ANTHROPIC_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:anthropic-api-key"
-    MISTRAL_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:mistral-api-key"
-    COHERE_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:cohere-api-key"
-    GROQ_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:groq-api-key"
-    MARITACA_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:maritaca-api-key"
+    GOOGLE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:google-api-key"
+    OPENAI_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:openai-api-key"
+    ANTHROPIC_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:anthropic-api-key"
+    MISTRAL_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:mistral-api-key"
+    COHERE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:cohere-api-key"
+    GROQ_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:groq-api-key"
+    MARITACA_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:maritaca-api-key"
 
 phases:
   install:
