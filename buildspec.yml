@@ -16,6 +16,7 @@ phases:
       python: 3.x
     commands:
       - pip install poetry
+      - poetry install
 
   pre_build:
     commands:
