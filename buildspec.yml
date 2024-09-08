@@ -15,17 +15,17 @@ phases:
     runtime-versions:
       python: 3.x
     commands:
-      - pip install poetry
-      - poetry install
-      - pip install pytest
+      - python -m pip install --upgrade pip
 
   pre_build:
     commands:
       - echo "Running tests..."
+      - pip install pytest
       - pytest
 
   build:
     commands:
+      - pip install poetry
       - poetry build
       - poetry config repositories.repense-ai $CODEARTIFACT_URL
       - poetry publish -r repense-ai
