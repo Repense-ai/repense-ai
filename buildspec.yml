@@ -37,4 +37,4 @@ phases:
       - python -m poetry publish -r repense-ai
 
 artifacts:
-  files: '**/*'
+  files: dist/*
