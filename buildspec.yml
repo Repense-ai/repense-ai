@@ -1,14 +1,32 @@
 version: 0.2
+
+env:
+  secrets-manager:
+    GOOGLE_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:google-api-key"
+    OPENAI_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:openai-api-key"
+    ANTHROPIC_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:anthropic-api-key"
+    MISTRAL_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:mistral-api-key"
+    COHERE_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:cohere-api-key"
+    GROQ_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:groq-api-key"
+    MARITACA_API_KEY: "arn:aws:secretsmanager:region:account-id:secret:maritaca-api-key"
+
 phases:
   install:
     runtime-versions:
       python: 3.x
     commands:
       - pip install poetry
+
+  pre_build:
+    commands:
+      - echo "Running tests..."
+      - pytest
+
   build:
     commands:
       - poetry build
       - poetry config repositories.repense-ai $CODEARTIFACT_URL
       - poetry publish -r repense-ai
+
 artifacts:
   files: dist/*
