@@ -16,16 +16,16 @@ phases:
       python: 3.x
     commands:
       - python -m pip install --upgrade pip
+      - pip install poetry
+      - poetry install
 
   pre_build:
     commands:
       - echo "Running tests..."
-      - pip install pytest
       - python -m pytest
 
   build:
     commands:
-      - pip install poetry
       - poetry build
       - poetry config repositories.repense-ai $CODEARTIFACT_URL
       - poetry publish -r repense-ai
