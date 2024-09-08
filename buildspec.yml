@@ -22,6 +22,7 @@ phases:
   pre_build:
     commands:
       - echo "Running tests..."
+      - pip install pytest
       - python -m pytest
 
   build:
