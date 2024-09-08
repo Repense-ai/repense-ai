@@ -17,7 +17,7 @@ phases:
     commands:
       - python -m pip install --upgrade pip
       - pip install poetry
-      - poetry install
+      - python -m poetry install
 
   pre_build:
     commands:
@@ -26,9 +26,9 @@ phases:
 
   build:
     commands:
-      - poetry build
-      - poetry config repositories.repense-ai $CODEARTIFACT_URL
-      - poetry publish -r repense-ai
+      - python -m poetry build
+      - python -m poetry config repositories.repense-ai $CODEARTIFACT_URL
+      - python -m poetry publish -r repense-ai
 
 artifacts:
   files: dist/*
