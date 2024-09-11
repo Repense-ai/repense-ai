@@ -16,19 +16,21 @@ load_dotenv(find_dotenv())
 
 def get_api_key():
     secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
-    key = os.getenv("MARITACA_API_KEY") or secret_manager.get_secret("MARITACA_API_KEY")
+    key = os.getenv("SAMBANOVA_API_KEY") or secret_manager.get_secret(
+        "SAMBANOVA_API_KEY"
+    )
 
     if key:
         return key
     else:
-        raise Exception("MARITACA_API_KEY not found!")
+        raise Exception("SAMBANOVA_API_KEY not found!")
 
 
 class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "sabia-3",
+        model: str = "Meta-Llama-3.1-8B-Instruct",
         temperature: float = 0.0,
         verbose=0,
     ):
@@ -41,7 +43,7 @@ class ChatAPI:
 
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url="https://chat.maritaca.ai/api",
+            base_url="https://api.sambanova.ai/v1",
         )
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:

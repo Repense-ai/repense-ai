@@ -20,6 +20,9 @@ MODELS = {
     "llama-3.1-8b-instant": "groq",
     "llama3-70b-8192": "groq",
     "sabia-3": "maritaca",
+    "Meta-Llama-3.1-8B-Instruct": "sambanova",
+    "Meta-Llama-3.1-70B-Instruct": "sambanova",
+    "Meta-Llama-3.1-405B-Instruct": "sambanova",
 }
 
 
@@ -46,4 +49,7 @@ COSTS = {
     "llama-3.1-8b-instant": {"input": 0.5, "output": 1.5},
     "llama3-70b-8192": {"input": 0.59, "output": 0.79},
     "sabia-3": {"input": 2.0, "output": 2.0},
+    "Meta-Llama-3.1-8B-Instruct": {"input": 0.10, "output": 0.20},
+    "Meta-Llama-3.1-70B-Instruct": {"input": 0.60, "output": 1.2},
+    "Meta-Llama-3.1-405B-Instruct": {"input": 5.0, "output": 10.0},
 }
