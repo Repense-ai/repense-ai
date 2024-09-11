@@ -1,12 +1,9 @@
-import base64
-import io
 import os
 from io import BufferedReader
 from typing import Any, Dict, List, Union
 
 from dotenv import find_dotenv, load_dotenv
 from openai import OpenAI
-from PIL import Image
 
 from repenseai.aws.secrets_manager import SecretsManager
 from repenseai.utils.logs import logger
