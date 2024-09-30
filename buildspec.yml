@@ -9,6 +9,7 @@ env:
     COHERE_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:COHERE_API_KEY"
     GROQ_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:GROQ_API_KEY"
     MARITACA_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:MARITACA_API_KEY"
+    SAMBANOVA_API_KEY: "arn:aws:secretsmanager:us-east-2:329495585553:secret:genai-9vocOE:SAMBANOVA_API_KEY"
   variables:
     CODEARTIFACT_URL: "https://repense-329495585553.d.codeartifact.us-east-2.amazonaws.com/pypi/repense-ai/"
 
