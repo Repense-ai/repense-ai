@@ -44,8 +44,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install poetry
+          pip install poetry && poetry config virtualenvs.create false
           poetry config pypi-token.github $GITHUB_TOKEN
-          poetry config repositories.github https://github.com/repense-ai/repense-ai
           poetry build
-          poetry publish
+          poetry publish -r github
