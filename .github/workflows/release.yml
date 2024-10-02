@@ -41,10 +41,11 @@ jobs:
           prerelease: false
 
       - name: Publish Python Package
-        uses: celsiusnarhwal/poetry-publish@v2
-        with:
-          python-version: 3.11
-          poetry-version: 1.3.1
-          token: ${{ secrets.GITHUB_TOKEN }}
-          build: true
-          repo: https://github.com/Repense-ai/repense-ai
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+        run: |
+          pip install poetry && poetry config virtualenvs.create false
+          poetry config pypi-token.repense-ai $GITHUB_TOKEN
+          poetry config repositories.repense-ai https://github.com/Repense-ai/repense-ai
+          poetry build
+          poetry publish -r repense-ai
