@@ -39,13 +39,3 @@ jobs:
             Automated release for version ${{ env.VERSION }}
           draft: false
           prerelease: false
-
-      - name: Publish Python Package
-        env:
-          GITHUB_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
-        run: |
-          pip install poetry && poetry config virtualenvs.create false
-          poetry config pypi-token.repense-ai $GITHUB_TOKEN
-          poetry config repositories.repense-ai https://github.com/Repense-ai/repense-ai
-          poetry build
-          poetry publish -r repense-ai
