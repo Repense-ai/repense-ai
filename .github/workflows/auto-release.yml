@@ -42,10 +42,10 @@ jobs:
 
       - name: Publish Python Package
         env:
-          PYPI_USERNAME: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pip install poetry
+          poetry config pypi-token.github $GITHUB_TOKEN
           poetry config repositories.github https://github.com/repense-ai/repense-ai
           poetry build
           poetry publish -r github
