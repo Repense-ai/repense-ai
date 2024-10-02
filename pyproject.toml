@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "repenseai"
 version = "0.0.2"
-description = "repense package to support solutions with LLMs"
+description = "Repense package to support solutions with LLMs"
 authors = ["Samuel Baptista <samuel.baptista@repense.ai>"]
 readme = "README.md"
 packages = [{ include = "repenseai" }]
