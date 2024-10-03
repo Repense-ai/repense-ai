@@ -1,10 +1,11 @@
 import os
-from typing import Any, Union, List
+from typing import Any, List, Union
 
 import google.generativeai as genai
+from dotenv import find_dotenv, load_dotenv
+
 from repenseai.aws.secrets_manager import SecretsManager
 
-from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 

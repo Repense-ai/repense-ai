@@ -1,18 +1,16 @@
-import os
 import base64
 import io
-
-from openai import OpenAI
-
-from typing import List, Dict, Union, Any
+import os
 from io import BufferedReader
+from typing import Any, Dict, List, Union
 
+from dotenv import find_dotenv, load_dotenv
+from openai import OpenAI
 from PIL import Image
 
-from repenseai.utils.logs import logger
 from repenseai.aws.secrets_manager import SecretsManager
+from repenseai.utils.logs import logger
 
-from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 

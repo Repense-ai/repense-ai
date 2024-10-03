@@ -1,11 +1,11 @@
-import os
-import requests
 import json
+import os
 
-from repenseai.utils.logs import logger
+import requests
+from dotenv import find_dotenv, load_dotenv
+
 from repenseai.aws.secrets_manager import SecretsManager
 
-from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 

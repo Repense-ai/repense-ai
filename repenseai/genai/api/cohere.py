@@ -1,14 +1,13 @@
 import os
+from io import BufferedReader
+from typing import Any, Dict, List, Union
 
 import cohere
+from dotenv import find_dotenv, load_dotenv
 
-from typing import List, Dict, Union, Any
-from io import BufferedReader
-
-from repenseai.utils.logs import logger
 from repenseai.aws.secrets_manager import SecretsManager
+from repenseai.utils.logs import logger
 
-from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 

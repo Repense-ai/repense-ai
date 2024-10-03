@@ -1,7 +1,7 @@
 import importlib
 
-from repenseai.utils.logs import logger
 from repenseai.config.selection_params import MODELS
+from repenseai.utils.logs import logger
 
 
 class APISelector:
@@ -21,11 +21,11 @@ class APISelector:
 
     def get_api(self, **kwargs):
         self.__get_modules()
-        api_key = self.api_key if self.api_key is not None else self.module_params.API_KEY
-
-        chat_api = self.module_api.ChatAPI(
-            api_key=api_key, model=self.model, **kwargs
+        api_key = (
+            self.api_key if self.api_key is not None else self.module_params.API_KEY
         )
+
+        chat_api = self.module_api.ChatAPI(api_key=api_key, model=self.model, **kwargs)
 
         vision_api = self.module_api.VisionAPI(
             api_key=api_key, model=self.model, **kwargs

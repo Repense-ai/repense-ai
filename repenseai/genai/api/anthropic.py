@@ -1,23 +1,23 @@
-import os
 import base64
 import io
-
-from PIL import Image
+import os
+from typing import Any, Dict, List, Union
 
 from anthropic import Anthropic
+from dotenv import find_dotenv, load_dotenv
+from PIL import Image
 
-from typing import List, Dict, Union, Any
-
-from repenseai.utils.logs import logger
 from repenseai.aws.secrets_manager import SecretsManager
+from repenseai.utils.logs import logger
 
-from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 
 def get_api_key():
     secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
-    key = os.getenv("ANTHROPIC_API_KEY") or secret_manager.get_secret("ANTHROPIC_API_KEY")
+    key = os.getenv("ANTHROPIC_API_KEY") or secret_manager.get_secret(
+        "ANTHROPIC_API_KEY"
+    )
 
     if key:
         return key

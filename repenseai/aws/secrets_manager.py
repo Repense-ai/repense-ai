@@ -1,8 +1,8 @@
-
-import boto3
 import json
 
+import boto3
 from botocore.exceptions import ClientError
+
 from repenseai.utils.logs import logger
 
 
@@ -23,10 +23,9 @@ class SecretsManager:
             self.region_name = region_name
 
             self.client = boto3.client(
-                service_name="secretsmanager", 
-                region_name=self.region_name
+                service_name="secretsmanager", region_name=self.region_name
             )
-            
+
             self._initialized = True
 
     def get_secret(self, secret_key: str) -> str:
@@ -34,7 +33,9 @@ class SecretsManager:
             return self._secrets.get(secret_key)
 
         try:
-            get_secret_value_response = self.client.get_secret_value(SecretId=self.secret_name)
+            get_secret_value_response = self.client.get_secret_value(
+                SecretId=self.secret_name
+            )
             secrets = json.loads(get_secret_value_response["SecretString"])
         except ClientError as e:
             logger(f"Error getting secret: {e}")

@@ -1,18 +1,16 @@
 import re
-
-from string import digits, punctuation, whitespace
-
-from typing import List, Union
 from difflib import SequenceMatcher
+from string import digits, punctuation, whitespace
+from typing import List, Union
 
 from unidecode import unidecode
 
 
 def format_time_diff(time_diff: int) -> str:
     if time_diff >= 3600:
-        return f"{(time_diff/3600):.4f}h"
+        return f"{(time_diff / 3600):.4f}h"
     elif time_diff >= 60:
-        return f"{(time_diff/60):.4f}min"
+        return f"{(time_diff / 60):.4f}min"
     else:
         return f"{(time_diff):.4f}s"
 
