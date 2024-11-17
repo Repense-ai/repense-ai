@@ -1,24 +1,9 @@
-import os
 from io import BufferedReader
 from typing import Any, Dict, List, Union
 
-from dotenv import find_dotenv, load_dotenv
 from groq import Groq
 
-from repenseai.aws.secrets_manager import SecretsManager
 from repenseai.utils.logs import logger
-
-load_dotenv(find_dotenv())
-
-
-def get_api_key():
-    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
-    key = os.getenv("GROQ_API_KEY") or secret_manager.get_secret("GROQ_API_KEY")
-
-    if key:
-        return key
-    else:
-        raise Exception("GROQ_API_KEY not found!")
 
 
 class ChatAPI:

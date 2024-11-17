@@ -1,8 +1,7 @@
 from io import BufferedReader
 from typing import Any, Dict, List, Union
 
-from openai import OpenAI
-
+from together import Together
 from repenseai.utils.logs import logger
 
 
@@ -10,7 +9,7 @@ class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "sabia-3",
+        model: str = "databricks/dbrx-instruct",
         temperature: float = 0.0,
         verbose=0,
     ):
@@ -21,10 +20,7 @@ class ChatAPI:
         self.tokens = 3500
         self.response = None
 
-        self.client = OpenAI(
-            api_key=self.api_key,
-            base_url="https://chat.maritaca.ai/api",
-        )
+        self.client = Together(api_key=self.api_key)
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
@@ -80,7 +76,7 @@ class ChatAPI:
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str = ""):
-        self.client = OpenAI(api_key=api_key)
+        self.client = Together(api_key=api_key)
         self.model = model
 
     def call_api(self, audio: BufferedReader):
@@ -94,7 +90,7 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(self, api_key: str, model: str = ""):
-        self.client = OpenAI(api_key=api_key)
+        self.client = Together(api_key=api_key)
         self.model = model
 
     def call_api(self, prompt: str, image: Any):

@@ -2,7 +2,6 @@ from io import BufferedReader
 from typing import Any, Dict, List, Union
 
 from openai import OpenAI
-
 from repenseai.utils.logs import logger
 
 
@@ -10,7 +9,7 @@ class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "sabia-3",
+        model: str = "grok-beta",
         temperature: float = 0.0,
         verbose=0,
     ):
@@ -23,7 +22,7 @@ class ChatAPI:
 
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url="https://chat.maritaca.ai/api",
+            base_url="https://api.x.ai/v1",
         )
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:

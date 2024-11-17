@@ -1,57 +1,206 @@
-MODELS = {
-    "gpt-4o-mini": "openai",
-    "gpt-4o": "openai",
-    "gpt-4o-2024-08-06": "openai",
-    "claude-3-haiku-20240307": "anthropic",
-    "claude-3-sonnet-20240229": "anthropic",
-    "claude-3-5-sonnet-20240620": "anthropic",
-    "claude-3-opus-20240229": "anthropic",
-    "gemini-1.5-pro": "google",
-    "gemini-1.5-flash": "google",
-    "gemini-1.5-pro-002": "google",
-    "gemini-1.5-flash-002": "google",
-    "mistral-large-latest": "mistral",
-    "mistral-medium-latest": "mistral",
-    "mistral-small-latest": "mistral",
-    "command-r-plus-08-2024": "cohere",
-    "command-r-08-2024": "cohere",
-    "command-r-plus": "cohere",
-    "command-r": "cohere",
-    # "llama-3.1-405b-reasoning": "groq",
-    "llama-3.1-70b-versatile": "groq",
-    "llama-3.1-8b-instant": "groq",
-    "sabia-3": "maritaca",
-    "Meta-Llama-3.1-8B-Instruct": "sambanova",
-    "Meta-Llama-3.1-70B-Instruct": "sambanova",
-    "Meta-Llama-3.1-405B-Instruct": "sambanova",
+TEXT_MODELS = {
+    "sabia-3": {
+        "provider": "maritaca", 
+        "cost": {"input": 1.0, "output": 2.0}
+    },
+    "sabiazinho-3": {
+        "provider": "maritaca", 
+        "cost": {"input": 0.2, "output": 0.6}
+    },
+    "gpt-4o-mini": {
+        "provider": "openai", 
+        "cost": {"input": 0.15, "output": 0.6}
+    },
+    "gpt-4o": {
+        "provider": "openai", 
+        "cost": {"input": 2.50, "output": 10.0}
+    },
+    "claude-3-haiku-20240307": {
+        "provider": "anthropic",
+        "cost": {"input": 0.25, "output": 1.25},
+    },
+    "claude-3-5-haiku-20241022": {
+        "provider": "anthropic",
+        "cost": {"input": 1.0, "output": 5.0},
+    },
+    "claude-3-5-sonnet-20240620": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
+    },
+    "claude-3-5-sonnet-20241022": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
+    },
+    "gemini-1.5-pro": {
+        "provider": "google", 
+        "cost": {"input": 2.50, "output": 10.0}
+    },
+    "gemini-1.5-flash": {
+        "provider": "google", 
+        "cost": {"input": 0.15, "output": 0.60}
+    },
+    "mistral-large-latest": {
+        "provider": "mistral",
+        "cost": {"input": 2.0, "output": 6.0},
+    },
+    "mistral-small-latest": {
+        "provider": "mistral",
+        "cost": {"input": 0.2, "output": 0.6},
+    },
+    "pixtral-12b-2409": {
+        "provider": "mistral",
+        "cost": {"input": 0.15, "output": 0.15},
+    },
+    "command-r-plus-08-2024": {
+        "provider": "cohere",
+        "cost": {"input": 2.50, "output": 10.0},
+    },
+    "command-r-08-2024": {
+        "provider": "cohere",
+        "cost": {"input": 0.15, "output": 0.60},
+    },
+    "llama-3.1-70b-versatile": {
+        "provider": "groq",
+        "cost": {"input": 0.59, "output": 0.79},
+    },
+    "llama-3.1-8b-instant": {
+        "provider": "groq",
+        "cost": {"input": 0.05, "output": 0.08},
+    },
+    "Meta-Llama-3.1-8B-Instruct": {
+        "provider": "sambanova",
+        "cost": {"input": 0.10, "output": 0.20},
+    },
+    "Meta-Llama-3.1-70B-Instruct": {
+        "provider": "sambanova",
+        "cost": {"input": 0.60, "output": 1.2},
+    },
+    "Meta-Llama-3.1-405B-Instruct": {
+        "provider": "sambanova",
+        "cost": {"input": 5.0, "output": 10.0},
+    },
+    "Meta-Llama-3.2-1B-Instruct": {
+        "provider": "sambanova",
+        "cost": {"input": 0.04, "output": 0.08},
+    },
+    "Meta-Llama-3.2-3B-Instruct": {
+        "provider": "sambanova",
+        "cost": {"input": 0.08, "output": 0.16},
+    },
+    "Llama-3.2-11B-Vision-Instruct": {
+        "provider": "together",
+        "cost": {"input": 0.15, "output": 0.30},
+    },
+    "Llama-3.2-90B-Vision-Instruct": {
+        "provider": "together",
+        "cost": {"input": 0.80, "output": 1.60},
+    },
+    "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": {
+        "provider": "together",
+        "cost": {"input": 0.18, "output": 0.18},
+    },
+    "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": {
+        "provider": "together",
+        "cost": {"input": 1.20, "output": 1.20},
+    },
+    "databricks/dbrx-instruct": {
+        "provider": "together",
+        "cost": {"input": 1.20, "output": 1.20},
+    },
+    "grok-beta": {
+        "provider": "x", 
+        "cost": {"input": 5.0, "output": 15.0}
+    },
 }
 
 
-COSTS = {
-    "gpt-4o-mini": {"input": 0.15, "output": 0.6},
-    "gpt-4o": {"input": 5.0, "output": 15.0},
-    "gpt-4o-2024-08-06": {"input": 2.50, "output": 10.0},
-    "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
-    "claude-3-sonnet-20240229": {"input": 3.0, "output": 15.0},
-    "claude-3-opus-20240229": {"input": 15.0, "output": 75.0},
-    "claude-3-5-sonnet-20240620": {"input": 3.0, "output": 15.0},
-    "gemini-1.5-pro": {"input": 3.5, "output": 10.5},
-    "gemini-1.5-flash": {"input": 0.35, "output": 1.05},
-    "gemini-1.5-pro-002": {"input": 1.25, "output": 2.50},
-    "gemini-1.5-flash-002": {"input": 0.075, "output": 0.30},
-    "mistral-large-latest": {"input": 8.0, "output": 24.0},
-    "mistral-medium-latest": {"input": 2.7, "output": 8.1},
-    "mistral-small-latest": {"input": 2.0, "output": 6.0},
-    "command-r-plus-08-2024": {"input": 2.50, "output": 10.0},
-    "command-r-plus": {"input": 3.0, "output": 15.0},
-    "command-r-08-2024": {"input": 0.15, "output": 0.60},
-    "command-r": {"input": 0.50, "output": 1.50},
-    "textract": 1.5,
-    "llama-3.1-405b-reasoning": {"input": 5.0, "output": 10.0},
-    "llama-3.1-70b-versatile": {"input": 0.59, "output": 0.79},
-    "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
-    "sabia-3": {"input": 2.0, "output": 2.0},
-    "Meta-Llama-3.1-8B-Instruct": {"input": 0.10, "output": 0.20},
-    "Meta-Llama-3.1-70B-Instruct": {"input": 0.60, "output": 1.2},
-    "Meta-Llama-3.1-405B-Instruct": {"input": 5.0, "output": 10.0},
+VISION_MODELS = {
+    "gpt-4o-mini": {
+        "provider": "openai", 
+        "cost": {"input": 0.15, "output": 0.6}
+    },
+    "gpt-4o": {
+        "provider": "openai", 
+        "cost": {"input": 2.50, "output": 10.0}
+    },
+    "claude-3-haiku-20240307": {
+        "provider": "anthropic",
+        "cost": {"input": 0.25, "output": 1.25},
+    },
+    "claude-3-5-sonnet-20240620": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
+    },
+    "claude-3-5-sonnet-20241022": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
+    },
+    "gemini-1.5-pro": {
+        "provider": "google", 
+        "cost": {"input": 2.50, "output": 10.0}
+    },
+    "gemini-1.5-flash": {
+        "provider": "google", 
+        "cost": {"input": 0.15, "output": 0.60}
+    },
+    "pixtral-12b-2409": {
+        "provider": "mistral",
+        "cost": {"input": 0.15, "output": 0.15},
+    },
+    "Llama-3.2-11B-Vision-Instruct": {
+        "provider": "together",
+        "cost": {"input": 0.15, "output": 0.30},
+    },
+    "Llama-3.2-90B-Vision-Instruct": {
+        "provider": "together",
+        "cost": {"input": 0.80, "output": 1.60},
+    },
+    "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": {
+        "provider": "together",
+        "cost": {"input": 0.18, "output": 0.18},
+    },
+    "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": {
+        "provider": "together",
+        "cost": {"input": 1.20, "output": 1.20},
+    },                 
+}
+
+
+EMBEDDINGS_MODELS = {}
+
+
+AUDIO_MODELS = {}
+
+
+RANK_MODELS = {}
+
+
+MODERATION_MODELS = {}
+
+
+IMAGE_MODELS = {
+    "black-forest-labs/FLUX.1.1-pro": {
+        "provider": "together",
+        "cost": 0.04
+    },
+    "stability-image-gen/ultra": {
+        "provider": "stability",
+        "cost": 0.08
+    },
+    "stability-image-gen/core": {
+        "provider": "stability",
+        "cost": 0.06
+    },
+    "stability-image-gen/diffusion": {
+        "provider": "stability",
+        "cost": 0.05
+    },
+}
+
+
+VIDEO_MODELS = {
+    "stability-video-gen/core": {
+        "provider": "stability",
+        "cost": 0.2
+    },
 }

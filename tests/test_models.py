@@ -7,6 +7,7 @@ from repenseai.genai.tasks.api_task import ChatTask
 
 @pytest.mark.parametrize("model", MODELS.keys())
 def test_model_hello_world(model):
+
     selector = APISelector(model=model, api="chat")
     chat_api = selector.get_api()
 

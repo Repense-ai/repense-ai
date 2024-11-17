@@ -1,24 +1,8 @@
-import os
 from io import BufferedReader
 from typing import Any, Dict, List, Union
 
-from dotenv import find_dotenv, load_dotenv
 from mistralai import Mistral
-
-from repenseai.aws.secrets_manager import SecretsManager
 from repenseai.utils.logs import logger
-
-load_dotenv(find_dotenv())
-
-
-def get_api_key():
-    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
-    key = os.getenv("MISTRAL_API_KEY") or secret_manager.get_secret("MISTRAL_API_KEY")
-
-    if key:
-        return key
-    else:
-        raise Exception("MISTRAL_API_KEY not found!")
 
 
 class ChatAPI:

@@ -1,14 +1,14 @@
 from typing import Any
 
 from repenseai.genai.tasks.base_task import BaseTask
-from repenseai.config.selection_params import MODELS, COSTS
+from repenseai.config.selection_params import TEXT_MODELS
 from repenseai.utils.logs import logger
 
 
 def log_costs(model: Any) -> None:
     try:
         tokens = model.get_tokens()
-        cost = COSTS[model.model]
+        cost = TEXT_MODELS[model.model]["cost"]
 
         input_cost = (cost["input"] * tokens["prompt_tokens"]) / 1_000_000
         output_cost = (cost["output"] * tokens["completion_tokens"]) / 1_000_000
@@ -40,7 +40,7 @@ class ChatTask(BaseTask):
         self.temperature = temperature
         self.model = api
 
-        models_dict = MODELS
+        models_dict = TEXT_MODELS
         self.provider = models_dict.get(self.model.model, "other")
 
     def build_prompt(self, **kwargs):

@@ -1,27 +1,12 @@
 import base64
 import io
-import os
-from io import BufferedReader
-from typing import Any, Dict, List, Union
 
-from dotenv import find_dotenv, load_dotenv
+from typing import Any, Dict, List, Union
 from openai import OpenAI
+
 from PIL import Image
 
-from repenseai.aws.secrets_manager import SecretsManager
 from repenseai.utils.logs import logger
-
-load_dotenv(find_dotenv())
-
-
-def get_api_key():
-    secret_manager = SecretsManager(secret_name="genai", region_name="us-east-2")
-    key = os.getenv("OPENAI_API_KEY") or secret_manager.get_secret("OPENAI_API_KEY")
-
-    if key:
-        return key
-    else:
-        raise Exception("OPENAI_API_KEY not found!")
 
 
 class ChatAPI:
@@ -98,7 +83,7 @@ class AudioAPI:
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
-    def call_api(self, audio: BufferedReader):
+    def call_api(self, audio: io.BufferedReader):
 
         transcript = self.client.audio.transcriptions.create(
             model=self.model,
