@@ -12,6 +12,7 @@ class ChatAPI:
         self.model = model
 
         self.client = genai.GenerativeModel(self.model)
+        
         self.config = genai.types.GenerationConfig(
             candidate_count=1,
             temperature=0.0,

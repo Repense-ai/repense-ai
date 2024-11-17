@@ -1,7 +1,7 @@
 from io import BufferedReader
 from typing import Any, Dict, List, Union
 
-import cohere
+from cohere import ClientV2
 from repenseai.utils.logs import logger
 
 
@@ -9,7 +9,7 @@ class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "command-r-plus",
+        model: str = "command-r-08-2024",
         temperature: float = 0.0,
         verbose=0,
     ):
@@ -20,7 +20,7 @@ class ChatAPI:
         self.tokens = 3500
         self.response = None
 
-        self.client = cohere.Client(api_key=self.api_key)
+        self.client = ClientV2(api_key=self.api_key)
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
@@ -30,19 +30,16 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            json_data.update({"chat_history": prompt, "message": prompt[-1]["message"]})
-
+            json_data["messages"] = prompt
         else:
-            json_data.update(
-                {
-                    "chat_history": [{"role": "system", "message": prompt}],
-                    "message": prompt,
-                }
-            )
+            json_data["messages"] = [{"role": "system", "content": prompt}]
 
         try:
 
-            self.response = self.client.chat(**json_data)
+            response = self.client.chat(**json_data)
+
+            self.response = response.model_dump()
+            self.raw_response = response
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -50,30 +47,37 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
+    def get_raw_response(self) -> Any:
+        return self.raw_response
+
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.text
+            return self.response["message"]["content"][0]["text"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
 
-            input_tokens = self.response.meta.tokens.input_tokens
-            output_tokens = self.response.meta.tokens.output_tokens
+            usage = self.response["usage"]
+
+            prompt_tokens = usage["billed_units"]["input_tokens"]
+            completion_tokens = usage["billed_units"]["output_tokens"]
+
+            total_tokens = prompt_tokens + completion_tokens
 
             return {
-                "completion_tokens": int(output_tokens),
-                "prompt_tokens": int(input_tokens),
-                "total_tokens": int(output_tokens + input_tokens),
+                "prompt_tokens": prompt_tokens, 
+                "completion_tokens": completion_tokens, 
+                "total_tokens": total_tokens,
             }
         else:
             return None
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = "command-r-plus"):
-        self.client = cohere.Client(api_key=api_key)
+    def __init__(self, api_key: str, model: str = ""):
+        self.client = ClientV2(api_key=api_key)
         self.model = model
 
     def call_api(self, audio: BufferedReader):
@@ -86,8 +90,8 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = "command-r-plus"):
-        self.client = cohere.Client(api_key=api_key)
+    def __init__(self, api_key: str, model: str = ""):
+        self.client = ClientV2(api_key=api_key)
         self.model = model
 
     def call_api(self, prompt: str, image: Any):

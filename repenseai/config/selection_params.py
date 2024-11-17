@@ -88,11 +88,11 @@ TEXT_MODELS = {
         "cost": {"input": 0.08, "output": 0.16},
     },
     "Llama-3.2-11B-Vision-Instruct": {
-        "provider": "together",
+        "provider": "sambanova",
         "cost": {"input": 0.15, "output": 0.30},
     },
     "Llama-3.2-90B-Vision-Instruct": {
-        "provider": "together",
+        "provider": "sambanova",
         "cost": {"input": 0.80, "output": 1.60},
     },
     "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": {

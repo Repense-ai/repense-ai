@@ -40,13 +40,10 @@ class ChatTask(BaseTask):
         self.temperature = temperature
         self.model = api
 
-        models_dict = TEXT_MODELS
-        self.provider = models_dict.get(self.model.model, "other")
+        self.provider = TEXT_MODELS.get(self.model.model)["provider"]
 
     def build_prompt(self, **kwargs):
-
-        role = "system" if self.provider in ["openai", "cohere"] else "user"
-
+        
         if self.prompt_template != "":
             content = self.prompt_template.format(
                 instruction=self.instruction, **kwargs
@@ -56,10 +53,8 @@ class ChatTask(BaseTask):
 
         if self.provider == "google":
             return content
-        elif self.provider == "cohere":
-            return [{"role": role, "message": content}]
 
-        return [{"role": role, "content": content}]
+        return [{"role": "user", "content": content}]
 
     def predict(self, context: dict) -> str:
         try:
