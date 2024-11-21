@@ -22,10 +22,6 @@ TEXT_MODELS = {
     "o1-mini": {
         "provider": "openai", 
         "cost": {"input": 3.00, "output": 12.0}
-    },        
-    "claude-3-haiku-20240307": {
-        "provider": "anthropic",
-        "cost": {"input": 0.25, "output": 1.25},
     },
     "claude-3-5-haiku-20241022": {
         "provider": "anthropic",
@@ -130,10 +126,6 @@ VISION_MODELS = {
     "gpt-4o": {
         "provider": "openai", 
         "cost": {"input": 2.50, "output": 10.0}
-    },
-    "claude-3-haiku-20240307": {
-        "provider": "anthropic",
-        "cost": {"input": 0.25, "output": 1.25},
     },
     "claude-3-5-sonnet-20240620": {
         "provider": "anthropic",
