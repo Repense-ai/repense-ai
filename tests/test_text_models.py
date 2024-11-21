@@ -9,7 +9,7 @@ from repenseai.genai.tasks.api_task import ChatTask
 def test_text_models_hello_world(model):
 
     selector = APISelector(model=model, model_type="chat")
-    chat_api = selector.get_api()
+    chat_api = selector.get_api(temperature=0.0)
 
     task = ChatTask(
         instruction="Say 'Hello, World!'",

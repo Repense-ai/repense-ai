@@ -60,7 +60,7 @@ class ChatAPI:
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = "mistral-large-latest"):
+    def __init__(self, api_key: str, model: str = ""):
         self.client = Groq(api_key=api_key)
         self.model = model
 
@@ -74,9 +74,15 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = "mistral-large-latest"):
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "",
+            temperature: float = 0.0,
+        ):
         self.client = Groq(api_key=api_key)
         self.model = model
+        self.temperature = temperature
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt

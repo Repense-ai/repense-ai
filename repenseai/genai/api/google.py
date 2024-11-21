@@ -4,7 +4,12 @@ import google.generativeai as genai
 
 
 class ChatAPI:
-    def __init__(self, api_key: str, model: str = "gemini-1.5-pro-latest"):
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "gemini-1.5-pro-latest",
+            temperature: float = 0.0,
+        ):
 
         self.api_key = api_key
         genai.configure(api_key=self.api_key)
@@ -15,7 +20,7 @@ class ChatAPI:
         
         self.config = genai.types.GenerationConfig(
             candidate_count=1,
-            temperature=0.0,
+            temperature=temperature,
         )
 
     def call_api(self, prompt: str):
@@ -67,10 +72,14 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = "gemini-pro-vision"):
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "gemini-pro-vision",
+            temperature: float = 0.0,
+        ):
         self.api_key = api_key
-
-        self.config = genai.types.GenerationConfig(candidate_count=1, temperature=0.0)
+        self.config = genai.types.GenerationConfig(candidate_count=1, temperature=temperature)
 
         genai.configure(api_key=self.api_key)
 

@@ -90,7 +90,12 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "",
+            temperature: float = 0.0,
+        ):
         self.client = ClientV2(api_key=api_key)
         self.model = model
 

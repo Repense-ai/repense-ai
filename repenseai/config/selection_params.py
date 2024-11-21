@@ -15,6 +15,14 @@ TEXT_MODELS = {
         "provider": "openai", 
         "cost": {"input": 2.50, "output": 10.0}
     },
+    "o1-preview": {
+        "provider": "openai", 
+        "cost": {"input": 15.00, "output": 60.0}
+    },
+    "o1-mini": {
+        "provider": "openai", 
+        "cost": {"input": 3.00, "output": 12.0}
+    },        
     "claude-3-haiku-20240307": {
         "provider": "anthropic",
         "cost": {"input": 0.25, "output": 1.25},

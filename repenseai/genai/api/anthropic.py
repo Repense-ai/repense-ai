@@ -85,9 +85,41 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = "claude-3-sonnet-20240229"):
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "claude-3-sonnet-20240229",
+            temperature: float = 0.0,
+        ):
         self.client = Anthropic(api_key=api_key)
         self.model = model
+        self.temperature = temperature
+
+    def resize_image(self, image: Image.Image) -> Image.Image:
+        max_size = 1568
+        min_size = 200
+        width, height = image.size
+
+        if max(width, height) > max_size:
+            aspect_ratio = width / height
+            if width > height:
+                new_width = max_size
+                new_height = int(new_width / aspect_ratio)
+            else:
+                new_height = max_size
+                new_width = int(new_height * aspect_ratio)
+            image = image.resize((new_width, new_height))
+        elif min(width, height) < min_size:
+            aspect_ratio = width / height
+            if width < height:
+                new_width = min_size
+                new_height = int(new_width / aspect_ratio)
+            else:
+                new_height = min_size
+                new_width = int(new_height * aspect_ratio)
+            image = image.resize((new_width, new_height))
+
+        return image        
 
     def process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
@@ -95,9 +127,10 @@ class VisionAPI:
         elif isinstance(image, Image.Image):
             img_byte_arr = io.BytesIO()
 
+            image = self.resize_image(image)
             image.save(img_byte_arr, format="PNG")
-            img_byte_arr = img_byte_arr.getvalue()
 
+            img_byte_arr = img_byte_arr.getvalue()
             image_string = base64.b64encode(img_byte_arr).decode("utf-8")
 
             return image_string
@@ -126,7 +159,7 @@ class VisionAPI:
                     }
                 ],
                 "max_tokens": 3500,
-                "temperature": 0,
+                "temperature": self.temperature,
             }
 
             self.response = self.client.messages.create(**payload)
@@ -155,7 +188,7 @@ class VisionAPI:
                 "model": self.model,
                 "messages": [{"role": "user", "content": content}],
                 "max_tokens": 3500,
-                "temperature": 0,
+                "temperature": self.temperature,
             }
 
             self.response = self.client.messages.create(**payload)

@@ -96,10 +96,16 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = "gpt-4-turbo"):
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "gpt-4-turbo",
+            temperature: float = 0.0,
+        ):
         self.client = OpenAI(api_key=api_key)
         self.model = model
         self.tokens = 3500
+        self.temperature = temperature
 
     def process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
@@ -152,7 +158,7 @@ class VisionAPI:
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
             "max_tokens": 3500,
-            "temperature": 0,
+            "temperature": self.temperature,
         }
 
         self.response = self.client.chat.completions.create(**payload)

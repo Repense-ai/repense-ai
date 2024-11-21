@@ -93,9 +93,14 @@ class AudioAPI:
 
 
 class VisionAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(
+            self, api_key: str, 
+            model: str = "",
+            temperature: float = 0.0,
+        ):
         self.client = OpenAI(api_key=api_key)
         self.model = model
+        self.temperature = temperature
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt
