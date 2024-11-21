@@ -27,11 +27,17 @@ class ChatAPI:
         self.client = OpenAI(api_key=self.api_key)
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
-        json_data = {
-            "model": self.model,
-            "temperature": self.temperature,
-            "max_tokens": self.tokens,
-        }
+        if "o1" not in self.model:
+            json_data = {
+                "model": self.model,
+                "temperature": self.temperature,
+                "max_tokens": self.tokens,
+            }
+
+        else:
+            json_data = {
+                "model": self.model,
+            }
 
         if isinstance(prompt, list):
             json_data["messages"] = prompt
