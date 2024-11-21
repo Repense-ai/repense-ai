@@ -135,12 +135,12 @@ class VisionAPI:
         content = [{"type": "text", "text": prompt}]
 
         if isinstance(image, str) or isinstance(image, Image.Image):
-            image = self.process_image(image)
+            img = self.process_image(image)
             content.append(
                 {
                     "type": "image_url",
-                    "image_url": f"data:image/png;base64,{image}",
-                },
+                    "image_url": f"data:image/png;base64,{img}",
+                }
             )
         elif isinstance(image, list):
             for img in image:
@@ -148,8 +148,8 @@ class VisionAPI:
                 content.append(
                     {
                         "type": "image_url",
-                        "image_url": f"data:image/png;base64,{image}", 
-                    },
+                        "image_url": f"data:image/png;base64,{img}", 
+                    }
                 )
         else:
             raise Exception(
