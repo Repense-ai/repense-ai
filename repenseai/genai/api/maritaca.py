@@ -12,12 +12,12 @@ class ChatAPI:
         api_key: str,
         model: str = "sabia-3",
         temperature: float = 0.0,
-        verbose=0,
+        stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.verbose = verbose
+        self.stream = stream
         self.tokens = 3500
         self.response = None
 
@@ -31,6 +31,8 @@ class ChatAPI:
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.tokens,
+            "stream": self.stream,
+            "stream_options": {"include_usage": True},
         }
 
         if isinstance(prompt, list):
@@ -39,11 +41,12 @@ class ChatAPI:
             json_data["messages"] = [{"role": "system", "content": prompt}]
 
         try:
+            self.response = self.client.chat.completions.create(**json_data)
 
-            response = self.client.chat.completions.create(**json_data)
-
-            self.response = response.model_dump()
-            self.raw_response = response
+            if not self.stream:
+                return self.response.model_dump()
+            
+            return self.response
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -51,29 +54,15 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_raw_response(self) -> Any:
-        return self.raw_response
-
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["choices"][0]["message"]["content"]
-        else:
-            return None
-
-    def get_function_blueprint(self) -> Union[None, str]:
-        if self.response is not None:
-            try:
-                return self.response["choices"][0]["message"]["tool_calls"][0][
-                    "function"
-                ]["arguments"]
-            except Exception:
-                return self.response["choices"][0]["message"]["content"]
+            return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["usage"]
+            return self.response.model_dump()["usage"]
         else:
             return None
 
@@ -97,16 +86,25 @@ class VisionAPI:
             self, api_key: str, 
             model: str = "",
             temperature: float = 0.0,
+            stream=False,
         ):
         self.client = OpenAI(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.stream = stream
+        self.response = None
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt
         _ = image
 
         return "Not Implemented"
+    
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.model_dump()["choices"][0]["message"]["content"]
+        else:
+            return None    
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}

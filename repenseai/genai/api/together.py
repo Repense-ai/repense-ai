@@ -15,12 +15,12 @@ class ChatAPI:
         api_key: str,
         model: str = "databricks/dbrx-instruct",
         temperature: float = 0.0,
-        verbose=0,
+        stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.verbose = verbose
+        self.stream = stream
         self.tokens = 3500
         self.response = None
 
@@ -31,6 +31,8 @@ class ChatAPI:
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.tokens,
+            "stream": self.stream,
+            "stream_options": {"include_usage": True},
         }
 
         if isinstance(prompt, list):
@@ -39,11 +41,12 @@ class ChatAPI:
             json_data["messages"] = [{"role": "system", "content": prompt}]
 
         try:
+            self.response = self.client.chat.completions.create(**json_data)
 
-            response = self.client.chat.completions.create(**json_data)
-
-            self.response = response.model_dump()
-            self.raw_response = response
+            if not self.stream:
+                return self.response.model_dump()
+            
+            return self.response
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -51,29 +54,15 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_raw_response(self) -> Any:
-        return self.raw_response
-
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["choices"][0]["message"]["content"]
-        else:
-            return None
-
-    def get_function_blueprint(self) -> Union[None, str]:
-        if self.response is not None:
-            try:
-                return self.response["choices"][0]["message"]["tool_calls"][0][
-                    "function"
-                ]["arguments"]
-            except Exception:
-                return self.response["choices"][0]["message"]["content"]
+            return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["usage"]
+            return self.response.model_dump()["usage"]
         else:
             return None
 
@@ -98,10 +87,12 @@ class VisionAPI:
             api_key: str, 
             model: str = "",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
         self.client = Together(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.stream = stream
 
     def resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 1568
@@ -178,16 +169,30 @@ class VisionAPI:
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
 
-        payload = {
+        json_data = {
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
             "max_tokens": 3500,
             "temperature": self.temperature,
+            "stream": self.stream,
+            "stream_options": {"include_usage": True},
         }
 
-        self.response = self.client.chat.completions.create(**payload)
+        try:
+            self.response = self.client.chat.completions.create(**json_data)
 
-        return self.response.model_dump()["choices"][0]["message"]["content"]
+            if not self.stream:
+                return self.response.model_dump()
+            
+            return self.response
+        except Exception as e:
+            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")        
+
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.model_dump()["choices"][0]["message"]["content"]
+        else:
+            return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:

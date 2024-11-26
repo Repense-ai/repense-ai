@@ -11,12 +11,12 @@ class ChatAPI:
         api_key: str,
         model: str = "command-r-08-2024",
         temperature: float = 0.0,
-        verbose=0,
+        stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.verbose = verbose
+        self.stream = stream
         self.tokens = 3500
         self.response = None
 
@@ -32,14 +32,15 @@ class ChatAPI:
         if isinstance(prompt, list):
             json_data["messages"] = prompt
         else:
-            json_data["messages"] = [{"role": "system", "content": prompt}]
+            json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
-
-            response = self.client.chat(**json_data)
-
-            self.response = response.model_dump()
-            self.raw_response = response
+            if not self.stream:
+                self.response = self.client.chat(**json_data)
+                return self.response.model_dump()
+            
+            self.response = self.client.chat_stream(**json_data)
+            return self.response
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -47,19 +48,16 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_raw_response(self) -> Any:
-        return self.raw_response
-
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["message"]["content"][0]["text"]
+            return self.response.model_dump()["message"]["content"][0]["text"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
 
-            usage = self.response["usage"]
+            usage = self.response.model_dump()["usage"]
 
             prompt_tokens = usage["billed_units"]["input_tokens"]
             completion_tokens = usage["billed_units"]["output_tokens"]
@@ -95,15 +93,25 @@ class VisionAPI:
             api_key: str, 
             model: str = "",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
         self.client = ClientV2(api_key=api_key)
         self.model = model
+        self.temperature = temperature
+        self.stream = stream
+        self.response = None
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt
         _ = image
 
         return "Not Implemented"
+    
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.model_dump()["message"]["content"][0]["text"]
+        else:
+            return None    
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}

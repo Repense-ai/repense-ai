@@ -115,6 +115,10 @@ TEXT_MODELS = {
         "provider": "x", 
         "cost": {"input": 5.0, "output": 15.0}
     },
+    "grok-vision-beta": {
+        "provider": "x", 
+        "cost": {"input": 5.0, "output": 15.0}
+    },      
 }
 
 
@@ -162,7 +166,11 @@ VISION_MODELS = {
     "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
-    },                 
+    }, 
+    "grok-vision-beta": {
+        "provider": "x", 
+        "cost": {"input": 10.0, "output": 15.0}
+    },                
 }
 
 

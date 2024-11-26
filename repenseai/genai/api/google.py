@@ -9,9 +9,13 @@ class ChatAPI:
             api_key: str, 
             model: str = "gemini-1.5-pro-latest",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
 
         self.api_key = api_key
+        self.stream = stream
+        self.response = None
+
         genai.configure(api_key=self.api_key)
 
         self.model = model
@@ -29,9 +33,11 @@ class ChatAPI:
 
         self.response = self.client.generate_content(
             self.prompt,
-            stream=False,
+            stream=self.stream,
             generation_config=self.config,
         )
+
+        return self.response
 
     def get_response(self) -> Any:
         return self.response
@@ -77,31 +83,51 @@ class VisionAPI:
             api_key: str, 
             model: str = "gemini-pro-vision",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
         self.api_key = api_key
-        self.config = genai.types.GenerationConfig(candidate_count=1, temperature=temperature)
+        self.stream = stream
+
+        self.config = genai.types.GenerationConfig(
+            candidate_count=1, 
+            temperature=temperature
+        )
 
         genai.configure(api_key=self.api_key)
 
         self.model = model
         self.client = genai.GenerativeModel(self.model)
 
+        self.prompt = None
+        self.image = None
+        self.response = None
+
     def call_api(self, prompt: str, image: Union[Any, List[Any]]):
         self.prompt = prompt
         self.image = image
 
-        if isinstance(image, list):
-            self.response = self.client.generate_content(
-                [prompt] + image, stream=False, generation_config=self.config
-            )
+        json_data = {
+            'stream': self.stream,
+            'generation_config': self.config,
+        }
 
+        if isinstance(image, list):
+            json_data['content'] = [prompt] + image
+        else:
+            json_data['content'] = [prompt, image]
+
+        self.response = self.client.generate_content(**json_data)
+
+        if not self.stream:
+            self.response.text
+
+        return self.response
+    
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
             return self.response.text
         else:
-            self.response = self.client.generate_content(
-                [prompt, image], stream=False, generation_config=self.config
-            )
-
-            return self.response.text
+            return None    
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:

@@ -10,14 +10,14 @@ class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "llama3-8b-8192",
+        model: str = "llama-3.1-8b-instant",
         temperature: float = 0.0,
-        verbose=0,
+        stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.verbose = verbose
+        self.stream = stream
         self.tokens = 3500
         self.response = None
 
@@ -28,6 +28,7 @@ class ChatAPI:
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.tokens,
+            "stream": self.stream,
         }
         if isinstance(prompt, list):
             json_data["messages"] = prompt
@@ -35,10 +36,12 @@ class ChatAPI:
             json_data["messages"] = [{"role": "system", "content": prompt}]
 
         try:
+            self.response = self.client.chat.completions.create(**json_data)
 
-            response = self.client.chat.completions.create(**json_data)
-
-            self.response = response.model_dump()
+            if not self.stream:
+                return self.response.model_dump()
+            
+            return self.response
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -48,13 +51,13 @@ class ChatAPI:
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["choices"][0]["message"]["content"]
+            return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["usage"]
+            return self.response.model_dump()["usage"]
         else:
             return None
 
@@ -79,16 +82,25 @@ class VisionAPI:
             api_key: str, 
             model: str = "",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
         self.client = Groq(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.stream = stream
+        self.response = None
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt
         _ = image
 
         return "Not Implemented"
+    
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.model_dump()["choices"][0]["message"]["content"]
+        else:
+            return None    
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}

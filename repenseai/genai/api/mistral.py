@@ -15,12 +15,12 @@ class ChatAPI:
         api_key: str,
         model: str = "mistral-large-latest",
         temperature: float = 0.0,
-        verbose=0,
+        stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.verbose = verbose
+        self.stream = stream
         self.tokens = 3500
         self.response = None
 
@@ -39,25 +39,25 @@ class ChatAPI:
 
         try:
 
-            response = self.client.chat.complete(**json_data)
+            if self.stream:
+                return self.client.chat.stream(**json_data)
 
-            self.response = response.model_dump()
+            self.response = self.client.chat.complete(**json_data)
+            return self.response.model_dump()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
 
-    def get_response(self) -> Any:
-        return self.response
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["choices"][0]["message"]["content"]
+            return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response["usage"]
+            return self.response.model_dump()["usage"]
         else:
             return None
 
@@ -82,10 +82,12 @@ class VisionAPI:
             api_key: str, 
             model: str = "pixtral-12b-2409",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
         self.client = Mistral(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.stream = stream
 
     def resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 1568
@@ -156,17 +158,25 @@ class VisionAPI:
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
 
-        payload = {
+        json_data = {
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
             "max_tokens": 3500,
             "temperature": self.temperature,
         }
 
-        self.response = self.client.chat.complete(**payload)
+        if self.stream:
+            return self.client.chat.stream(**json_data)
 
-        return self.response.model_dump()["choices"][0]["message"]["content"]
+        self.response = self.client.chat.complete(**json_data)
+        return self.response.model_dump()
 
+    def get_text(self):
+        if self.response is not None:
+            return self.response.model_dump()["choices"][0]["message"]["content"] 
+        else:
+            return None        
+           
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["usage"]

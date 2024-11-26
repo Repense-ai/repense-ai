@@ -15,7 +15,7 @@ class ChatAPI:
         model: str = "claude-3-haiku-20240307",
         temperature: float = 0.0,
         max_tokens: int = 3500,
-        stream=False,
+        stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
@@ -26,13 +26,16 @@ class ChatAPI:
 
         self.client = Anthropic(api_key=self.api_key)
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
+    def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
+        with self.client.messages.stream(**json_data) as stream:
+            for message in stream:                
+                yield message
 
+    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.tokens,
-            "stream": self.stream,
         }
 
         if isinstance(prompt, list):
@@ -41,7 +44,11 @@ class ChatAPI:
             json_data.update(messages=[{"role": "user", "content": prompt}])
 
         try:
+            if self.stream:
+                return self._stream_api_call(json_data)
+
             self.response = self.client.messages.create(**json_data)
+            return self.response.model_dump()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -90,10 +97,17 @@ class VisionAPI:
             api_key: str, 
             model: str = "claude-3-sonnet-20240229",
             temperature: float = 0.0,
+            stream: bool = False,
         ):
         self.client = Anthropic(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.stream = stream
+
+    def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
+        with self.client.messages.stream(**json_data) as stream:
+            for message in stream:                
+                yield message
 
     def resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 1568
@@ -138,65 +152,65 @@ class VisionAPI:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
 
     def call_api(self, prompt: str, image: Any):
+
+        content = [{"type": "text", "text": prompt}]
+
         if isinstance(image, str) or isinstance(image, Image.Image):
-            image = self.process_image(image)
-            payload = {
-                "model": self.model,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image",
-                                "source": {
-                                    "data": image,
-                                    "type": "base64",
-                                    "media_type": "image/png",
-                                },
-                            },
-                            {"type": "text", "text": prompt},
-                        ],
-                    }
-                ],
-                "max_tokens": 3500,
-                "temperature": self.temperature,
+            img = self.process_image(image)
+            img_dict = {
+                "type": "image",
+                "source": {
+                    "data": img,
+                    "type": "base64",
+                    "media_type": "image/png",
+                },
             }
 
-            self.response = self.client.messages.create(**payload)
-            return self.response.content[0].text
+            content.insert(0, img_dict)
 
         elif isinstance(image, list):
 
-            content = []
-
             for img in image:
+
                 img = self.process_image(img)
-                content.append(
-                    {
-                        "type": "image",
-                        "source": {
-                            "data": img,
-                            "type": "base64",
-                            "media_type": "image/png",
-                        },
+                img_dict = {
+                    "type": "image",
+                    "source": {
+                        "data": img,
+                        "type": "base64",
+                        "media_type": "image/png",
                     },
-                )
+                }
 
-            content.append({"type": "text", "text": prompt})
-
-            payload = {
-                "model": self.model,
-                "messages": [{"role": "user", "content": content}],
-                "max_tokens": 3500,
-                "temperature": self.temperature,
-            }
-
-            self.response = self.client.messages.create(**payload)
-            return self.response.content[0].text
+                content.insert(0, img_dict)
         else:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
-            )
+            )                
+
+        json_data = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": content}],
+            "max_tokens": 3500,
+            "temperature": self.temperature,
+            "stream": self.stream,
+        }
+
+        try:
+            if self.stream:
+                return self._stream_api_call(json_data)
+            
+            self.response = self.client.messages.create(**json_data)
+            return self.response.model_dump()
+        except Exception as e:
+            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
+
+        
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.content[0].text
+        else:
+            return None        
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
