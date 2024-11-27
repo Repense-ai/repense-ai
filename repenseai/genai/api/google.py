@@ -1,3 +1,4 @@
+import time
 from typing import Any, List, Union
 
 import google.generativeai as genai
@@ -5,13 +6,13 @@ import google.generativeai as genai
 
 class ChatAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "gemini-1.5-pro-latest",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "gemini-1.5-pro-latest",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
 
         self.api_key = api_key
         self.stream = stream
@@ -24,7 +25,7 @@ class ChatAPI:
         self.model = model
 
         self.client = genai.GenerativeModel(self.model)
-        
+
         self.config = genai.types.GenerationConfig(
             candidate_count=1,
             temperature=temperature,
@@ -43,6 +44,7 @@ class ChatAPI:
 
         if not self.stream:
             self.tokens = self.get_tokens()
+            return self.get_text()
         
         return self.response
 
@@ -68,7 +70,7 @@ class ChatAPI:
             }
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> str:
         if chunk.usage_metadata.candidates_token_count == 0:
             return chunk.text
@@ -82,7 +84,7 @@ class ChatAPI:
                 "total_tokens": output_tokens + input_tokens,
             }
 
-            return chunk.text           
+            return chunk.text
 
 
 class AudioAPI:
@@ -101,18 +103,18 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "gemini-pro-vision",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "gemini-pro-vision",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
         self.api_key = api_key
         self.stream = stream
 
         self.config = genai.types.GenerationConfig(
-            candidate_count=1, 
+            candidate_count=1,
             temperature=temperature,
             max_output_tokens=max_tokens,
         )
@@ -132,27 +134,28 @@ class VisionAPI:
         self.image = image
 
         json_data = {
-            'stream': self.stream,
-            'generation_config': self.config,
+            "stream": self.stream,
+            "generation_config": self.config,
         }
 
         if isinstance(image, list):
-            json_data['content'] = [prompt] + image
+            json_data["contents"] = [prompt] + image
         else:
-            json_data['content'] = [prompt, image]
+            json_data["contents"] = [prompt, image]
 
         self.response = self.client.generate_content(**json_data)
 
         if not self.stream:
             self.tokens = self.get_tokens()
-
+            return self.get_text()
+        
         return self.response
-    
+
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.text
         else:
-            return None    
+            return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
@@ -171,7 +174,7 @@ class VisionAPI:
             }
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> str:
         if chunk.usage_metadata.candidates_token_count == 0:
             return chunk.text
@@ -185,4 +188,4 @@ class VisionAPI:
                 "total_tokens": output_tokens + input_tokens,
             }
 
-            return chunk.text        
+            return chunk.text

@@ -43,8 +43,8 @@ class ChatAPI:
                 self.response = self.client.chat(**json_data)
                 self.tokens = self.get_tokens()
 
-                return self.response.model_dump()
-            
+                return self.get_text()
+
             self.response = self.client.chat_stream(**json_data)
 
             return self.response
@@ -72,18 +72,18 @@ class ChatAPI:
             total_tokens = prompt_tokens + completion_tokens
 
             return {
-                "prompt_tokens": prompt_tokens, 
-                "completion_tokens": completion_tokens, 
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
                 "total_tokens": total_tokens,
             }
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.type == "content-delta":
             return chunk.delta.message.content.text
         elif chunk.type == "message-end":
-            usage = chunk.model_dump()['delta']['usage']["tokens"]
+            usage = chunk.model_dump()["delta"]["usage"]["tokens"]
 
             input_tokens = usage.get("input_tokens", 0)
             output_tokens = usage.get("output_tokens", 0)
@@ -92,7 +92,7 @@ class ChatAPI:
                 "completion_tokens": output_tokens,
                 "prompt_tokens": input_tokens,
                 "total_tokens": output_tokens + input_tokens,
-            }           
+            }
 
 
 class AudioAPI:
@@ -111,13 +111,13 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
         self.client = ClientV2(api_key=api_key)
         self.model = model
         self.temperature = temperature
@@ -132,21 +132,21 @@ class VisionAPI:
         _ = image
 
         return "Not Implemented"
-    
+
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["message"]["content"][0]["text"]
         else:
-            return None    
+            return None
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.type == "content-delta":
             return chunk.delta.message.content.text
         elif chunk.type == "message-end":
-            usage = chunk.model_dump()['delta']['usage']["tokens"]
+            usage = chunk.model_dump()["delta"]["usage"]["tokens"]
 
             input_tokens = usage.get("input_tokens", 0)
             output_tokens = usage.get("output_tokens", 0)
@@ -155,4 +155,4 @@ class VisionAPI:
                 "completion_tokens": output_tokens,
                 "prompt_tokens": input_tokens,
                 "total_tokens": output_tokens + input_tokens,
-            }    
+            }

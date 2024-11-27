@@ -30,7 +30,7 @@ class ChatAPI:
 
     def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
         with self.client.messages.stream(**json_data) as stream:
-            for message in stream:                
+            for message in stream:
                 yield message
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
@@ -52,7 +52,7 @@ class ChatAPI:
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
 
-            return self.response.model_dump()
+            return self.get_text()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -79,12 +79,12 @@ class ChatAPI:
             }
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.type == "content_block_delta":
             return chunk.delta.text
-        if chunk.type == 'message_stop':
-            usage = chunk.model_dump()['message']['usage']
+        if chunk.type == "message_stop":
+            usage = chunk.model_dump()["message"]["usage"]
 
             input_tokens = usage.get("input_tokens", 0)
             output_tokens = usage.get("output_tokens", 0)
@@ -93,8 +93,7 @@ class ChatAPI:
                 "completion_tokens": output_tokens,
                 "prompt_tokens": input_tokens,
                 "total_tokens": output_tokens + input_tokens,
-            }        
-
+            }
 
 
 class AudioAPI:
@@ -113,13 +112,13 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "claude-3-sonnet-20240229",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "claude-3-sonnet-20240229",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
         self.client = Anthropic(api_key=api_key)
         self.model = model
         self.temperature = temperature
@@ -131,7 +130,7 @@ class VisionAPI:
 
     def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
         with self.client.messages.stream(**json_data) as stream:
-            for message in stream:                
+            for message in stream:
                 yield message
 
     def resize_image(self, image: Image.Image) -> Image.Image:
@@ -158,7 +157,7 @@ class VisionAPI:
                 new_width = int(new_height * aspect_ratio)
             image = image.resize((new_width, new_height))
 
-        return image        
+        return image
 
     def process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
@@ -211,33 +210,31 @@ class VisionAPI:
         else:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
-            )                
+            )
 
         json_data = {
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
-            "stream": self.stream,
         }
 
         try:
             if self.stream:
                 return self._stream_api_call(json_data)
-            
+
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
 
-            return self.response.model_dump()
+            return self.get_text()
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
 
-        
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.content[0].text
         else:
-            return None        
+            return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
@@ -252,12 +249,12 @@ class VisionAPI:
             }
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.type == "content_block_delta":
             return chunk.delta.text
-        if chunk.type == 'message_stop':
-            usage = chunk.model_dump()['message']['usage']
+        if chunk.type == "message_stop":
+            usage = chunk.model_dump()["message"]["usage"]
 
             input_tokens = usage.get("input_tokens", 0)
             output_tokens = usage.get("output_tokens", 0)
@@ -266,4 +263,4 @@ class VisionAPI:
                 "completion_tokens": output_tokens,
                 "prompt_tokens": input_tokens,
                 "total_tokens": output_tokens + input_tokens,
-            }             
+            }

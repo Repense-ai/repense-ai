@@ -43,8 +43,8 @@ class ChatAPI:
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                return self.response.model_dump()
-            
+                return self.get_text()
+
             return self.response
 
         except Exception as e:
@@ -64,15 +64,15 @@ class ChatAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.choices:
             content = chunk.choices[0].delta.content
             if content:
                 return content
             else:
-                if chunk.model_dump().get('x_groq', {}).get('usage'):
-                    self.tokens = chunk.model_dump()['x_groq']['usage']               
+                if chunk.model_dump().get("x_groq", {}).get("usage"):
+                    self.tokens = chunk.model_dump()["x_groq"]["usage"]
 
 
 class AudioAPI:
@@ -91,13 +91,13 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
         self.client = Groq(api_key=api_key)
         self.model = model
         self.temperature = temperature
@@ -112,21 +112,21 @@ class VisionAPI:
         _ = image
 
         return "Not Implemented"
-    
+
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
-            return None    
+            return None
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.choices:
             content = chunk.choices[0].delta.content
             if content:
                 return content
             else:
-                if chunk.model_dump().get('x_groq', {}).get('usage'):
-                    self.tokens = chunk.model_dump()['x_groq']['usage']            
+                if chunk.model_dump().get("x_groq", {}).get("usage"):
+                    self.tokens = chunk.model_dump()["x_groq"]["usage"]

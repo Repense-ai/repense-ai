@@ -1,28 +1,10 @@
 TEXT_MODELS = {
-    "sabia-3": {
-        "provider": "maritaca", 
-        "cost": {"input": 1.0, "output": 2.0}
-    },
-    "sabiazinho-3": {
-        "provider": "maritaca", 
-        "cost": {"input": 0.2, "output": 0.6}
-    },
-    "gpt-4o-mini": {
-        "provider": "openai", 
-        "cost": {"input": 0.15, "output": 0.6}
-    },
-    "gpt-4o": {
-        "provider": "openai", 
-        "cost": {"input": 2.50, "output": 10.0}
-    },
-    "o1-preview": {
-        "provider": "openai", 
-        "cost": {"input": 15.00, "output": 60.0}
-    },
-    "o1-mini": {
-        "provider": "openai", 
-        "cost": {"input": 3.00, "output": 12.0}
-    },
+    "sabia-3": {"provider": "maritaca", "cost": {"input": 1.0, "output": 2.0}},
+    "sabiazinho-3": {"provider": "maritaca", "cost": {"input": 0.2, "output": 0.6}},
+    "gpt-4o-mini": {"provider": "openai", "cost": {"input": 0.15, "output": 0.6}},
+    "gpt-4o": {"provider": "openai", "cost": {"input": 2.50, "output": 10.0}},
+    "o1-preview": {"provider": "openai", "cost": {"input": 15.00, "output": 60.0}},
+    "o1-mini": {"provider": "openai", "cost": {"input": 3.00, "output": 12.0}},
     "claude-3-5-haiku-20241022": {
         "provider": "anthropic",
         "cost": {"input": 1.0, "output": 5.0},
@@ -35,14 +17,8 @@ TEXT_MODELS = {
         "provider": "anthropic",
         "cost": {"input": 3.0, "output": 15.0},
     },
-    "gemini-1.5-pro": {
-        "provider": "google", 
-        "cost": {"input": 2.50, "output": 10.0}
-    },
-    "gemini-1.5-flash": {
-        "provider": "google", 
-        "cost": {"input": 0.15, "output": 0.60}
-    },
+    "gemini-1.5-pro": {"provider": "google", "cost": {"input": 2.50, "output": 10.0}},
+    "gemini-1.5-flash": {"provider": "google", "cost": {"input": 0.15, "output": 0.60}},
     "mistral-large-latest": {
         "provider": "mistral",
         "cost": {"input": 2.0, "output": 6.0},
@@ -111,26 +87,14 @@ TEXT_MODELS = {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
     },
-    "grok-beta": {
-        "provider": "x", 
-        "cost": {"input": 5.0, "output": 15.0}
-    },
-    "grok-vision-beta": {
-        "provider": "x", 
-        "cost": {"input": 5.0, "output": 15.0}
-    },      
+    "grok-beta": {"provider": "x", "cost": {"input": 5.0, "output": 15.0}},
+    "grok-vision-beta": {"provider": "x", "cost": {"input": 5.0, "output": 15.0}},
 }
 
 
 VISION_MODELS = {
-    "gpt-4o-mini": {
-        "provider": "openai", 
-        "cost": {"input": 0.15, "output": 0.6}
-    },
-    "gpt-4o": {
-        "provider": "openai", 
-        "cost": {"input": 2.50, "output": 10.0}
-    },
+    "gpt-4o-mini": {"provider": "openai", "cost": {"input": 0.15, "output": 0.6}},
+    "gpt-4o": {"provider": "openai", "cost": {"input": 2.50, "output": 10.0}},
     "claude-3-5-sonnet-20240620": {
         "provider": "anthropic",
         "cost": {"input": 3.0, "output": 15.0},
@@ -139,26 +103,20 @@ VISION_MODELS = {
         "provider": "anthropic",
         "cost": {"input": 3.0, "output": 15.0},
     },
-    "gemini-1.5-pro": {
-        "provider": "google", 
-        "cost": {"input": 2.50, "output": 10.0}
-    },
-    "gemini-1.5-flash": {
-        "provider": "google", 
-        "cost": {"input": 0.15, "output": 0.60}
-    },
+    "gemini-1.5-pro": {"provider": "google", "cost": {"input": 2.50, "output": 10.0}},
+    "gemini-1.5-flash": {"provider": "google", "cost": {"input": 0.15, "output": 0.60}},
     "pixtral-12b-2409": {
         "provider": "mistral",
         "cost": {"input": 0.15, "output": 0.15},
     },
-    "Llama-3.2-11B-Vision-Instruct": {
-        "provider": "together",
-        "cost": {"input": 0.15, "output": 0.30},
-    },
-    "Llama-3.2-90B-Vision-Instruct": {
-        "provider": "together",
-        "cost": {"input": 0.80, "output": 1.60},
-    },
+    # "Llama-3.2-11B-Vision-Instruct": {
+    #     "provider": "sambanova",
+    #     "cost": {"input": 0.15, "output": 0.30},
+    # },
+    # "Llama-3.2-90B-Vision-Instruct": {
+    #     "provider": "sambanova",
+    #     "cost": {"input": 0.80, "output": 1.60},
+    # },
     "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": {
         "provider": "together",
         "cost": {"input": 0.18, "output": 0.18},
@@ -166,11 +124,8 @@ VISION_MODELS = {
     "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
-    }, 
-    "grok-vision-beta": {
-        "provider": "x", 
-        "cost": {"input": 10.0, "output": 15.0}
-    },                
+    },
+    # "grok-vision-beta": {"provider": "x", "cost": {"input": 10.0, "output": 15.0}},
 }
 
 
@@ -187,28 +142,13 @@ MODERATION_MODELS = {}
 
 
 IMAGE_MODELS = {
-    "black-forest-labs/FLUX.1.1-pro": {
-        "provider": "together",
-        "cost": 0.04
-    },
-    "stability-image-gen/ultra": {
-        "provider": "stability",
-        "cost": 0.08
-    },
-    "stability-image-gen/core": {
-        "provider": "stability",
-        "cost": 0.06
-    },
-    "stability-image-gen/diffusion": {
-        "provider": "stability",
-        "cost": 0.05
-    },
+    "black-forest-labs/FLUX.1.1-pro": {"provider": "together", "cost": 0.04},
+    "stability-image-gen/ultra": {"provider": "stability", "cost": 0.08},
+    "stability-image-gen/core": {"provider": "stability", "cost": 0.06},
+    "stability-image-gen/diffusion": {"provider": "stability", "cost": 0.05},
 }
 
 
 VIDEO_MODELS = {
-    "stability-video-gen/core": {
-        "provider": "stability",
-        "cost": 0.2
-    },
+    "stability-video-gen/core": {"provider": "stability", "cost": 0.2},
 }

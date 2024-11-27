@@ -31,19 +31,21 @@ class ChatTask(BaseTask):
     def __init__(
         self,
         api: Any,
+        provider: str,
         instruction: str = "",
         prompt_template: str = "",
         temperature: float = 0,
     ) -> None:
+
         self.instruction = instruction
         self.prompt_template = prompt_template
         self.temperature = temperature
-        self.model = api
 
-        self.provider = TEXT_MODELS.get(self.model.model)["provider"]
+        self.model = api
+        self.provider = provider
 
     def build_prompt(self, **kwargs):
-        
+
         if self.prompt_template != "":
             content = self.prompt_template.format(
                 instruction=self.instruction, **kwargs

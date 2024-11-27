@@ -47,12 +47,11 @@ class ChatAPI:
 
             self.response = self.client.chat.complete(**json_data)
             self.tokens = self.get_tokens()
-            
-            return self.response.model_dump()
+
+            return self.get_text()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
-
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
@@ -65,12 +64,12 @@ class ChatAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.data.usage:
             self.tokens = chunk.data.model_dump()["usage"]
         else:
-            return chunk.data.choices[0].delta.content        
+            return chunk.data.choices[0].delta.content
 
 
 class AudioAPI:
@@ -89,13 +88,13 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "pixtral-12b-2409",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "pixtral-12b-2409",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
         self.client = Mistral(api_key=api_key)
         self.model = model
         self.temperature = temperature
@@ -129,7 +128,7 @@ class VisionAPI:
                 new_width = int(new_height * aspect_ratio)
             image = image.resize((new_width, new_height))
 
-        return image  
+        return image
 
     def process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
@@ -166,7 +165,7 @@ class VisionAPI:
                 content.append(
                     {
                         "type": "image_url",
-                        "image_url": f"data:image/png;base64,{img}", 
+                        "image_url": f"data:image/png;base64,{img}",
                     }
                 )
         else:
@@ -187,22 +186,22 @@ class VisionAPI:
         self.response = self.client.chat.complete(**json_data)
         self.tokens = self.get_tokens()
 
-        return self.response.model_dump()
+        return self.get_text()
 
     def get_text(self):
         if self.response is not None:
-            return self.response.model_dump()["choices"][0]["message"]["content"] 
+            return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
-            return None        
-           
+            return None
+
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["usage"]
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.data.usage:
             self.tokens = chunk.data.model_dump()["usage"]
         else:
-            return chunk.data.choices[0].delta.content        
+            return chunk.data.choices[0].delta.content

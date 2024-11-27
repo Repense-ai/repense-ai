@@ -33,7 +33,7 @@ class ChatAPI:
         )
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
-        
+
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -52,8 +52,8 @@ class ChatAPI:
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                return self.response.model_dump()
-            
+                return self.get_text()
+
             return self.response
 
         except Exception as e:
@@ -70,17 +70,17 @@ class ChatAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.choices:
             content = chunk.choices[0].delta.content
             if content:
                 return content
             else:
-                self.tokens = chunk.model_dump()['usage']
+                self.tokens = chunk.model_dump()["usage"]
         else:
-            if chunk.model_dump()['usage']:
-                self.tokens = chunk.model_dump()['usage']         
+            if chunk.model_dump()["usage"]:
+                self.tokens = chunk.model_dump()["usage"]
 
 
 class AudioAPI:
@@ -102,13 +102,13 @@ class AudioAPI:
 
 class VisionAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "gpt-4-turbo",
-            temperature: float = 0.0,
-            max_tokens: int = 3500,
-            stream: bool = False,
-        ):
+        self,
+        api_key: str,
+        model: str = "gpt-4-turbo",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+    ):
 
         self.client = OpenAI(
             api_key=api_key,
@@ -184,8 +184,8 @@ class VisionAPI:
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                return self.response.model_dump()
-            
+                return self.get_text()
+
             return self.response
 
         except Exception as e:
@@ -202,14 +202,14 @@ class VisionAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
-        
+
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.choices:
             content = chunk.choices[0].delta.content
             if content:
                 return content
             else:
-                self.tokens = chunk.model_dump()['usage']
+                self.tokens = chunk.model_dump()["usage"]
         else:
-            if chunk.model_dump()['usage']:
-                self.tokens = chunk.model_dump()['usage']         
+            if chunk.model_dump()["usage"]:
+                self.tokens = chunk.model_dump()["usage"]
