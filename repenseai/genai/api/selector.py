@@ -103,73 +103,9 @@ class APISelector:
             
         return self.api
 
-    def process_stream_chunk(self, chunk: tp.Any) -> tp.Union[str, None]:
-        match self.provider:
-            case "anthropic":
-                if chunk.type == "content_block_delta":
-                    return chunk.delta.text
-                if chunk.type == 'message_stop':
-                    usage = chunk.model_dump()['message']['usage']
-
-                    input_tokens = usage.get("input_tokens", 0)
-                    output_tokens = usage.get("output_tokens", 0)
-
-                    self.tokens = {
-                        "completion_tokens": output_tokens,
-                        "prompt_tokens": input_tokens,
-                        "total_tokens": output_tokens + input_tokens,
-                    }
-            case "cohere":
-                if chunk.type == "content-delta":
-                    return chunk.delta.message.content.text
-                elif chunk.type == "message-end":
-                    usage = chunk.model_dump()['delta']['usage']["tokens"]
-
-                    input_tokens = usage.get("input_tokens", 0)
-                    output_tokens = usage.get("output_tokens", 0)
-
-                    self.tokens = {
-                        "completion_tokens": output_tokens,
-                        "prompt_tokens": input_tokens,
-                        "total_tokens": output_tokens + input_tokens,
-                    }
-            case "google":
-                if chunk.usage_metadata.candidates_token_count == 0:
-                    return chunk.text
-                else:
-                    input_tokens = chunk.usage_metadata.prompt_token_count
-                    output_tokens = chunk.usage_metadata.candidates_token_count
-
-                    self.tokens = {
-                        "completion_tokens": output_tokens,
-                        "prompt_tokens": input_tokens,
-                        "total_tokens": output_tokens + input_tokens,
-                    }
-
-                    return chunk.text
-            case "mistral":
-                if chunk.data.usage:
-                    self.tokens = chunk.data.model_dump()["usage"]
-                else:
-                    return chunk.data.choices[0].delta.content
-            case _:
-                if chunk.choices:
-                    content = chunk.choices[0].delta.content
-                    if content:
-                        return content
-                    else:
-                        if chunk.model_dump().get('x_groq', {}).get('usage'):
-                            self.tokens = chunk.model_dump()['x_groq']['usage']
-                        else:
-                            self.tokens = chunk.model_dump()['usage']
-                else:
-                    if chunk.model_dump()['usage']:
-                        self.tokens = chunk.model_dump()['usage']
-
-
-    def get_costs(self, as_string: str = False) -> tp.Union[float, str]:
-        input_cost = self.tokens["prompt_tokens"] * self.price["input"]
-        output_cost = self.tokens["completion_tokens"] * self.price["output"]
+    def get_costs(self, tokens: tp.Dict[str, int], as_string: str = False) -> tp.Union[float, str]:
+        input_cost = tokens["prompt_tokens"] * self.price["input"]
+        output_cost = tokens["completion_tokens"] * self.price["output"]
 
         total = (input_cost + output_cost) / 1_000_000
 

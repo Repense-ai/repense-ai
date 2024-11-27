@@ -20,9 +20,11 @@ class ChatAPI:
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
-        self.tokens = max_tokens
-        self.response = None
+        self.max_tokens = max_tokens
         self.stream = stream
+
+        self.response = None
+        self.tokens = None
 
         self.client = Anthropic(api_key=self.api_key)
 
@@ -35,7 +37,7 @@ class ChatAPI:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
-            "max_tokens": self.tokens,
+            "max_tokens": self.max_tokens,
         }
 
         if isinstance(prompt, list):
@@ -48,6 +50,8 @@ class ChatAPI:
                 return self._stream_api_call(json_data)
 
             self.response = self.client.messages.create(**json_data)
+            self.tokens = self.get_tokens()
+
             return self.response.model_dump()
 
         except Exception as e:
@@ -75,6 +79,22 @@ class ChatAPI:
             }
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.type == "content_block_delta":
+            return chunk.delta.text
+        if chunk.type == 'message_stop':
+            usage = chunk.model_dump()['message']['usage']
+
+            input_tokens = usage.get("input_tokens", 0)
+            output_tokens = usage.get("output_tokens", 0)
+
+            self.tokens = {
+                "completion_tokens": output_tokens,
+                "prompt_tokens": input_tokens,
+                "total_tokens": output_tokens + input_tokens,
+            }        
+
 
 
 class AudioAPI:
@@ -97,12 +117,17 @@ class VisionAPI:
             api_key: str, 
             model: str = "claude-3-sonnet-20240229",
             temperature: float = 0.0,
+            max_tokens: int = 3500,
             stream: bool = False,
         ):
         self.client = Anthropic(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.max_tokens = max_tokens
         self.stream = stream
+
+        self.response = None
+        self.tokens = None
 
     def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
         with self.client.messages.stream(**json_data) as stream:
@@ -191,7 +216,7 @@ class VisionAPI:
         json_data = {
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
-            "max_tokens": 3500,
+            "max_tokens": self.max_tokens,
             "temperature": self.temperature,
             "stream": self.stream,
         }
@@ -201,6 +226,8 @@ class VisionAPI:
                 return self._stream_api_call(json_data)
             
             self.response = self.client.messages.create(**json_data)
+            self.tokens = self.get_tokens()
+
             return self.response.model_dump()
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -225,3 +252,18 @@ class VisionAPI:
             }
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.type == "content_block_delta":
+            return chunk.delta.text
+        if chunk.type == 'message_stop':
+            usage = chunk.model_dump()['message']['usage']
+
+            input_tokens = usage.get("input_tokens", 0)
+            output_tokens = usage.get("output_tokens", 0)
+
+            self.tokens = {
+                "completion_tokens": output_tokens,
+                "prompt_tokens": input_tokens,
+                "total_tokens": output_tokens + input_tokens,
+            }             

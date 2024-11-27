@@ -11,14 +11,17 @@ class ChatAPI:
         api_key: str,
         model: str = "command-r-08-2024",
         temperature: float = 0.0,
+        max_tokens: int = 3500,
         stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.stream = stream
-        self.tokens = 3500
+        self.max_tokens = max_tokens
+
         self.response = None
+        self.tokens = None
 
         self.client = ClientV2(api_key=self.api_key)
 
@@ -26,7 +29,7 @@ class ChatAPI:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
-            "max_tokens": self.tokens,
+            "max_tokens": self.max_tokens,
         }
 
         if isinstance(prompt, list):
@@ -36,10 +39,14 @@ class ChatAPI:
 
         try:
             if not self.stream:
+
                 self.response = self.client.chat(**json_data)
+                self.tokens = self.get_tokens()
+
                 return self.response.model_dump()
             
             self.response = self.client.chat_stream(**json_data)
+
             return self.response
 
         except Exception as e:
@@ -71,6 +78,21 @@ class ChatAPI:
             }
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.type == "content-delta":
+            return chunk.delta.message.content.text
+        elif chunk.type == "message-end":
+            usage = chunk.model_dump()['delta']['usage']["tokens"]
+
+            input_tokens = usage.get("input_tokens", 0)
+            output_tokens = usage.get("output_tokens", 0)
+
+            self.tokens = {
+                "completion_tokens": output_tokens,
+                "prompt_tokens": input_tokens,
+                "total_tokens": output_tokens + input_tokens,
+            }           
 
 
 class AudioAPI:
@@ -93,13 +115,17 @@ class VisionAPI:
             api_key: str, 
             model: str = "",
             temperature: float = 0.0,
+            max_tokens: int = 3500,
             stream: bool = False,
         ):
         self.client = ClientV2(api_key=api_key)
         self.model = model
         self.temperature = temperature
         self.stream = stream
+        self.max_tokens = max_tokens
+
         self.response = None
+        self.tokens = None
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt
@@ -115,3 +141,18 @@ class VisionAPI:
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+    
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.type == "content-delta":
+            return chunk.delta.message.content.text
+        elif chunk.type == "message-end":
+            usage = chunk.model_dump()['delta']['usage']["tokens"]
+
+            input_tokens = usage.get("input_tokens", 0)
+            output_tokens = usage.get("output_tokens", 0)
+
+            self.tokens = {
+                "completion_tokens": output_tokens,
+                "prompt_tokens": input_tokens,
+                "total_tokens": output_tokens + input_tokens,
+            }    

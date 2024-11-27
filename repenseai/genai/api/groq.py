@@ -12,14 +12,17 @@ class ChatAPI:
         api_key: str,
         model: str = "llama-3.1-8b-instant",
         temperature: float = 0.0,
+        max_tokens: int = 3500,
         stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.stream = stream
-        self.tokens = 3500
+        self.max_tokens = max_tokens
+
         self.response = None
+        self.tokens = None
 
         self.client = Groq(api_key=self.api_key)
 
@@ -27,7 +30,7 @@ class ChatAPI:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
-            "max_tokens": self.tokens,
+            "max_tokens": self.max_tokens,
             "stream": self.stream,
         }
         if isinstance(prompt, list):
@@ -39,6 +42,7 @@ class ChatAPI:
             self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
+                self.tokens = self.get_tokens()
                 return self.response.model_dump()
             
             return self.response
@@ -60,6 +64,15 @@ class ChatAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.choices:
+            content = chunk.choices[0].delta.content
+            if content:
+                return content
+            else:
+                if chunk.model_dump().get('x_groq', {}).get('usage'):
+                    self.tokens = chunk.model_dump()['x_groq']['usage']               
 
 
 class AudioAPI:
@@ -82,13 +95,17 @@ class VisionAPI:
             api_key: str, 
             model: str = "",
             temperature: float = 0.0,
+            max_tokens: int = 3500,
             stream: bool = False,
         ):
         self.client = Groq(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.max_tokens = max_tokens
         self.stream = stream
+
         self.response = None
+        self.tokens = None
 
     def call_api(self, prompt: str, image: Any):
         _ = prompt
@@ -104,3 +121,12 @@ class VisionAPI:
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+    
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.choices:
+            content = chunk.choices[0].delta.content
+            if content:
+                return content
+            else:
+                if chunk.model_dump().get('x_groq', {}).get('usage'):
+                    self.tokens = chunk.model_dump()['x_groq']['usage']            

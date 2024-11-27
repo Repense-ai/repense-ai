@@ -15,14 +15,17 @@ class ChatAPI:
         api_key: str,
         model: str = "mistral-large-latest",
         temperature: float = 0.0,
+        max_tokens: int = 3500,
         stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.stream = stream
-        self.tokens = 3500
+        self.max_tokens = max_tokens
+
         self.response = None
+        self.tokens = None
 
         self.client = Mistral(api_key=self.api_key)
 
@@ -30,7 +33,7 @@ class ChatAPI:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
-            "max_tokens": self.tokens,
+            "max_tokens": self.max_tokens,
         }
         if isinstance(prompt, list):
             json_data["messages"] = prompt
@@ -43,6 +46,8 @@ class ChatAPI:
                 return self.client.chat.stream(**json_data)
 
             self.response = self.client.chat.complete(**json_data)
+            self.tokens = self.get_tokens()
+            
             return self.response.model_dump()
 
         except Exception as e:
@@ -60,6 +65,12 @@ class ChatAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.data.usage:
+            self.tokens = chunk.data.model_dump()["usage"]
+        else:
+            return chunk.data.choices[0].delta.content        
 
 
 class AudioAPI:
@@ -82,12 +93,17 @@ class VisionAPI:
             api_key: str, 
             model: str = "pixtral-12b-2409",
             temperature: float = 0.0,
+            max_tokens: int = 3500,
             stream: bool = False,
         ):
         self.client = Mistral(api_key=api_key)
         self.model = model
         self.temperature = temperature
+        self.max_tokens = max_tokens
         self.stream = stream
+
+        self.response = None
+        self.tokens = None
 
     def resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 1568
@@ -161,7 +177,7 @@ class VisionAPI:
         json_data = {
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
-            "max_tokens": 3500,
+            "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
 
@@ -169,6 +185,8 @@ class VisionAPI:
             return self.client.chat.stream(**json_data)
 
         self.response = self.client.chat.complete(**json_data)
+        self.tokens = self.get_tokens()
+
         return self.response.model_dump()
 
     def get_text(self):
@@ -182,3 +200,9 @@ class VisionAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.data.usage:
+            self.tokens = chunk.data.model_dump()["usage"]
+        else:
+            return chunk.data.choices[0].delta.content        

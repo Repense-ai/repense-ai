@@ -15,14 +15,17 @@ class ChatAPI:
         api_key: str,
         model: str = "grok-beta",
         temperature: float = 0.0,
+        max_tokens: int = 3500,
         stream: bool = False,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.stream = stream
-        self.tokens = 3500
+        self.max_tokens = max_tokens
+
         self.response = None
+        self.tokens = None
         
         self.client = OpenAI(
             api_key=self.api_key,
@@ -33,7 +36,7 @@ class ChatAPI:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
-            "max_tokens": self.tokens,
+            "max_tokens": self.max_tokens,
             "stream": self.stream,
             "stream_options": {"include_usage": True},
         }
@@ -47,6 +50,7 @@ class ChatAPI:
             self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
+                self.tokens = self.get_tokens()
                 return self.response.model_dump()
             
             return self.response
@@ -64,6 +68,17 @@ class ChatAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.choices:
+            content = chunk.choices[0].delta.content
+            if content:
+                return content
+            else:
+                self.tokens = chunk.model_dump()['usage']
+        else:
+            if chunk.model_dump()['usage']:
+                self.tokens = chunk.model_dump()['usage']        
 
 
 class AudioAPI:
@@ -86,13 +101,18 @@ class VisionAPI:
             api_key: str, 
             model: str = "gpt-4-turbo",
             temperature: float = 0.0,
+            max_tokens: int = 3500,
             stream: bool = False,
         ):
+
         self.client = OpenAI(api_key=api_key)
         self.model = model
-        self.tokens = 3500
+        self.max_tokens = max_tokens
         self.temperature = temperature
         self.stream = stream
+
+        self.response = None
+        self.tokens = None
 
     def process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
@@ -144,7 +164,7 @@ class VisionAPI:
         json_data = {
             "model": self.model,
             "messages": [{"role": "user", "content": content}],
-            "max_tokens": 3500,
+            "max_tokens": self.max_tokens,
             "temperature": self.temperature,
             "stream": self.stream,
             "stream_options": {"include_usage": True},
@@ -154,6 +174,7 @@ class VisionAPI:
             self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
+                self.tokens = self.get_tokens()
                 return self.response.model_dump()
             
             return self.response
@@ -172,3 +193,14 @@ class VisionAPI:
             return self.response.model_dump()["usage"]
         else:
             return None
+        
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.choices:
+            content = chunk.choices[0].delta.content
+            if content:
+                return content
+            else:
+                self.tokens = chunk.model_dump()['usage']
+        else:
+            if chunk.model_dump()['usage']:
+                self.tokens = chunk.model_dump()['usage']           
