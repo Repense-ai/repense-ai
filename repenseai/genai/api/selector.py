@@ -9,6 +9,7 @@ from repenseai.config.selection_params import (
     VISION_MODELS,
     IMAGE_MODELS,
     VIDEO_MODELS,
+    SEARCH_MODELS,
 )
 
 from dotenv import find_dotenv, load_dotenv
@@ -30,6 +31,7 @@ class APISelector:
             "vision": VISION_MODELS,
             "image": IMAGE_MODELS,
             "video": VIDEO_MODELS,
+            "search": SEARCH_MODELS,
         }
 
         self.__get_provider()
@@ -81,7 +83,7 @@ class APISelector:
         api_key = self.get_api_key(secret_name, region_name)
 
         match self.model_type:
-            case "chat":
+            case "chat" | "search":
                 self.api = self.module_api.ChatAPI(
                     api_key=api_key, model=self.model, **kwargs
                 )

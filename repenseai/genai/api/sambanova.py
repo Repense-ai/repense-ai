@@ -13,7 +13,7 @@ class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4o",
+        model: str = "",
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
@@ -104,7 +104,7 @@ class VisionAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4-turbo",
+        model: str = "",
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
@@ -216,14 +216,15 @@ class VisionAPI:
 
 
 class ImageAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str = "", **kwargs):
         self.api_key = api_key
         self.model = model
 
-    def call_api(self, prompt: Any):
+    def call_api(self, prompt: Any, image: Any):
+        _ = image
         _ = prompt
 
-        return "Not inplemented"
+        return "Not implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}

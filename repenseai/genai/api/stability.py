@@ -14,7 +14,7 @@ class ChatAPI:
     def call_api(self, prompt: Any):
         _ = prompt
 
-        return "Not inplemented"
+        return "Not implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -28,7 +28,7 @@ class AudioAPI:
     def call_api(self, prompt: Any):
         _ = prompt
 
-        return "Not inplemented"
+        return "Not implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -42,7 +42,7 @@ class VisionAPI:
     def call_api(self, prompt: Any):
         _ = prompt
 
-        return "Not inplemented"
+        return "Not implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -58,7 +58,7 @@ class ImageAPI:
             strength: float = 0.5,
             seed: int = 0, 
             cfg_scale: int = 10,
-            size: int = 512,
+            **kwargs,
         ):
 
         self.api_key = api_key
@@ -68,8 +68,6 @@ class ImageAPI:
         self.seed = seed
         self.cfg_scale = cfg_scale
         self.strength = strength
-
-        _ = size
         
         self.root_url = 'https://api.stability.ai/v2beta/stable-image'
 

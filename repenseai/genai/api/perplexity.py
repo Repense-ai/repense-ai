@@ -1,7 +1,10 @@
-from io import BufferedReader
-from typing import Any, Dict, List, Union
+import base64
+import io
 
+from typing import Any, Dict, List, Union
 from openai import OpenAI
+
+from PIL import Image
 
 from repenseai.utils.logs import logger
 
@@ -10,7 +13,7 @@ class ChatAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "sabia-3",
+        model: str = "",
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
@@ -25,15 +28,16 @@ class ChatAPI:
         self.tokens = None
 
         self.client = OpenAI(
-            api_key=self.api_key,
-            base_url="https://chat.maritaca.ai/api",
+            api_key=api_key,
+            base_url="https://api.perplexity.ai",
         )
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
+    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
+
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
+            "max_tokens": self.tokens,
             "stream": self.stream,
             "stream_options": {"include_usage": True},
         }
@@ -41,7 +45,7 @@ class ChatAPI:
         if isinstance(prompt, list):
             json_data["messages"] = prompt
         else:
-            json_data["messages"] = [{"role": "system", "content": prompt}]
+            json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
             self.response = self.client.chat.completions.create(**json_data)
@@ -54,9 +58,6 @@ class ChatAPI:
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
-
-    def get_response(self) -> Any:
-        return self.response
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
@@ -71,29 +72,28 @@ class ChatAPI:
             return None
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
-        if chunk.choices:
-            content = chunk.choices[0].delta.content
-            if content:
-                return content
-            else:
-                self.tokens = chunk.model_dump()["usage"]
+        if chunk.choices[0].finish_reason == "stop":
+            tokens = chunk.model_dump()["usage"]
         else:
-            if chunk.model_dump()["usage"]:
-                self.tokens = chunk.model_dump()["usage"]
+            string += chunk.choices[0].delta.content
+                
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str = "whisper-1"):
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
-    def call_api(self, audio: BufferedReader):
-        _ = audio
+    def call_api(self, audio: io.BufferedReader):
 
-        return "Not Implemented"
+        transcript = self.client.audio.transcriptions.create(
+            model=self.model,
+            file=audio,
+            language="pt",
+            response_format="text",
+        )
 
-    def get_tokens(self):
-        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+        return transcript
 
 
 class VisionAPI:
@@ -103,9 +103,13 @@ class VisionAPI:
         model: str = "",
         temperature: float = 0.0,
         max_tokens: int = 3500,
-        stream=False,
+        stream: bool = False,
     ):
-        self.client = OpenAI(api_key=api_key)
+        self.client = OpenAI(
+            api_key=api_key, 
+            base_url="https://api.perplexity.ai"
+        )
+
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -130,15 +134,10 @@ class VisionAPI:
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
-        if chunk.choices:
-            content = chunk.choices[0].delta.content
-            if content:
-                return content
-            else:
-                self.tokens = chunk.model_dump()["usage"]
+        if chunk.choices[0].finish_reason == "stop":
+            tokens = chunk.model_dump()["usage"]
         else:
-            if chunk.model_dump()["usage"]:
-                self.tokens = chunk.model_dump()["usage"]
+            string += chunk.choices[0].delta.content
 
 
 class ImageAPI:

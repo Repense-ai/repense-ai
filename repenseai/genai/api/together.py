@@ -239,11 +239,8 @@ class ImageAPI:
             api_key: str, 
             model: str = "", 
             aspect_ratio: str = '1:1',
-            action: str = 'generate',
-            strength: float = 0.5,
-            seed: int = 0, 
-            cfg_scale: int = 10,
-            size: int = 512,
+            size: int = 256,
+            **kwargs,
         ):
 
         self.client = Together(api_key=api_key)
@@ -256,11 +253,6 @@ class ImageAPI:
         self.tokens = None
 
         self.ratio = self.__check_aspect_ratio()
-
-        _ = action
-        _ = seed
-        _ = cfg_scale
-        _ = strength
 
     def __check_aspect_ratio(self):
         allowed = [
@@ -287,7 +279,9 @@ class ImageAPI:
 
         return ratio_dict
 
-    def call_api(self, prompt: Any):
+    def call_api(self, prompt: Any, image: Any = None):
+
+        _ = image
 
         payload = {
             "prompt": prompt,
