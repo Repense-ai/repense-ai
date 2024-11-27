@@ -142,10 +142,12 @@ MODERATION_MODELS = {}
 
 
 IMAGE_MODELS = {
-    "black-forest-labs/FLUX.1.1-pro": {"provider": "together", "cost": 0.04},
-    "stability-image-gen/ultra": {"provider": "stability", "cost": 0.08},
-    "stability-image-gen/core": {"provider": "stability", "cost": 0.06},
-    "stability-image-gen/diffusion": {"provider": "stability", "cost": 0.05},
+    "black-forest-labs/FLUX.1.1-pro": {"provider": "together", "cost": {'input': 0.04, 'output': 0.04}},
+    "stability-image-gen/default/ultra": {"provider": "stability", "cost": 0.08},
+    "stability-image-gen/default/core": {"provider": "stability", "cost": 0.03},
+    "stability-image-gen/sd3.5-large/sd3": {"provider": "stability", "cost": 0.065},
+    "stability-image-gen/sd3.5-large-turbo/sd3": {"provider": "stability", "cost": 0.04},
+    "stability-image-gen/sd3.5-medium/sd3": {"provider": "stability", "cost": 0.035},
 }
 
 

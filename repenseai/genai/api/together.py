@@ -18,7 +18,7 @@ class ChatAPI:
         max_tokens: int = 3500,
         stream: bool = False,
     ):
-        self.api_key = api_key
+        
         self.model = model
         self.temperature = temperature
         self.stream = stream
@@ -27,7 +27,7 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
-        self.client = Together(api_key=self.api_key)
+        self.client = Together(api_key=api_key)
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
@@ -231,3 +231,87 @@ class VisionAPI:
         else:
             if chunk.model_dump()["usage"]:
                 self.tokens = chunk.model_dump()["usage"]
+
+
+class ImageAPI:
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str = "", 
+            aspect_ratio: str = '1:1',
+            action: str = 'generate',
+            strength: float = 0.5,
+            seed: int = 0, 
+            cfg_scale: int = 10,
+            size: int = 512,
+        ):
+
+        self.client = Together(api_key=api_key)
+
+        self.model = model
+        self.aspect_ratio = aspect_ratio
+        self.size = size
+
+        self.response = None
+        self.tokens = None
+
+        self.ratio = self.__check_aspect_ratio()
+
+        _ = action
+        _ = seed
+        _ = cfg_scale
+        _ = strength
+
+    def __check_aspect_ratio(self):
+        allowed = [
+            '16:9', '1:1', '21:9', 
+            '2:3', '3:2', '4:5', 
+            '5:4', '9:16', '9:21'
+        ]
+
+        if self.aspect_ratio not in allowed:
+            self.aspect_ratio = '1:1'
+
+        if self.size < 256:
+            self.size = 256
+        elif self.size > 1024:
+            self.size = 1024
+
+        n_width, n_height = self.aspect_ratio.split(':')
+        ratio = int(n_width) / int(n_height)
+
+        ratio_dict = {
+            "width": int(ratio * self.size),
+            "height": self.size,
+        }
+
+        return ratio_dict
+
+    def call_api(self, prompt: Any):
+
+        payload = {
+            "prompt": prompt,
+            "model": self.model,
+            "width": self.ratio["width"],
+            "height": self.ratio["height"],
+            "response_format": "b64_json",
+            "steps": 1,
+            "n": 1,
+        }
+
+        self.response = self.client.images.generate(**payload)
+        self.tokens = self.get_tokens()
+
+        return self.get_image()
+    
+    def get_image(self):
+        return self.response.data[0].b64_json
+
+    def get_tokens(self):
+        completion_tokens = self.ratio["width"] * self.ratio["height"]
+
+        return {
+            "completion_tokens": completion_tokens, 
+            "prompt_tokens": 0, 
+            "total_tokens": 0
+        }

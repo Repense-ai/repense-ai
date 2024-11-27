@@ -69,8 +69,10 @@ class APISelector:
 
                 api_key = secret_manager.get_secret(string)
                 return api_key
+            
             except Exception:
                 return None
+            
         return self.api_key
 
     def get_api(
@@ -91,6 +93,10 @@ class APISelector:
                 self.api = self.module_api.AudioAPI(
                     api_key=api_key, model=self.model, **kwargs
                 )
+            case "image":
+                self.api = self.module_api.ImageAPI(
+                    api_key=api_key, model=self.model, **kwargs
+                )                
             case _:
                 raise Exception(self.model_type + " API not found")
 
@@ -103,12 +109,24 @@ class APISelector:
         if not tokens:
             return 0
 
-        input_cost = tokens["prompt_tokens"] * self.price["input"]
-        output_cost = tokens["completion_tokens"] * self.price["output"]
+        if isinstance(tokens, dict):
+            if isinstance(self.price, dict):
+                input_cost = tokens["prompt_tokens"] * self.price["input"]
+                output_cost = tokens["completion_tokens"] * self.price["output"]
 
-        total = (input_cost + output_cost) / 1_000_000
+                total = (input_cost + output_cost) / 1_000_000
 
+            else:
+                input_cost = tokens["prompt_tokens"] * self.price
+                output_cost = tokens["completion_tokens"] * self.price
+
+                total = (input_cost + output_cost) / 1_000_000
+        else:
+            total = self.price * tokens
+            
         if as_string:
             return f"U${total:.5f}"
 
         return total
+        
+        

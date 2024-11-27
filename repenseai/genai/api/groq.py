@@ -130,3 +130,17 @@ class VisionAPI:
             else:
                 if chunk.model_dump().get("x_groq", {}).get("usage"):
                     self.tokens = chunk.model_dump()["x_groq"]["usage"]
+
+
+class ImageAPI:
+    def __init__(self, api_key: str, model: str = ""):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, prompt: Any):
+        _ = prompt
+
+        return "Not inplemented"
+
+    def get_tokens(self):
+        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
