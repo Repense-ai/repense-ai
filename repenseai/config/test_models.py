@@ -17,5 +17,5 @@ TEST_VISION_MODELS = [
     "claude-3-5-sonnet-20241022",
     "gemini-1.5-flash",
     "pixtral-12b-2409",
-    "Llama-3.2-90B-Vision-Instruct",
+    "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
 ]
