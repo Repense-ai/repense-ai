@@ -1,5 +1,6 @@
 import requests
 import io
+import base64
 
 from typing import Any
 
@@ -58,6 +59,7 @@ class ImageAPI:
             strength: float = 0.5,
             seed: int = 0, 
             cfg_scale: int = 10,
+            style_preset: str = "",
             **kwargs,
         ):
 
@@ -68,6 +70,7 @@ class ImageAPI:
         self.seed = seed
         self.cfg_scale = cfg_scale
         self.strength = strength
+        self.style_preset = style_preset
         
         self.root_url = 'https://api.stability.ai/v2beta/stable-image'
 
@@ -77,6 +80,7 @@ class ImageAPI:
         self.__set_model_info()
         self.__build_url()
         self.__check_aspect_ratio()
+        self.__check_style_preset()
 
 
     def __set_model_info(self):
@@ -99,15 +103,39 @@ class ImageAPI:
 
         if self.aspect_ratio not in allowed:
             self.aspect_ratio = '1:1'
-        
 
+    def __check_style_preset(self):
+        allowed = [
+            "3d-model",
+            "analog-film" ,
+            "anime", 
+            "cinematic", 
+            "comic-book" ,
+            "digital-art" ,
+            "enhance", 
+            "fantasy-art" ,
+            "isometric", 
+            "line-art" ,
+            "low-poly" ,
+            "modeling-compound" ,
+            "neon-punk" ,
+            "origami", 
+            "photographic", 
+            "pixel-art" ,
+            "tile-texture",
+        ]
+
+        if self.style_preset in allowed:
+            self.style_preset = 'photographic'
+        
     def __build_data(self, prompt: Any, image: Any):
 
         payload = {
             "prompt": prompt,
             "output_format": "png",
             "seed": self.seed,
-            "cfg_scale": self.cfg_scale
+            "cfg_scale": self.cfg_scale,
+            "style_preset": self.style_preset
         }
 
         if self.model_name:
@@ -208,7 +236,9 @@ class ImageAPI:
             raise Exception(str(self.response.json()))
 
     def get_image(self):
-        return self.response.content
+        return base64.b64encode(
+            self.response.content
+        ).decode('utf-8')
 
     def get_tokens(self):
         return 1

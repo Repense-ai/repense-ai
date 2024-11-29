@@ -269,12 +269,14 @@ class ImageAPI:
         elif self.size > 1024:
             self.size = 1024
 
-        n_width, n_height = self.aspect_ratio.split(':')
-        ratio = int(n_width) / int(n_height)
+        n_width, n_height = [int(n) for n in self.aspect_ratio.split(':')]
+
+        width_ratio = n_width / min(n_width, n_height)
+        height_ratio = n_height / min(n_width, n_height)
 
         ratio_dict = {
-            "width": int(ratio * self.size),
-            "height": self.size,
+            "width": int(width_ratio * self.size),
+            "height": int(height_ratio * self.size),
         }
 
         return ratio_dict
