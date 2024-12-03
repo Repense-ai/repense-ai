@@ -77,35 +77,13 @@ class ImageAPI:
         self.response = None
         self.tokens = None
 
-        self.__set_model_info()
-        self.__build_url()
-        self.__check_aspect_ratio()
-        self.__check_style_preset()
-
-
-    def __set_model_info(self):
-        splitted = self.model.split("/")
-
-        self.model_type = splitted[-1]
-        self.model_name = splitted[-2] if splitted[-2] != "default" else None
-
-
-    def __build_url(self):
-        self.url = f"{self.root_url}/{self.action}/{self.model_type}"
-    
-
-    def __check_aspect_ratio(self):
-        allowed = [
+        self.allowed_ar = [
             '16:9', '1:1', '21:9', 
             '2:3', '3:2', '4:5', 
             '5:4', '9:16', '9:21'
         ]
 
-        if self.aspect_ratio not in allowed:
-            self.aspect_ratio = '1:1'
-
-    def __check_style_preset(self):
-        allowed = [
+        self.allowed_sp = [
             "3d-model",
             "analog-film" ,
             "anime", 
@@ -125,7 +103,29 @@ class ImageAPI:
             "tile-texture",
         ]
 
-        if self.style_preset in allowed:
+        self.__set_model_info()
+        self.__build_url()
+        self.__check_aspect_ratio()
+        self.__check_style_preset()
+
+
+    def __set_model_info(self):
+        splitted = self.model.split("/")
+
+        self.model_type = splitted[-1]
+        self.model_name = splitted[-2] if splitted[-2] != "default" else None
+
+
+    def __build_url(self):
+        self.url = f"{self.root_url}/{self.action}/{self.model_type}"
+    
+
+    def __check_aspect_ratio(self):
+        if self.aspect_ratio not in self.allowed_ar:
+            self.aspect_ratio = '1:1'
+
+    def __check_style_preset(self):
+        if self.style_preset not in self.allowed_sp:
             self.style_preset = 'photographic'
         
     def __build_data(self, prompt: Any, image: Any):

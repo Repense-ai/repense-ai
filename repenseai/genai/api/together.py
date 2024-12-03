@@ -239,7 +239,6 @@ class ImageAPI:
             api_key: str, 
             model: str = "", 
             aspect_ratio: str = '1:1',
-            size: int = 256,
             **kwargs,
         ):
 
@@ -247,7 +246,11 @@ class ImageAPI:
 
         self.model = model
         self.aspect_ratio = aspect_ratio
-        self.size = size
+
+        self.allowed_ar = [
+            '16:9', '1:1', '2:3',
+            '3:2', '4:5', '5:4', '9:16'
+        ]
 
         self.response = None
         self.tokens = None
@@ -255,31 +258,21 @@ class ImageAPI:
         self.ratio = self.__check_aspect_ratio()
 
     def __check_aspect_ratio(self):
-        allowed = [
-            '16:9', '1:1', '21:9', 
-            '2:3', '3:2', '4:5', 
-            '5:4', '9:16', '9:21'
-        ]
 
-        if self.aspect_ratio not in allowed:
+        if self.aspect_ratio not in self.allowed_ar:
             self.aspect_ratio = '1:1'
 
-        if self.size < 256:
-            self.size = 256
-        elif self.size > 1024:
-            self.size = 1024
-
-        n_width, n_height = [int(n) for n in self.aspect_ratio.split(':')]
-
-        width_ratio = n_width / min(n_width, n_height)
-        height_ratio = n_height / min(n_width, n_height)
-
-        ratio_dict = {
-            "width": int(width_ratio * self.size),
-            "height": int(height_ratio * self.size),
+        sizes = {
+            '16:9': {'width': 1024, 'height': 576},
+            '1:1': {'width': 512, 'height': 512},
+            '2:3': {'width': 512, 'height': 768},
+            '3:2': {'width': 768, 'height': 512},
+            '4:5': {'width': 512, 'height': 640},
+            '5:4': {'width': 640, 'height': 512},
+            '9:16': {'width': 576, 'height': 1024},
         }
-
-        return ratio_dict
+        
+        return sizes[self.aspect_ratio]
 
     def call_api(self, prompt: Any, image: Any = None):
 
@@ -305,9 +298,10 @@ class ImageAPI:
 
     def get_tokens(self):
         completion_tokens = self.ratio["width"] * self.ratio["height"]
+        prompt_tokens = 0
 
         return {
             "completion_tokens": completion_tokens, 
-            "prompt_tokens": 0, 
-            "total_tokens": 0
+            "prompt_tokens": prompt_tokens, 
+            "total_tokens": prompt_tokens + completion_tokens,
         }
