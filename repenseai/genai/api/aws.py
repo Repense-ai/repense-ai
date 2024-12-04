@@ -328,8 +328,7 @@ class ImageAPI:
         return self.get_image()
     
     def get_image(self):
-        base64_image_data = self.response["images"][0]
-        return base64.b64decode(base64_image_data)
+        return self.response["images"][0]
 
     def get_tokens(self):
         return 1
