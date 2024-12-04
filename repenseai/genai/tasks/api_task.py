@@ -55,6 +55,9 @@ class ChatTask(BaseTask):
 
         if self.provider == "google":
             return content
+        
+        if self.provider == "aws":
+            return [{"role": "user", "content": [{"text": content}]}]
 
         return [{"role": "user", "content": content}]
 

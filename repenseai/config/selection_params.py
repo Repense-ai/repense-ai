@@ -114,7 +114,19 @@ TEXT_MODELS = {
     "grok-vision-beta": {
         "provider": "x", 
         "cost": {"input": 5.0, "output": 15.0}
-    },       
+    },
+    "amazon.nova-pro-v1:0": {
+        "provider": "aws", 
+        "cost": {"input": 0.8, "output": 3.2}
+    },
+    "amazon.nova-lite-v1:0": {
+        "provider": "aws", 
+        "cost": {"input": 0.06, "output": 0.24}
+    },
+    "amazon.nova-micro-v1:0": {
+        "provider": "aws", 
+        "cost": {"input": 0.035, "output": 0.14}
+    },        
 }
 
 
@@ -159,6 +171,14 @@ VISION_MODELS = {
     # "provider": "x", 
     # "cost": {"input": 10.0, "output": 15.0}
     # },
+    "amazon.nova-pro-v1:0": {
+        "provider": "aws", 
+        "cost": {"input": 0.8, "output": 3.2}
+    },
+    "amazon.nova-lite-v1:0": {
+        "provider": "aws", 
+        "cost": {"input": 0.06, "output": 0.24}
+    },    
 }
 
 
@@ -215,6 +235,10 @@ IMAGE_MODELS = {
         "provider": "stability", 
         "cost": 0.035
     },
+    "amazon-image-gen/amazon.nova-canvas-v1:0": {
+        "provider": "aws", 
+        "cost": 0.08
+    },
 }
 
 
@@ -223,4 +247,8 @@ VIDEO_MODELS = {
         "provider": "stability",
         "cost": 0.2
     },
+    "amazon-video-gen/amazon.nova-reel-v1:0": {
+        "provider": "aws", 
+        "cost": 0.48
+    },    
 }
