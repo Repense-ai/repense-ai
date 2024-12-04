@@ -88,7 +88,12 @@ class ChatAPI:
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if "contentBlockDelta" in chunk:
-            return chunk["contentBlockDelta"]["delta"]["text"]
+
+            text = chunk["contentBlockDelta"]["delta"]["text"]
+
+            if text:
+                return text
+            
         if "metadata" in chunk:
 
             input_tokens = chunk["metadata"]['usage']['inputTokens']
@@ -204,7 +209,8 @@ class VisionAPI:
 
         try:
             if self.stream:
-                return self.client.converse_stream(**json_data)
+                self.response = self.client.converse_stream(**json_data)
+                return self.response['stream']
 
             self.response = self.client.converse(**json_data)
             self.tokens = self.get_tokens()
@@ -239,7 +245,12 @@ class VisionAPI:
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if "contentBlockDelta" in chunk:
-            return chunk["contentBlockDelta"]["delta"]["text"]
+            
+            text = chunk["contentBlockDelta"]["delta"]["text"]
+
+            if text:
+                return text
+            
         if "metadata" in chunk:
 
             input_tokens = chunk["metadata"]['usage']['inputTokens']

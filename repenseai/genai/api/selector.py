@@ -34,22 +34,26 @@ class APISelector:
             "search": SEARCH_MODELS,
         }
 
+        self.all_models = {}
+
+        self.__gather_models()
         self.__get_provider()
         self.__get_prices()
         self.__get_module()
+
+    def __gather_models(self) -> None:
+        for models in self.models.values():
+            self.all_models.update(models)
 
     def __get_provider(self) -> None:
 
         if self.model_type not in self.models:
             raise Exception("Model type not found")
 
-        models_dict = self.models[self.model_type]
-
-        self.provider = models_dict[self.model]["provider"]
+        self.provider = self.all_models[self.model]["provider"]
 
     def __get_prices(self) -> None:
-        models_dict = self.models[self.model_type]
-        self.price = models_dict[self.model]["cost"]
+        self.price = self.all_models[self.model]["cost"]
 
     def __get_module(self) -> None:
         api_str = f"repenseai.genai.api.{self.provider}"
