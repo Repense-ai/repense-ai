@@ -1,5 +1,5 @@
 import time
-from typing import Any, List, Union
+from typing import Any, List, Union, Dict
 
 import google.generativeai as genai
 
@@ -32,8 +32,7 @@ class ChatAPI:
             max_output_tokens=max_tokens,
         )
 
-    def call_api(self, prompt: str):
-
+    def _process_str_prompt(self, prompt: str) -> str:
         self.prompt = prompt
 
         self.response = self.client.generate_content(
@@ -46,7 +45,42 @@ class ChatAPI:
             self.tokens = self.get_tokens()
             return self.get_text()
         
-        return self.response
+        return self.response        
+
+    def _process_list_prompt(self, prompt: List[Dict[str, str]]) -> str:
+        self.prompt = prompt[-1].get("content", [{}])[0].get("text", "")
+
+        history = []
+
+        for message in prompt[:-1]:
+            history.append(
+                {
+                    "role": "user" if message.get("role") == "user" else "model",
+                    "parts": message.get("content", [{}])[0].get("text", "")
+                }
+            )
+
+        chat = self.client.start_chat(history=history)
+
+        self.response = chat.send_message(
+            self.prompt,
+            stream=self.stream,
+            generation_config=self.config,
+        )
+
+        if not self.stream:
+            self.tokens = self.get_tokens()
+            return self.get_text()
+        
+        return self.response              
+
+    def call_api(self, prompt: Union[List[Dict[str, str]], str]):
+
+        if isinstance(prompt, str):
+            return self._process_str_prompt(prompt)
+        else:
+            return self._process_list_prompt(prompt)
+
 
     def get_response(self) -> Any:
         return self.response
@@ -129,8 +163,12 @@ class VisionAPI:
         self.response = None
         self.tokens = None
 
-    def call_api(self, prompt: str, image: Union[Any, List[Any]]):
-        self.prompt = prompt
+    def call_api(self, prompt: str | list, image: Union[Any, List[Any]]):
+        if isinstance(prompt, list):
+            self.prompt = prompt[-1]["content"][0].get("text", "")  
+        else:      
+            self.prompt = prompt
+            
         self.image = image
 
         json_data = {
@@ -139,9 +177,9 @@ class VisionAPI:
         }
 
         if isinstance(image, list):
-            json_data["contents"] = [prompt] + image
+            json_data["contents"] = [self.prompt] + self.image
         else:
-            json_data["contents"] = [prompt, image]
+            json_data["contents"] = [self.prompt, self.image]
 
         self.response = self.client.generate_content(**json_data)
 

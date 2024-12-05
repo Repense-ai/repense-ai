@@ -14,7 +14,10 @@ def test_chat_task_hello_world(model):
     task = ChatTask(
         instruction="Say 'Hello, World!'",
         api=api,
-        provider=selector.provider,
+        history=[
+            {"role": "user", "content": [{"type": "text", "text": "You are a helpful assistant."}]},
+            {"role": "assistant", "content": [{"type": "text", "text": "Ok! I will help you."}]},
+        ]
     )
 
     response = task.predict({})

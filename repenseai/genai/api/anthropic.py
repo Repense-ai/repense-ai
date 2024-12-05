@@ -175,9 +175,12 @@ class VisionAPI:
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
 
-    def call_api(self, prompt: str, image: Any):
+    def call_api(self, prompt: str | list, image: Any):
 
-        content = [{"type": "text", "text": prompt}]
+        if isinstance(prompt, str):
+            content = [{"type": "text", "text": prompt}]
+        else:
+            content = prompt[-1].get("content", [])
 
         if isinstance(image, str) or isinstance(image, Image.Image):
             img = self.process_image(image)
@@ -211,10 +214,15 @@ class VisionAPI:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
+        
+        if isinstance(prompt, list):
+            prompt[-1] = {"role": "user", "content": content}
+        else:
+            prompt = [{"role": "user", "content": content}]
 
         json_data = {
             "model": self.model,
-            "messages": [{"role": "user", "content": content}],
+            "messages": prompt,
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }

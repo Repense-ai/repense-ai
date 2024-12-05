@@ -9,6 +9,7 @@ TEST_TEXT_MODELS = [
     "Meta-Llama-3.1-8B-Instruct",
     "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
     "grok-beta",
+    "amazon.nova-lite-v1:0",
 ]
 
 
@@ -18,4 +19,5 @@ TEST_VISION_MODELS = [
     "gemini-1.5-flash",
     "pixtral-12b-2409",
     "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
+    "amazon.nova-lite-v1:0",
 ]

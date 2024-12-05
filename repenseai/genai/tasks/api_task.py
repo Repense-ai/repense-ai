@@ -1,3 +1,5 @@
+import io
+
 from typing import Any
 
 from repenseai.genai.tasks.base_task import BaseTask
@@ -31,18 +33,16 @@ class ChatTask(BaseTask):
     def __init__(
         self,
         api: Any,
-        provider: str,
         instruction: str = "",
         prompt_template: str = "",
-        temperature: float = 0,
+        history: list | None = None,
     ) -> None:
 
         self.instruction = instruction
         self.prompt_template = prompt_template
-        self.temperature = temperature
+        self.history = history
 
         self.model = api
-        self.provider = provider
 
     def build_prompt(self, **kwargs):
 
@@ -53,14 +53,23 @@ class ChatTask(BaseTask):
         else:
             content = self.instruction
 
-        if self.provider == "google":
-            return content
+        prompt = [
+            {
+                "role": "user", 
+                "content": [
+                    {
+                        "type": "text", 
+                        "text": content
+                    }
+                ]
+            }
+        ]
         
-        if self.provider == "aws":
-            return [{"role": "user", "content": [{"text": content}]}]
-
-        return [{"role": "user", "content": content}]
-
+        if self.history:
+            return self.history + prompt
+        
+        return prompt
+    
     def predict(self, context: dict) -> str:
         try:
             prompt = self.build_prompt(**context)
@@ -74,14 +83,28 @@ class ChatTask(BaseTask):
 
 
 class AudioTask(BaseTask):
-    def __init__(self, api: Any) -> None:
+    def __init__(self, api: Any, context_audio_key: str = "audio") -> None:
         self.model = api
+        self.context_audio_key = context_audio_key
 
     def predict(self, context: dict) -> str:
         try:
-            if context["audio"] is not None:
+            if context.get(self.context_audio_key) is None:
+                return ""
 
-                text_response = self.model.call_api(context["audio"])
+            text_response = self.model.call_api(context[self.context_audio_key])
+            log_costs(self.model)
+
+            return text_response
+                
+        except Exception as e:
+            raise e
+        
+    def predict_audio(self, audio: io.BufferedReader) -> str:
+        try:
+            if audio is not None:
+
+                text_response = self.model.call_api(audio)
                 log_costs(self.model)
 
                 return text_response
@@ -92,19 +115,70 @@ class AudioTask(BaseTask):
 
 
 class VisionTask(BaseTask):
-    def __init__(self, api: Any, instruction: str = "") -> None:
+
+    def __init__(
+        self,
+        api: Any,
+        instruction: str = "",
+        prompt_template: str = "",
+        history: list | None = None,
+        context_image_key: str = "image",
+    ) -> None:
 
         self.instruction = instruction
+        self.prompt_template = prompt_template
+        self.history = history
+        self.context_image_key = context_image_key
+
         self.model = api
 
+    def build_prompt(self, **kwargs):
+
+        if self.prompt_template != "":
+            content = self.prompt_template.format(
+                instruction=self.instruction, **kwargs
+            )
+        else:
+            content = self.instruction
+
+        prompt = [
+            {
+                "role": "user", 
+                "content": [
+                    {
+                        "type": "text", 
+                        "text": content
+                    }
+                ]
+            }
+        ]
+        
+        if self.history:
+            return self.history + prompt
+        
+        return prompt
+    
     def predict(self, context: dict) -> str:
         try:
-            if context["image"] is not None:
-                text_response = self.model.call_api(self.instruction, context["image"])
-                log_costs(self.model)
+            if context.get(self.context_image_key) is None:
+                return ''
+            
+            prompt = self.build_prompt(**context)
+            self.model.call_api(prompt, context[self.context_image_key])
 
-                return text_response
-            else:
-                return ""
+            log_costs(self.model)
+
+            return self.model.get_text()
+        except Exception as e:
+            raise e
+        
+    def predict_image(self, image: Any) -> str:
+        try:
+            prompt = self.build_prompt()
+            self.model.call_api(prompt, image)
+
+            log_costs(self.model)
+
+            return self.model.get_text()
         except Exception as e:
             raise e

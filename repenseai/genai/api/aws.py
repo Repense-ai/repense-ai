@@ -46,6 +46,14 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
+            for message in prompt:
+                for i, content in enumerate(message.get('content', [])):
+                    if content:
+                        if content.get('type'):
+                            del message['content'][i]['type']
+
+            print(prompt)
+
             json_data["messages"] = prompt
         else:
             json_data["messages"] = [{"role": "user", "content": [{"text": prompt}]}]
@@ -158,9 +166,14 @@ class VisionAPI:
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")          
 
-    def call_api(self, prompt: str, image: Any):
+    def call_api(self, prompt: str | list, image: Any):
 
-        content = [{"text": prompt}]
+        if isinstance(prompt, str):
+            content = [{"text": prompt}]
+        else:
+            content = prompt[-1].get("content", [])
+
+        print(content)   
 
         if isinstance(image, str) or isinstance(image, Image.Image):
             img = self.process_image(image)
@@ -201,10 +214,21 @@ class VisionAPI:
             "maxTokens": self.max_tokens,
         }
 
+        if isinstance(prompt, list):
+            prompt[-1] = {"role": "user", "content": content}
+
+            for message in prompt:
+                for i, content in enumerate(message.get('content', [])):
+                    if content:
+                        if content.get('type'):
+                            del message['content'][i]['type']
+        else:
+            prompt = [{"role": "user", "content": content}]
+
         json_data = {
             "modelId": f"us.{self.model}",
             "inferenceConfig": inference_config,
-            "messages": [{"role": "user", "content": content}],
+            "messages": prompt,
         }
 
         try:

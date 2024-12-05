@@ -34,9 +34,13 @@ class ChatAPI:
             "stream": self.stream,
         }
         if isinstance(prompt, list):
+            for message in prompt:
+                if message.get("role") == "assistant":
+                    message['content'] = message.get('content', [{}])[0].get('text', '')
+
             json_data["messages"] = prompt
         else:
-            json_data["messages"] = [{"role": "system", "content": prompt}]
+            json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
             self.response = self.client.chat.completions.create(**json_data)
