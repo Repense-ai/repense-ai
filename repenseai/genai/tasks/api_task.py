@@ -3,32 +3,9 @@ import io
 from typing import Any
 
 from repenseai.genai.tasks.base_task import BaseTask
-from repenseai.config.selection_params import TEXT_MODELS
-from repenseai.utils.logs import logger
-
-
-def log_costs(model: Any) -> None:
-    try:
-        tokens = model.get_tokens()
-        cost = TEXT_MODELS[model.model]["cost"]
-
-        input_cost = (cost["input"] * tokens["prompt_tokens"]) / 1_000_000
-        output_cost = (cost["output"] * tokens["completion_tokens"]) / 1_000_000
-
-        logger(f"Custo da requisição: ${input_cost + output_cost:.8f}")
-        logger(f"Tokens: {tokens['total_tokens']}")
-    except Exception as e:
-        logger(f"Erro para calcular o custo do modelo {model.model}: {e}")
 
 
 class ChatTask(BaseTask):
-    """
-    A Task is a step in the chatbot process that takes an user input and a context, and given an instruction,
-    creates a response by requesting completion from an LLM.
-
-    Args:
-
-    """
 
     def __init__(
         self,
@@ -75,8 +52,6 @@ class ChatTask(BaseTask):
             prompt = self.build_prompt(**context)
             self.model.call_api(prompt)
 
-            log_costs(self.model)
-
             return self.model.get_text()
         except Exception as e:
             raise e
@@ -93,7 +68,6 @@ class AudioTask(BaseTask):
                 return ""
 
             text_response = self.model.call_api(context[self.context_audio_key])
-            log_costs(self.model)
 
             return text_response
                 
@@ -105,7 +79,6 @@ class AudioTask(BaseTask):
             if audio is not None:
 
                 text_response = self.model.call_api(audio)
-                log_costs(self.model)
 
                 return text_response
             else:
@@ -166,8 +139,6 @@ class VisionTask(BaseTask):
             prompt = self.build_prompt(**context)
             self.model.call_api(prompt, context[self.context_image_key])
 
-            log_costs(self.model)
-
             return self.model.get_text()
         except Exception as e:
             raise e
@@ -177,8 +148,58 @@ class VisionTask(BaseTask):
             prompt = self.build_prompt()
             self.model.call_api(prompt, image)
 
-            log_costs(self.model)
-
             return self.model.get_text()
         except Exception as e:
             raise e
+        
+
+class SearchTask(BaseTask):
+
+    def __init__(
+        self,
+        api: Any,
+        instruction: str = "",
+        prompt_template: str = "",
+        history: list | None = None,
+    ) -> None:
+
+        self.instruction = instruction
+        self.prompt_template = prompt_template
+        self.history = history
+
+        self.model = api
+
+    def build_prompt(self, **kwargs):
+
+        if self.prompt_template != "":
+            content = self.prompt_template.format(
+                instruction=self.instruction, **kwargs
+            )
+        else:
+            content = self.instruction
+
+        prompt = [
+            {
+                "role": "user", 
+                "content": [
+                    {
+                        "type": "text", 
+                        "text": content
+                    }
+                ]
+            }
+        ]
+        
+        if self.history:
+            return self.history + prompt
+        
+        return prompt
+    
+    def predict(self, context: dict) -> str:
+        try:
+            prompt = self.build_prompt(**context)
+            self.model.call_api(prompt)
+
+            return self.model.get_text()
+        except Exception as e:
+            raise e        

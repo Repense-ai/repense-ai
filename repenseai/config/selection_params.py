@@ -126,7 +126,19 @@ TEXT_MODELS = {
     "amazon.nova-micro-v1:0": {
         "provider": "aws", 
         "cost": {"input": 0.035, "output": 0.14}
-    },        
+    },
+    "llama-3.1-sonar-small-128k-online": {
+        "provider": "perplexity",
+        "cost": {"input": 1.20, "output": 1.20},
+    },
+    "llama-3.1-sonar-large-128k-online": {
+        "provider": "perplexity",
+        "cost": {"input": 2.0, "output": 2.0},
+    },
+    "llama-3.1-sonar-huge-128k-online": {
+        "provider": "perplexity",
+        "cost": {"input": 6.0, "output": 6.0},
+    },             
 }
 
 

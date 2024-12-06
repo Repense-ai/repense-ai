@@ -31,7 +31,17 @@ class ChatAPI:
         self.client = boto3.client(
             "bedrock-runtime", 
             region_name="us-east-1"
-        )      
+        )
+
+    def __process_prompt_list(prompt: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        for message in prompt:
+            for i, content in enumerate(message.get('content', [])):
+                if content:
+                    if content.get('type'):
+                        del message['content'][i]['type']
+
+        return prompt
+
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
 
@@ -46,15 +56,7 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            for message in prompt:
-                for i, content in enumerate(message.get('content', [])):
-                    if content:
-                        if content.get('type'):
-                            del message['content'][i]['type']
-
-            print(prompt)
-
-            json_data["messages"] = prompt
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
             json_data["messages"] = [{"role": "user", "content": [{"text": prompt}]}]
 
@@ -164,17 +166,15 @@ class VisionAPI:
 
             return img_byte_arr
         else:
-            raise Exception("Incorrect image type! Accepted: img_string or Image")          
+            raise Exception("Incorrect image type! Accepted: img_string or Image")
 
-    def call_api(self, prompt: str | list, image: Any):
-
+    def __process_prompt_content(self, prompt: str | list) -> bytearray:
         if isinstance(prompt, str):
             content = [{"text": prompt}]
         else:
             content = prompt[-1].get("content", [])
-
-        print(content)   
-
+    
+    def __process_content_image(self, content: list, image: str | Image.Image | list) -> bytearray:
         if isinstance(image, str) or isinstance(image, Image.Image):
             img = self.process_image(image)
 
@@ -208,12 +208,10 @@ class VisionAPI:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
+        
+        return content
 
-        inference_config =  {
-            "temperature": self.temperature,
-            "maxTokens": self.max_tokens,
-        }
-
+    def __process_prompt(self, prompt: str | list, content: list) -> list:
         if isinstance(prompt, list):
             prompt[-1] = {"role": "user", "content": content}
 
@@ -224,6 +222,18 @@ class VisionAPI:
                             del message['content'][i]['type']
         else:
             prompt = [{"role": "user", "content": content}]
+
+
+    def call_api(self, prompt: str | list, image: Any):
+
+        content = self.__process_prompt_content(prompt)
+        content = self.__process_content_image(content, image)
+        prompt = self.__process_prompt(prompt, content)
+
+        inference_config =  {
+            "temperature": self.temperature,
+            "maxTokens": self.max_tokens,
+        }
 
         json_data = {
             "modelId": f"us.{self.model}",

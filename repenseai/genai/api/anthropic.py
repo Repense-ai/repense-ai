@@ -133,7 +133,7 @@ class VisionAPI:
             for message in stream:
                 yield message
 
-    def resize_image(self, image: Image.Image) -> Image.Image:
+    def _resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 1568
         min_size = 200
         width, height = image.size
@@ -159,7 +159,7 @@ class VisionAPI:
 
         return image
 
-    def process_image(self, image: Any) -> bytearray:
+    def _process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
             return image
         elif isinstance(image, Image.Image):
@@ -174,14 +174,16 @@ class VisionAPI:
             return image_string
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
-
-    def call_api(self, prompt: str | list, image: Any):
-
+        
+    def __process_prompt_content(self, prompt: str | list) -> bytearray:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
         else:
             content = prompt[-1].get("content", [])
 
+        return content
+    
+    def __process_content_image(self, content: list, image: str | Image.Image | list) -> bytearray:
         if isinstance(image, str) or isinstance(image, Image.Image):
             img = self.process_image(image)
             img_dict = {
@@ -215,10 +217,20 @@ class VisionAPI:
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
         
+        return content
+
+    def __process_prompt(self, prompt: str | list, content: list) -> list:
         if isinstance(prompt, list):
             prompt[-1] = {"role": "user", "content": content}
         else:
             prompt = [{"role": "user", "content": content}]
+
+    def call_api(self, prompt: str | list, image: str | Image.Image | list) -> Any:
+
+        content = self.__process_prompt_content(prompt)
+        content = self.__process_content_image(content, image)
+
+        prompt = self.__process_prompt(prompt, content)
 
         json_data = {
             "model": self.model,

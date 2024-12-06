@@ -29,6 +29,13 @@ class ChatAPI:
             base_url="https://chat.maritaca.ai/api",
         )
 
+    def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
+        for message in prompt:
+            if message.get("role") == "assistant":
+                message["content"] = message.get("content", [{}])[0].get("text", "")
+
+        return prompt
+
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
             "model": self.model,
@@ -39,10 +46,7 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            for message in prompt:
-                message["content"] = message["content"][0].get("text", "")
-
-            json_data["messages"] = prompt
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 

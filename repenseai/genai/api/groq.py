@@ -26,6 +26,13 @@ class ChatAPI:
 
         self.client = Groq(api_key=self.api_key)
 
+    def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list: 
+        for message in prompt:
+            if message.get("role") == "assistant":
+                message['content'] = message.get('content', [{}])[0].get('text', '')
+
+        return prompt
+
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
             "model": self.model,
@@ -33,12 +40,9 @@ class ChatAPI:
             "max_tokens": self.max_tokens,
             "stream": self.stream,
         }
-        if isinstance(prompt, list):
-            for message in prompt:
-                if message.get("role") == "assistant":
-                    message['content'] = message.get('content', [{}])[0].get('text', '')
 
-            json_data["messages"] = prompt
+        if isinstance(prompt, list):
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 

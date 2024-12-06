@@ -176,7 +176,7 @@ class VisionAPI:
             "generation_config": self.config,
         }
 
-        if isinstance(image, list):
+        if isinstance(self.image, list):
             json_data["contents"] = [self.prompt] + self.image
         else:
             json_data["contents"] = [self.prompt, self.image]
