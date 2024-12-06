@@ -6,6 +6,7 @@ from openai import OpenAI
 
 from PIL import Image
 
+from repenseai.utils.audio import get_memory_buffer
 from repenseai.utils.logs import logger
 
 
@@ -38,7 +39,6 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            print(prompt)
             json_data["messages"] = prompt
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
@@ -94,16 +94,40 @@ class AudioAPI:
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
-    def call_api(self, audio: io.BufferedReader):
+        self.response = None
+        self.tokens = None
 
-        transcript = self.client.audio.transcriptions.create(
+    def call_api(self, audio: io.BufferedReader | bytes) -> str:
+        print(type(audio))
+
+        if not isinstance(audio, io.BufferedReader):
+            audio = get_memory_buffer(audio)
+
+        self.response = self.client.audio.transcriptions.create(
             model=self.model,
             file=audio,
             language="pt",
-            response_format="text",
+            response_format="verbose_json",
         )
 
-        return transcript
+        self.tokens = self.get_tokens()
+
+        return self.get_text()
+    
+    def get_text(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.model_dump().get('text')
+        else:
+            return None
+
+    def get_tokens(self) -> Union[None, str]:
+        if self.response is not None:
+            duration = self.response.model_dump().get('duration')
+            duration = round(duration / 60, 2)
+
+            return duration
+        else:
+            return None    
 
 
 class VisionAPI:

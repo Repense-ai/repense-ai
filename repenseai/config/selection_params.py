@@ -213,7 +213,12 @@ SEARCH_MODELS = {
 EMBEDDINGS_MODELS = {}
 
 
-AUDIO_MODELS = {}
+AUDIO_MODELS = {
+    "whisper-1": {
+        "provider": "openai", 
+        "cost": 0.006
+    }
+}
 
 
 RANK_MODELS = {}

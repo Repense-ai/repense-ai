@@ -5,23 +5,28 @@ from typing import Any
 from repenseai.genai.tasks.base_task import BaseTask
 
 
-class ChatTask(BaseTask):
+class Task(BaseTask):
 
     def __init__(
         self,
-        api: Any,
+        selector: Any,
         instruction: str = "",
         prompt_template: str = "",
         history: list | None = None,
+        image_key: str = "image",
+        audio_key: str = "audio"
     ) -> None:
 
         self.instruction = instruction
         self.prompt_template = prompt_template
         self.history = history
 
-        self.model = api
+        self.selector = selector
 
-    def build_prompt(self, **kwargs):
+        self.image_key = image_key
+        self.audio_key = audio_key
+
+    def __build_prompt(self, **kwargs):
 
         if self.prompt_template != "":
             content = self.prompt_template.format(
@@ -47,12 +52,48 @@ class ChatTask(BaseTask):
         
         return prompt
     
+    def __process_api_call(self, context: dict, prompt: list) -> dict:
+        match self.selector.model_type:
+            case "chat" | "search":
+                api = self.selector.get_api()
+                response = api.call_api(prompt)
+
+                return {
+                    "response": response,
+                    "tokens": api.tokens,
+                    "cost": self.selector.calculate_cost(api.tokens),
+                    "citations": api.response.model_dump().get("citations", []),
+                }       
+            case "vision":
+                api = self.selector.get_api()
+                image = context.get(self.image_key)
+
+                response = api.call_api(prompt, image)
+
+                return {
+                    "response": response,
+                    "tokens": api.tokens,
+                    "cost": self.selector.calculate_cost(api.tokens),
+                }
+            case "audio":
+                api = self.selector.get_api()
+                audio = context.get(self.audio_key)
+
+                response = api.call_api(audio)
+
+                return {
+                    "response": response,
+                    "tokens": api.tokens,
+                    "cost": self.selector.calculate_cost(api.tokens),
+                }                      
+    
     def predict(self, context: dict) -> str:
         try:
-            prompt = self.build_prompt(**context)
-            self.model.call_api(prompt)
+            prompt = self.__build_prompt(**context)
+            response = self.__process_api_call(context, prompt)
 
-            return self.model.get_text()
+            return response
+
         except Exception as e:
             raise e
 

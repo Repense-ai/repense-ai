@@ -10,6 +10,7 @@ from repenseai.config.selection_params import (
     IMAGE_MODELS,
     VIDEO_MODELS,
     SEARCH_MODELS,
+    AUDIO_MODELS,
 )
 
 from dotenv import find_dotenv, load_dotenv
@@ -18,13 +19,21 @@ load_dotenv(find_dotenv())
 
 
 class APISelector:
-    def __init__(self, model: str, model_type: str, api_key: str = None) -> None:
+    def __init__(
+            self, 
+            model: str, 
+            model_type: str, 
+            api_key: str = None,
+            **kwargs
+        ) -> None:
+
         self.model = model
         self.model_type = model_type
         self.api_key = api_key
 
         self.tokens = None
         self.api = None
+        self.kwargs = kwargs
 
         self.models = {
             "chat": TEXT_MODELS,
@@ -32,6 +41,7 @@ class APISelector:
             "image": IMAGE_MODELS,
             "video": VIDEO_MODELS,
             "search": SEARCH_MODELS,
+            "audio": AUDIO_MODELS,
         }
 
         self.all_models = {}
@@ -82,26 +92,26 @@ class APISelector:
         return self.api_key
 
     def get_api(
-        self, secret_name: str = "genai", region_name: str = "us-east-2", **kwargs
+        self, secret_name: str = "genai", region_name: str = "us-east-2"
     ):
         api_key = self.get_api_key(secret_name, region_name)
 
         match self.model_type:
             case "chat" | "search":
                 self.api = self.module_api.ChatAPI(
-                    api_key=api_key, model=self.model, **kwargs
+                    api_key=api_key, model=self.model, **self.kwargs
                 )
             case "vision":
                 self.api = self.module_api.VisionAPI(
-                    api_key=api_key, model=self.model, **kwargs
+                    api_key=api_key, model=self.model, **self.kwargs
                 )
             case "audio":
                 self.api = self.module_api.AudioAPI(
-                    api_key=api_key, model=self.model, **kwargs
+                    api_key=api_key, model=self.model, **self.kwargs
                 )
             case "image":
                 self.api = self.module_api.ImageAPI(
-                    api_key=api_key, model=self.model, **kwargs
+                    api_key=api_key, model=self.model, **self.kwargs
                 )                
             case _:
                 raise Exception(self.model_type + " API not found")
@@ -133,6 +143,6 @@ class APISelector:
         if as_string:
             return f"U${total:.5f}"
 
-        return total
+        return round(total, 5)
         
         
