@@ -24,7 +24,7 @@ def test_chat_task_hello_world(model):
         ]
     )
 
-    response = task.predict({"temperature": 0.0, "max_tokens": 100})
+    response = task.predict()
 
     assert "Hello, World!" in response.get('response')
     assert response.get('cost') > 0

@@ -143,6 +143,6 @@ class APISelector:
         if as_string:
             return f"U${total:.5f}"
 
-        return round(total, 5)
+        return round(total, 5) + 0.00001
         
         

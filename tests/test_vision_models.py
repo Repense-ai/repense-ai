@@ -28,7 +28,7 @@ def test_vision_task_doc_type(model, image):
         selector=selector,
     )
 
-    response = task.predict({"image": image, 'temperature': 0.0, 'max_tokens': 100})
+    response = task.predict({"image": image})
 
     assert "nascimento" in response.get('response').lower()
     assert response.get('cost') > 0
