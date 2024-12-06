@@ -58,12 +58,16 @@ class Task(BaseTask):
                 api = self.selector.get_api()
                 response = api.call_api(prompt)
 
-                return {
+                final_response = {
                     "response": response,
                     "tokens": api.tokens,
                     "cost": self.selector.calculate_cost(api.tokens),
-                    "citations": api.response.model_dump().get("citations", []),
-                }       
+                }
+
+                if self.selector.model_type == "search":
+                    final_response["citations"] = api.response.model_dump().get("citations", [])   
+
+                return final_response      
             case "vision":
                 api = self.selector.get_api()
                 image = context.get(self.image_key)
