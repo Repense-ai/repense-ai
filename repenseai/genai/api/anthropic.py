@@ -183,7 +183,7 @@ class VisionAPI:
 
         return content
     
-    def __process_content_image(self, content: list, image: str | Image.Image | list) -> bytearray:
+    def __process_content_image(self, content: list, image: str | Image.Image | list) -> list:
         if isinstance(image, str) or isinstance(image, Image.Image):
             img = self._process_image(image)
             img_dict = {
@@ -224,6 +224,8 @@ class VisionAPI:
             prompt[-1] = {"role": "user", "content": content}
         else:
             prompt = [{"role": "user", "content": content}]
+
+        return prompt
 
     def call_api(self, prompt: str | list, image: str | Image.Image | list) -> Any:
 
