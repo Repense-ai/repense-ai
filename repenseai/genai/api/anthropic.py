@@ -165,7 +165,7 @@ class VisionAPI:
         elif isinstance(image, Image.Image):
             img_byte_arr = io.BytesIO()
 
-            image = self.resize_image(image)
+            image = self._resize_image(image)
             image.save(img_byte_arr, format="PNG")
 
             img_byte_arr = img_byte_arr.getvalue()
