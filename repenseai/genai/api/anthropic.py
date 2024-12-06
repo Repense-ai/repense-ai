@@ -185,7 +185,7 @@ class VisionAPI:
     
     def __process_content_image(self, content: list, image: str | Image.Image | list) -> bytearray:
         if isinstance(image, str) or isinstance(image, Image.Image):
-            img = self.process_image(image)
+            img = self._process_image(image)
             img_dict = {
                 "type": "image",
                 "source": {
@@ -201,7 +201,7 @@ class VisionAPI:
 
             for img in image:
 
-                img = self.process_image(img)
+                img = self._process_image(img)
                 img_dict = {
                     "type": "image",
                     "source": {

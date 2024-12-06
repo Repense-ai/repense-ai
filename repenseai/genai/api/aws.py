@@ -33,7 +33,7 @@ class ChatAPI:
             region_name="us-east-1"
         )
 
-    def __process_prompt_list(prompt: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    def __process_prompt_list(self, prompt: list) -> list:
         for message in prompt:
             for i, content in enumerate(message.get('content', [])):
                 if content:
@@ -154,7 +154,7 @@ class VisionAPI:
         self.response = None
         self.tokens = None
 
-    def process_image(self, image: Any, format: str = "PNG") -> bytearray:
+    def _process_image(self, image: Any, format: str = "PNG") -> bytearray:
         if isinstance(image, str):
             return base64.b64decode(image)
         elif isinstance(image, Image.Image):
@@ -173,10 +173,12 @@ class VisionAPI:
             content = [{"text": prompt}]
         else:
             content = prompt[-1].get("content", [])
+
+        return content
     
     def __process_content_image(self, content: list, image: str | Image.Image | list) -> bytearray:
         if isinstance(image, str) or isinstance(image, Image.Image):
-            img = self.process_image(image)
+            img = self._process_image(image)
 
             img_dict = {
                 "image": {
@@ -193,7 +195,7 @@ class VisionAPI:
 
             for img in image:
 
-                img = self.process_image(img)
+                img = self._process_image(img)
                 img_dict = {
                     "image": {
                         "format": "png", 
@@ -223,11 +225,13 @@ class VisionAPI:
         else:
             prompt = [{"role": "user", "content": content}]
 
+        return prompt
 
     def call_api(self, prompt: str | list, image: Any):
 
         content = self.__process_prompt_content(prompt)
         content = self.__process_content_image(content, image)
+
         prompt = self.__process_prompt(prompt, content)
 
         inference_config =  {

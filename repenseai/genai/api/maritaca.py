@@ -31,8 +31,7 @@ class ChatAPI:
 
     def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
         for message in prompt:
-            if message.get("role") == "assistant":
-                message["content"] = message.get("content", [{}])[0].get("text", "")
+            message["content"] = message.get("content", [{}])[0].get("text", "")
 
         return prompt
 
