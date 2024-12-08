@@ -1,4 +1,8 @@
 TEXT_MODELS = {
+    "deepseek-chat": {
+        "provider": "deepseek",
+        "cost": {"input": 0.14, "output": 0.28},
+    },
     "sabia-3": {
         "provider": "maritaca", 
         "cost": {"input": 1.0, "output": 2.0}
