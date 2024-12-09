@@ -48,7 +48,7 @@ class Task(BaseTask):
         ]
         
         if self.history:
-            return self.history + self.prompt
+            self.prompt = self.history + self.prompt
         
         return self.prompt
     
@@ -93,7 +93,7 @@ class Task(BaseTask):
     
     def __process_image(self) -> dict:
         api = self.selector.get_api()
-        instruction = self.prompt[0]["content"][0]["text"]
+        instruction = self.prompt[-1]["content"][0]["text"]
 
         response = api.call_api(instruction)
 

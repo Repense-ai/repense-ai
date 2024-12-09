@@ -148,9 +148,12 @@ class VisionAPI:
         self.response = None
         self.tokens = None
 
-    def process_image(self, image: Any) -> bytearray:
+    def process_image(self, image: Any) -> Any:
         if isinstance(image, str):
-            return image
+            if "http" in image:
+                return image
+            else:
+                f"data:image/png;base64,{image}"
         elif isinstance(image, Image.Image):
             img_byte_arr = io.BytesIO()
 
@@ -159,7 +162,7 @@ class VisionAPI:
 
             image_string = base64.b64encode(img_byte_arr).decode("utf-8")
 
-            return image_string
+            return f"data:image/png;base64,{image_string}"
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
 
@@ -175,7 +178,7 @@ class VisionAPI:
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:image/png;base64,{image}",
+                        "url": image,
                         "detail": "high",
                     },
                 },
@@ -187,7 +190,7 @@ class VisionAPI:
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/png;base64,{img}",
+                            "url": img,
                             "detail": "high",
                         },
                     },
