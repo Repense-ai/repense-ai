@@ -11,7 +11,7 @@ class Task(BaseTask):
         instruction: str = "",
         prompt_template: str = "",
         history: list | None = None,
-        image_key: str = "image",
+        vision_key: str = "image",
         audio_key: str = "audio"
     ) -> None:
 
@@ -21,8 +21,10 @@ class Task(BaseTask):
 
         self.selector = selector
 
-        self.image_key = image_key
+        self.vision_key = vision_key
         self.audio_key = audio_key
+
+        self.prompt = None
 
     def __build_prompt(self, **kwargs):
 
@@ -33,7 +35,7 @@ class Task(BaseTask):
         else:
             content = self.instruction
 
-        prompt = [
+        self.prompt = [
             {
                 "role": "user", 
                 "content": [
@@ -46,55 +48,79 @@ class Task(BaseTask):
         ]
         
         if self.history:
-            return self.history + prompt
+            return self.history + self.prompt
         
-        return prompt
+        return self.prompt
     
-    def __process_api_call(self, context: dict, prompt: list) -> dict:
+    def __process_chat_or_search(self) -> dict:
+        api = self.selector.get_api()
+        response = api.call_api(self.prompt)
+
+        final_response = {
+            "response": response,
+            "tokens": api.tokens,
+            "cost": self.selector.calculate_cost(api.tokens),
+        }
+
+        if self.selector.model_type == "search":
+            final_response["citations"] = api.response.model_dump().get("citations", [])   
+
+        return final_response       
+
+    def __process_vision(self, context: dict) -> dict:
+        api = self.selector.get_api()
+        image = context.get(self.vision_key)
+
+        response = api.call_api(self.prompt, image)
+
+        return {
+            "response": response,
+            "tokens": api.tokens,
+            "cost": self.selector.calculate_cost(api.tokens),
+        }
+    
+    def __process_audio(self, context: dict) -> dict:
+        api = self.selector.get_api()
+        audio = context.get(self.audio_key)
+
+        response = api.call_api(audio)
+
+        return {
+            "response": response,
+            "tokens": api.tokens,
+            "cost": self.selector.calculate_cost(api.tokens),
+        }
+    
+    def __process_image(self) -> dict:
+        api = self.selector.get_api()
+        instruction = self.prompt[0]["content"][0]["text"]
+
+        response = api.call_api(instruction)
+
+        return {
+            "response": response,
+            "tokens": api.tokens,
+            "cost": self.selector.calculate_cost(api.tokens),
+        }
+
+    def _process_api_call(self, context: dict) -> dict:
         match self.selector.model_type:
             case "chat" | "search":
-                api = self.selector.get_api()
-                response = api.call_api(prompt)
-
-                final_response = {
-                    "response": response,
-                    "tokens": api.tokens,
-                    "cost": self.selector.calculate_cost(api.tokens),
-                }
-
-                if self.selector.model_type == "search":
-                    final_response["citations"] = api.response.model_dump().get("citations", [])   
-
-                return final_response      
+                return self.__process_chat_or_search()
             case "vision":
-                api = self.selector.get_api()
-                image = context.get(self.image_key)
-
-                response = api.call_api(prompt, image)
-
-                return {
-                    "response": response,
-                    "tokens": api.tokens,
-                    "cost": self.selector.calculate_cost(api.tokens),
-                }
+                return self.__process_vision(context)
             case "audio":
-                api = self.selector.get_api()
-                audio = context.get(self.audio_key)
-
-                response = api.call_api(audio)
-
-                return {
-                    "response": response,
-                    "tokens": api.tokens,
-                    "cost": self.selector.calculate_cost(api.tokens),
-                }                      
+                return self.__process_audio(context)
+            case "image":
+                return self.__process_image()                             
     
     def predict(self, context: dict) -> str:
         try:
-            prompt = self.__build_prompt(**context)
-            response = self.__process_api_call(context, prompt)
+            self.__build_prompt(**context)
 
-            return response
+            return self._process_api_call(context)
 
         except Exception as e:
             raise e
+        
+    
