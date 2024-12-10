@@ -34,12 +34,30 @@ class ChatAPI:
         )
 
     def __process_prompt_list(self, prompt: list) -> list:
+
+        # Remove type if exists
         for message in prompt:
             for i, content in enumerate(message.get('content', [])):
                 if content:
                     if content.get('type'):
                         del message['content'][i]['type']
+        
+        # Merge consecutive user messages
+        i = 0
+        while i < len(prompt) - 1:
+            if prompt[i]['role'] == 'user' and prompt[i + 1]['role'] == 'user':
+                if isinstance(prompt[i]['content'], list):
+                    prompt[i]['content'].extend(prompt[i + 1]['content'])
+                else:
+                    prompt[i]['content'] = [prompt[i]['content']] + (
+                        prompt[i + 1]['content'] if isinstance(prompt[i + 1]['content'], list) 
+                        else [prompt[i + 1]['content']]
+                    )
+                prompt.pop(i + 1)
+            else:
+                i += 1
 
+        logger(prompt)
         return prompt
 
 
@@ -217,14 +235,31 @@ class VisionAPI:
         if isinstance(prompt, list):
             prompt[-1] = {"role": "user", "content": content}
 
+            # Remove type if exists
             for message in prompt:
                 for i, content in enumerate(message.get('content', [])):
                     if content:
                         if content.get('type'):
                             del message['content'][i]['type']
+            
+            # Merge consecutive user messages
+            i = 0
+            while i < len(prompt) - 1:
+                if prompt[i]['role'] == 'user' and prompt[i + 1]['role'] == 'user':
+                    if isinstance(prompt[i]['content'], list):
+                        prompt[i]['content'].extend(prompt[i + 1]['content'])
+                    else:
+                        prompt[i]['content'] = [prompt[i]['content']] + (
+                            prompt[i + 1]['content'] if isinstance(prompt[i + 1]['content'], list) 
+                            else [prompt[i + 1]['content']]
+                        )
+                    prompt.pop(i + 1)
+                else:
+                    i += 1
         else:
             prompt = [{"role": "user", "content": content}]
 
+        logger(prompt)
         return prompt
 
     def call_api(self, prompt: str | list, image: Any):
