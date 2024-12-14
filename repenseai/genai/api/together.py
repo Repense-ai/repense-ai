@@ -284,8 +284,6 @@ class ImageAPI:
 
     def call_api(self, prompt: Any, image: Any = None):
 
-        _ = image
-
         payload = {
             "prompt": prompt,
             "model": self.model,
@@ -295,6 +293,9 @@ class ImageAPI:
             "steps": 1,
             "n": 1,
         }
+
+        if image:
+            payload["image_url"] = f"data:image/png;base64,{image}"
 
         self.response = self.client.images.generate(**payload)
         self.tokens = self.get_tokens()

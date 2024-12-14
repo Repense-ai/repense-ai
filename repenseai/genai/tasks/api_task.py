@@ -12,7 +12,8 @@ class Task(BaseTask):
         prompt_template: str = "",
         history: list | None = None,
         vision_key: str = "image",
-        audio_key: str = "audio"
+        audio_key: str = "audio",
+        base_image_key: str = "base_image"
     ) -> None:
 
         self.instruction = instruction
@@ -23,6 +24,7 @@ class Task(BaseTask):
 
         self.vision_key = vision_key
         self.audio_key = audio_key
+        self.base_image_key = base_image_key
 
         self.prompt = None
 
@@ -63,7 +65,7 @@ class Task(BaseTask):
         }
 
         if self.selector.model_type == "search":
-            final_response["citations"] = api.response.model_dump().get("citations", [])   
+            final_response["citations"] = api.response.json().get("citations", [])   
 
         return final_response       
 
@@ -91,11 +93,13 @@ class Task(BaseTask):
             "cost": self.selector.calculate_cost(api.tokens),
         }
     
-    def __process_image(self) -> dict:
+    def __process_image(self, context: dict) -> dict:
         api = self.selector.get_api()
+        image = context.get(self.base_image_key)
+
         instruction = self.prompt[-1]["content"][0]["text"]
 
-        response = api.call_api(instruction)
+        response = api.call_api(instruction, image)
 
         return {
             "response": response,
@@ -112,7 +116,7 @@ class Task(BaseTask):
             case "audio":
                 return self.__process_audio(context)
             case "image":
-                return self.__process_image()                             
+                return self.__process_image(context)                             
     
     def predict(self, context: dict) -> str:
         try:

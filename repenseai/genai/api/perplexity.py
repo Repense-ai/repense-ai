@@ -1,10 +1,7 @@
-import base64
 import io
+import requests
 
 from typing import Any, Dict, List, Union
-from openai import OpenAI
-
-from PIL import Image
 
 from repenseai.utils.logs import logger
 
@@ -24,13 +21,18 @@ class ChatAPI:
         self.stream = stream
         self.max_tokens = max_tokens
 
+        self.url = "https://api.perplexity.ai/chat/completions"
+
         self.response = None
         self.tokens = None
 
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url="https://api.perplexity.ai",
-        )
+        self.__build_headers()
+
+    def __build_headers(self):
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key }",
+            "Content-Type": "application/json"
+        }
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
 
@@ -40,6 +42,7 @@ class ChatAPI:
             "max_tokens": self.tokens,
             "stream": self.stream,
             "stream_options": {"include_usage": True},
+            "search_recency_filter": "day",
         }
 
         if isinstance(prompt, list):
@@ -48,7 +51,11 @@ class ChatAPI:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
-            self.response = self.client.chat.completions.create(**json_data)
+            self.response = requests.post(
+                url=self.url,
+                headers=self.headers,
+                json=json_data
+            )
 
             if not self.stream:
                 self.tokens = self.get_tokens()
@@ -61,19 +68,19 @@ class ChatAPI:
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.model_dump()["choices"][0]["message"]["content"]
+            return self.response.json()["choices"][0]["message"]["content"]
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.model_dump()["usage"]
+            return self.response.json()["usage"]
         else:
             return None
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.choices[0].finish_reason == "stop":
-            tokens = chunk.model_dump()["usage"]
+            self.tokens = chunk.json()["usage"]
         else:
             string += chunk.choices[0].delta.content
                 
@@ -81,7 +88,7 @@ class ChatAPI:
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str = "whisper-1"):
-        self.client = OpenAI(api_key=api_key)
+        self.client = api_key
         self.model = model
 
     def call_api(self, audio: io.BufferedReader):
@@ -105,10 +112,7 @@ class VisionAPI:
         max_tokens: int = 3500,
         stream: bool = False,
     ):
-        self.client = OpenAI(
-            api_key=api_key, 
-            base_url="https://api.perplexity.ai"
-        )
+        self.client = api_key
 
         self.model = model
         self.temperature = temperature
