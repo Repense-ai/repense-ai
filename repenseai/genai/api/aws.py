@@ -1,13 +1,16 @@
 import io
 import base64
 import json
+import httpx
 
 from PIL import Image
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 import boto3
 
 from repenseai.utils.logs import logger
+
+from repenseai.config.selection_params import VISION_MODELS
 
 
 class ChatAPI:
@@ -33,15 +36,38 @@ class ChatAPI:
             region_name="us-east-1"
         )
 
+    def __process_content_image(self, image_url: dict) -> dict:
+        url = image_url.get('url')
+        image_content = httpx.get(url).content
+
+        return image_content
+
+    def __get_media_type(self, image_url: dict) -> str:
+        return "png" if "png" in image_url.get('url') else "jpeg"
+
     def __process_prompt_list(self, prompt: list) -> list:
 
         # Remove type if exists
         for message in prompt:
-            for i, content in enumerate(message.get('content', [])):
+            for i, content in enumerate(message.get('content', [])):                
                 if content:
                     if content.get('type'):
                         del message['content'][i]['type']
-        
+                    if image_url := content.get('image_url'):
+                        message['content'][i] = {
+                            "image": {
+                                "format": self.__get_media_type(image_url), 
+                                'source': {
+                                    "bytes": self.__process_content_image(image_url),
+                                }
+                            }
+                        }
+                        
+        if self.model not in VISION_MODELS:
+            for message in prompt:
+                if "image" in message.get('content', [{"": ""}])[0]:
+                    prompt.remove(message)
+
         # Merge consecutive user messages
         i = 0
         while i < len(prompt) - 1:
@@ -57,11 +83,9 @@ class ChatAPI:
             else:
                 i += 1
 
-        logger(prompt)
         return prompt
 
-
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
+    def call_api(self, prompt: list | str) -> None:
 
         inference_config =  {
             "temperature": self.temperature,

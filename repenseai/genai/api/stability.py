@@ -54,7 +54,6 @@ class ImageAPI:
             self, 
             api_key: str, 
             model: str = "",
-            action: str = 'generate', 
             aspect_ratio: str = '1:1',
             strength: float = 0.5,
             seed: int = 0, 
@@ -65,7 +64,6 @@ class ImageAPI:
 
         self.api_key = api_key
         self.model = model
-        self.action = action
         self.aspect_ratio = aspect_ratio
         self.seed = seed
         self.cfg_scale = cfg_scale
@@ -76,6 +74,10 @@ class ImageAPI:
 
         self.response = None
         self.tokens = None
+
+        self.model_type = None
+        self.model_name = None
+        self.action = None
 
         self.allowed_ar = [
             '16:9', '1:1', '21:9', 
@@ -113,6 +115,7 @@ class ImageAPI:
         splitted = self.model.split("/")
 
         self.model_type = splitted[-1]
+        self.action = splitted[1]
         self.model_name = splitted[-2] if splitted[-2] != "default" else None
 
 
@@ -127,8 +130,22 @@ class ImageAPI:
     def __check_style_preset(self):
         if self.style_preset not in self.allowed_sp:
             self.style_preset = 'photographic'
+
+    def __build_upscale_data(self, prompt: Any, image: Any):
+
+        _ = image
+
+        payload = {
+            "output_format": "png",
+        }
+
+        if self.model_type != "fast":
+            payload["prompt"] = prompt
+
+        return payload
+
         
-    def __build_data(self, prompt: Any, image: Any):
+    def __build_generate_data(self, prompt: Any, image: Any):
 
         payload = {
             "prompt": prompt,
@@ -149,6 +166,17 @@ class ImageAPI:
             payload["mode"] = "text-to-image"
 
         return payload
+    
+
+    def __build_data(self, prompt: Any, image: Any):
+
+        build_data_dict = {
+            "upscale": self.__build_upscale_data,
+            "generate": self.__build_generate_data,
+        }
+
+        build_function = build_data_dict[self.action]
+        return build_function(prompt, image)
 
 
     def __build_files(self, image: Any):
@@ -236,6 +264,8 @@ class ImageAPI:
             raise Exception(str(self.response.json()))
 
     def get_image(self):
+        if self.model_type == "creative":
+            return self.response.json()['id']
         return base64.b64encode(
             self.response.content
         ).decode('utf-8')

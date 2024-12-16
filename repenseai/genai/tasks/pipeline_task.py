@@ -16,6 +16,8 @@ class Pipeline(BaseTask):
                     else:
                         if chat_history := context.get("chat_history"):
                             step[0].history = chat_history
+                        elif memory_dict := context.get("memory_dict"):
+                            step[0].history = memory_dict.get("chat_history", [])
                             
                         context[step[1]] = step[0].predict(context)
                 else:

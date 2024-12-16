@@ -32,13 +32,13 @@ class ChatAPI:
             base_url="https://api.deepseek.com",
         )
 
-    def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
+    def __process_prompt_list(self, prompt: list) -> list:
         for message in prompt:
             message["content"] = message.get("content", [{}])[0].get("text", "")
 
         return prompt        
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
+    def call_api(self, prompt: list | str) -> Any:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -54,10 +54,6 @@ class ChatAPI:
         try:
             if self.stream:
                 json_data["stream_options"] = {"include_usage": True}
-
-            if "o1" in self.model:
-                json_data.pop("temperature")
-                json_data.pop("max_tokens")
 
             self.response = self.client.chat.completions.create(**json_data)
 
@@ -130,7 +126,7 @@ class VisionAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4-turbo",
+        model: str = "",
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,

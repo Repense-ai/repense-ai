@@ -29,13 +29,13 @@ class ChatAPI:
             base_url="https://chat.maritaca.ai/api",
         )
 
-    def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
+    def __process_prompt_list(self, prompt: list) -> list:
         for message in prompt:
             message["content"] = message.get("content", [{}])[0].get("text", "")
 
         return prompt
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
+    def call_api(self, prompt: list | str) -> None:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,

@@ -1,6 +1,10 @@
 import base64
+import httpx
 import io
-from typing import Any, Dict, List, Union
+
+from repenseai.config.selection_params import VISION_MODELS
+
+from typing import Any, Dict, Union
 
 from anthropic import Anthropic
 
@@ -33,7 +37,42 @@ class ChatAPI:
             for message in stream:
                 yield message
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
+    def __process_content_image(self, image_url: dict) -> dict:
+        url = image_url.get('url')
+
+        image_content = httpx.get(url).content
+        image = base64.standard_b64encode(image_content).decode("utf-8")
+
+        return image
+
+    def __get_media_type(self, image_url: dict) -> str:
+        return "image/png" if "png" in image_url.get('url') else "image/jpeg"
+
+    def __process_prompt_list(self, prompt: list) -> list:
+        for history in prompt:
+            content = history.get('content', [])
+            
+            if content[0].get('type') == 'image_url':
+                if self.model not in VISION_MODELS:
+                    prompt.remove(history)
+                    continue
+
+                image_url = content[0].get('image_url')
+
+                img_dict = {
+                    "type": "image",
+                    "source": {
+                        "data": self.__process_content_image(image_url),
+                        "type": "base64",
+                        "media_type": self.__get_media_type(image_url),
+                    },
+                }
+
+                content[0] = img_dict                
+
+        return prompt
+
+    def call_api(self, prompt: list | str) -> Any:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -41,9 +80,9 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            json_data.update(messages=prompt)
+            json_data['messages'] = self.__process_prompt_list(prompt)
         else:
-            json_data.update(messages=[{"role": "user", "content": prompt}])
+            json_data['messages'] = [{"role": "user", "content": prompt}]
 
         try:
             if self.stream:
@@ -175,6 +214,19 @@ class VisionAPI:
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
         
+    def __create_content_image(self, image: str | Image.Image) -> dict:
+        img = self._process_image(image)
+        img_dict = {
+            "type": "image",
+            "source": {
+                "data": img,
+                "type": "base64",
+                "media_type": "image/png",
+            },
+        }
+
+        return img_dict
+    
     def __process_prompt_content(self, prompt: str | list) -> bytearray:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
@@ -185,32 +237,12 @@ class VisionAPI:
     
     def __process_content_image(self, content: list, image: str | Image.Image | list) -> list:
         if isinstance(image, str) or isinstance(image, Image.Image):
-            img = self._process_image(image)
-            img_dict = {
-                "type": "image",
-                "source": {
-                    "data": img,
-                    "type": "base64",
-                    "media_type": "image/png",
-                },
-            }
-
+            img_dict = self.__create_content_image(image)
             content.insert(0, img_dict)
 
         elif isinstance(image, list):
-
             for img in image:
-
-                img = self._process_image(img)
-                img_dict = {
-                    "type": "image",
-                    "source": {
-                        "data": img,
-                        "type": "base64",
-                        "media_type": "image/png",
-                    },
-                }
-
+                img_dict = self.__create_content_image(img)
                 content.insert(0, img_dict)
         else:
             raise Exception(

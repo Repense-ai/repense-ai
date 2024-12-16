@@ -32,7 +32,7 @@ class ChatAPI:
             max_output_tokens=max_tokens,
         )
 
-    def _process_str_prompt(self, prompt: str) -> str:
+    def __process_str_prompt(self, prompt: str) -> str:
         self.prompt = prompt
 
         self.response = self.client.generate_content(
@@ -47,7 +47,7 @@ class ChatAPI:
         
         return self.response        
 
-    def _process_list_prompt(self, prompt: List[Dict[str, str]]) -> str:
+    def __process_list_prompt(self, prompt: list) -> str:
         self.prompt = prompt[-1].get("content", [{}])[0].get("text", "")
 
         history = []
@@ -74,13 +74,12 @@ class ChatAPI:
         
         return self.response              
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]):
+    def call_api(self, prompt: list | str):
 
         if isinstance(prompt, str):
-            return self._process_str_prompt(prompt)
+            return self.__process_str_prompt(prompt)
         else:
-            return self._process_list_prompt(prompt)
-
+            return self.__process_list_prompt(prompt)
 
     def get_response(self) -> Any:
         return self.response
@@ -163,9 +162,13 @@ class VisionAPI:
         self.response = None
         self.tokens = None
 
+    def __process_list_prompt(self, prompt: list) -> str:
+        return prompt[-1]["content"][0].get("text", "")  
+
     def call_api(self, prompt: str | list, image: Union[Any, List[Any]]):
+        
         if isinstance(prompt, list):
-            self.prompt = prompt[-1]["content"][0].get("text", "")  
+            self.prompt = self.__process_list_prompt(prompt) 
         else:      
             self.prompt = prompt
             

@@ -67,41 +67,13 @@ TEXT_MODELS = {
         "provider": "cohere",
         "cost": {"input": 0.15, "output": 0.60},
     },
-    "llama-3.1-70b-versatile": {
+    "llama-3.3-70b-versatile": {
         "provider": "groq",
         "cost": {"input": 0.59, "output": 0.79},
-    },
-    "llama-3.1-8b-instant": {
-        "provider": "groq",
-        "cost": {"input": 0.05, "output": 0.08},
-    },
-    "Meta-Llama-3.1-8B-Instruct": {
-        "provider": "sambanova",
-        "cost": {"input": 0.10, "output": 0.20},
-    },
-    "Meta-Llama-3.1-70B-Instruct": {
-        "provider": "sambanova",
-        "cost": {"input": 0.60, "output": 1.2},
     },
     "Meta-Llama-3.1-405B-Instruct": {
         "provider": "sambanova",
         "cost": {"input": 5.0, "output": 10.0},
-    },
-    "Meta-Llama-3.2-1B-Instruct": {
-        "provider": "sambanova",
-        "cost": {"input": 0.04, "output": 0.08},
-    },
-    "Meta-Llama-3.2-3B-Instruct": {
-        "provider": "sambanova",
-        "cost": {"input": 0.08, "output": 0.16},
-    },
-    "Llama-3.2-11B-Vision-Instruct": {
-        "provider": "sambanova",
-        "cost": {"input": 0.15, "output": 0.30},
-    },
-    "Llama-3.2-90B-Vision-Instruct": {
-        "provider": "sambanova",
-        "cost": {"input": 0.80, "output": 1.60},
     },
     "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": {
         "provider": "together",
@@ -183,10 +155,14 @@ VISION_MODELS = {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
     },
-    # "grok-vision-beta": {
-    # "provider": "x", 
-    # "cost": {"input": 10.0, "output": 15.0}
-    # },
+    "llama-3.2-90b-vision-preview": {
+        "provider": "groq",
+        "cost": {"input": 0.59, "output": 0.79},
+    },    
+    "grok-vision-beta": {
+        "provider": "x", 
+        "cost": {"input": 10.0, "output": 15.0}
+    },
     "amazon.nova-pro-v1:0": {
         "provider": "aws", 
         "cost": {"input": 0.8, "output": 3.2}
@@ -236,27 +212,39 @@ IMAGE_MODELS = {
         "provider": "together", 
         "cost": {'input': 0.04, 'output': 0.04}
     },
-    "stability-image-gen/default/ultra": {
+    "stability/generate/default/ultra": {
         "provider": "stability", 
         "cost": 0.08
     },
-    "stability-image-gen/default/core": {
+    "stability/generate/default/core": {
         "provider": "stability", 
         "cost": 0.03
     },
-    "stability-image-gen/sd3.5-large/sd3": {
+    "stability/generate/sd3.5-large/sd3": {
         "provider": "stability",
         "cost": 0.065
     },
-    "stability-image-gen/sd3.5-large-turbo/sd3": {
+    "stability/generate/sd3.5-large-turbo/sd3": {
         "provider": "stability", 
         "cost": 0.04
     },
-    "stability-image-gen/sd3.5-medium/sd3": {
+    "stability/generate/sd3.5-medium/sd3": {
         "provider": "stability", 
         "cost": 0.035
     },
-    "amazon-image-gen/amazon.nova-canvas-v1:0": {
+    "stability/upscale/fast": {
+        "provider": "stability", 
+        "cost": 0.01
+    },
+    "stability/upscale/conservative": {
+        "provider": "stability", 
+        "cost": 0.25
+    },
+    "stability/upscale/creative": {
+        "provider": "stability", 
+        "cost": 0.25
+    },            
+    "amazon.nova-canvas-v1:0": {
         "provider": "aws", 
         "cost": 0.08
     },

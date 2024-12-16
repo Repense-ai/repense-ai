@@ -5,9 +5,9 @@ TEST_TEXT_MODELS = [
     "gemini-1.5-flash",
     "mistral-small-latest",
     "command-r-08-2024",
-    "llama-3.1-8b-instant",
-    "Meta-Llama-3.1-8B-Instruct",
-    "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
+    "llama-3.3-70b-versatile",
+    "Meta-Llama-3.1-405B-Instruct",
+    "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
     "grok-beta",
     "amazon.nova-lite-v1:0",
     "deepseek-chat",
@@ -19,8 +19,9 @@ TEST_VISION_MODELS = [
     "claude-3-5-sonnet-20241022",
     "gemini-1.5-flash",
     "pixtral-12b-2409",
-    "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
+    "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
     "amazon.nova-lite-v1:0",
+    "grok-vision-beta",
 ]
 
 TEST_AUDIO_MODELS = [

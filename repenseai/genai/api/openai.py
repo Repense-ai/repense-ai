@@ -148,7 +148,7 @@ class VisionAPI:
         self.response = None
         self.tokens = None
 
-    def process_image(self, image: Any) -> Any:
+    def __process_image(self, image: Any) -> Any:
         if isinstance(image, str):
             if "http" in image:
                 return image
@@ -165,45 +165,59 @@ class VisionAPI:
             return f"data:image/png;base64,{image_string}"
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
+        
+    def __create_content_image(self, image: Any) -> Dict[str, Any]:
+        img = self.__process_image(image)
 
-    def call_api(self, prompt: str | list, image: Any):
+        img_dict = {
+            "type": "image_url",
+            "image_url": {
+                "url": img,
+                "detail": "high",
+            },
+        }
+
+        return img_dict
+        
+    def __process_prompt_content(self, prompt: str | list) -> list:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
         else:
             content = prompt[-1].get("content", [])
 
+        return content
+
+    def __process_content_image(self, content: list, image: Any) -> list:
+
         if isinstance(image, str) or isinstance(image, Image.Image):
-            image = self.process_image(image)
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": image,
-                        "detail": "high",
-                    },
-                },
-            )
+            img = self.__create_content_image(image)
+            content.append(img)
+
         elif isinstance(image, list):
             for img in image:
-                img = self.process_image(img)
-                content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": img,
-                            "detail": "high",
-                        },
-                    },
-                )
+                img = self.__create_content_image(img)
+                content.append(img)
         else:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
-            )
+            )                
 
+        return content
+
+    def __process_prompt(self, prompt: str | list, content: list) -> list:
         if isinstance(prompt, list):
             prompt[-1] = {"role": "user", "content": content}
         else:
             prompt = [{"role": "user", "content": content}]
+
+        return prompt
+
+    def call_api(self, prompt: str | list, image: Any):
+
+        content = self.__process_prompt_content(prompt)
+        content = self.__process_content_image(content, image)
+
+        prompt = self.__process_prompt(prompt, content)
            
         json_data = {
             "model": self.model,

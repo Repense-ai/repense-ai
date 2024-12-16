@@ -1,8 +1,10 @@
 from io import BufferedReader
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from cohere import ClientV2
 from repenseai.utils.logs import logger
+
+from repenseai.config.selection_params import VISION_MODELS
 
 
 class ChatAPI:
@@ -25,7 +27,18 @@ class ChatAPI:
 
         self.client = ClientV2(api_key=self.api_key)
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
+    def __process_prompt_list(self, prompt: list) -> list:
+        
+        if self.model not in VISION_MODELS:
+            for history in prompt:
+                content = history.get('content', [])
+
+                if content[0].get('type') == 'image_url':
+                    prompt.remove(history)
+
+        return prompt  
+    
+    def call_api(self, prompt: list | str) -> None:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -33,7 +46,7 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            json_data["messages"] = prompt
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 

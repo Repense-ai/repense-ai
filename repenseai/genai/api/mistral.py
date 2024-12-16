@@ -2,6 +2,7 @@ import io
 import base64
 
 from typing import Any, Dict, List, Union
+from repenseai.config.selection_params import VISION_MODELS
 
 from mistralai import Mistral
 from repenseai.utils.logs import logger
@@ -29,14 +30,26 @@ class ChatAPI:
 
         self.client = Mistral(api_key=self.api_key)
 
+    def __process_prompt_list(self, prompt: list) -> list:
+        
+        if self.model not in VISION_MODELS:
+            for history in prompt:
+                content = history.get('content', [])
+
+                if content[0].get('type') == 'image_url':
+                    prompt.remove(history)
+
+        return prompt        
+
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
         }
+        
         if isinstance(prompt, list):
-            json_data["messages"] = prompt
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
             json_data["messages"] = [{"role": "system", "content": prompt}]
 
@@ -104,7 +117,7 @@ class VisionAPI:
         self.response = None
         self.tokens = None
 
-    def resize_image(self, image: Image.Image) -> Image.Image:
+    def __resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 1568
         min_size = 200
         width, height = image.size
@@ -130,13 +143,13 @@ class VisionAPI:
 
         return image
 
-    def process_image(self, image: Any) -> bytearray:
+    def __process_image(self, image: Any) -> bytearray:
         if isinstance(image, str):
             return image
         elif isinstance(image, Image.Image):
             img_byte_arr = io.BytesIO()
 
-            image = self.resize_image(image)
+            image = self.__resize_image(image)
             image.save(img_byte_arr, format="PNG")
 
             img_byte_arr = img_byte_arr.getvalue()
@@ -146,40 +159,54 @@ class VisionAPI:
             return image_string
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
+        
+    def __create_content_image(self, image: Any) -> Dict[str, Any]:
+        img = self.__process_image(image)
 
-    def call_api(self, prompt: str | list, image: Any):
+        img_dict = {
+            "type": "image_url",
+            "image_url": f"data:image/png;base64,{img}",
+        }        
 
+        return img_dict
+    
+    def __process_prompt_content(self, prompt: str | list) -> bytearray:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
         else:
             content = prompt[-1].get("content", [])
 
+        return content
+    
+    def __process_content_image(self, content: list, image: str | Image.Image | list) -> list:
         if isinstance(image, str) or isinstance(image, Image.Image):
-            img = self.process_image(image)
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": f"data:image/png;base64,{img}",
-                }
-            )
+            img_dict = self.__create_content_image(image)
+            content.append(img_dict)
+
         elif isinstance(image, list):
             for img in image:
-                img = self.process_image(img)
-                content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": f"data:image/png;base64,{img}",
-                    }
-                )
+                img_dict = self.__create_content_image(img)
+                content.append(img_dict)
         else:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
+        
+        return content
 
+    def __process_prompt(self, prompt: str | list, content: list) -> list:
         if isinstance(prompt, list):
             prompt[-1] = {"role": "user", "content": content}
         else:
             prompt = [{"role": "user", "content": content}]
+
+        return prompt
+
+    def call_api(self, prompt: str | list, image: Any):
+        content = self.__process_prompt_content(prompt)
+        content = self.__process_content_image(content, image)
+
+        prompt = self.__process_prompt(prompt, content)
 
         json_data = {
             "model": self.model,

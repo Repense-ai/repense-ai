@@ -1,5 +1,5 @@
+from copy import deepcopy
 from typing import Any
-
 from repenseai.genai.tasks.base_task import BaseTask
 
 
@@ -8,6 +8,7 @@ class Task(BaseTask):
     def __init__(
         self,
         selector: Any,
+        simple_response: bool = False,
         instruction: str = "",
         prompt_template: str = "",
         history: list | None = None,
@@ -21,6 +22,7 @@ class Task(BaseTask):
         self.history = history
 
         self.selector = selector
+        self.simple_response = simple_response
 
         self.vision_key = vision_key
         self.audio_key = audio_key
@@ -56,7 +58,9 @@ class Task(BaseTask):
     
     def __process_chat_or_search(self) -> dict:
         api = self.selector.get_api()
-        response = api.call_api(self.prompt)
+        prompt = deepcopy(self.prompt)
+
+        response = api.call_api(prompt)
 
         final_response = {
             "response": response,
@@ -71,9 +75,11 @@ class Task(BaseTask):
 
     def __process_vision(self, context: dict) -> dict:
         api = self.selector.get_api()
+        prompt = deepcopy(self.prompt)
+
         image = context.get(self.vision_key)
 
-        response = api.call_api(self.prompt, image)
+        response = api.call_api(prompt, image)
 
         return {
             "response": response,
@@ -121,8 +127,12 @@ class Task(BaseTask):
     def predict(self, context: dict) -> str:
         try:
             self.__build_prompt(**context)
+            response = self._process_api_call(context)
 
-            return self._process_api_call(context)
+            if self.simple_response:
+                return response["response"]
+            
+            return response
 
         except Exception as e:
             raise e

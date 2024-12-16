@@ -34,7 +34,25 @@ class ChatAPI:
             "Content-Type": "application/json"
         }
 
-    def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
+    def __process_prompt_list(self, prompt: list) -> list:
+
+        i = 0
+        while i < len(prompt) - 1:
+            if prompt[i]['role'] == 'user' and prompt[i + 1]['role'] == 'user':
+                if isinstance(prompt[i]['content'], list):
+                    prompt[i]['content'].extend(prompt[i + 1]['content'])
+                else:
+                    prompt[i]['content'] = [prompt[i]['content']] + (
+                        prompt[i + 1]['content'] if isinstance(prompt[i + 1]['content'], list) 
+                        else [prompt[i + 1]['content']]
+                    )
+                prompt.pop(i + 1)
+            else:
+                i += 1
+
+        return prompt        
+
+    def call_api(self, prompt: list | str) -> Any:
 
         json_data = {
             "model": self.model,
@@ -46,9 +64,11 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            json_data["messages"] = prompt
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
+
+        print(json_data)
 
         try:
             self.response = requests.post(

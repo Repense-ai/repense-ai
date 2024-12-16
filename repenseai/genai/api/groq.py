@@ -5,6 +5,8 @@ from groq import Groq
 
 from repenseai.utils.logs import logger
 
+from repenseai.config.selection_params import VISION_MODELS
+
 
 class ChatAPI:
     def __init__(
@@ -26,12 +28,18 @@ class ChatAPI:
 
         self.client = Groq(api_key=self.api_key)
 
-    def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list: 
-        for message in prompt:
-            if message.get("role") == "assistant":
+    def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
+        if self.model not in VISION_MODELS:
+            for message in prompt:
                 message['content'] = message.get('content', [{}])[0].get('text', '')
 
-        return prompt
+            return prompt
+        else:
+            for message in prompt:
+                if message.get("role") == "assistant":
+                    message['content'] = message.get('content', [{}])[0].get('text', '')
+
+            return prompt
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
