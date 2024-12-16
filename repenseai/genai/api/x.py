@@ -112,13 +112,17 @@ class VisionAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4-turbo",
+        model: str = "",
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
     ):
 
-        self.client = OpenAI(api_key=api_key)
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url="https://api.x.ai/v1",
+        )
+
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
