@@ -2,7 +2,7 @@ import pytest
 
 from repenseai.config.test_models import TEST_AUDIO_MODELS
 
-from repenseai.genai.api.selector import APISelector
+from repenseai.genai.selector import APISelector
 from repenseai.genai.tasks.api_task import Task
 
 

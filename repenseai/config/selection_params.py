@@ -91,6 +91,14 @@ TEXT_MODELS = {
         "provider": "x", 
         "cost": {"input": 5.0, "output": 15.0}
     },
+    "grok-2-1212": {
+        "provider": "x", 
+        "cost": {"input": 2.0, "output": 10.0}
+    },
+    "grok-2-vision-1212": {
+        "provider": "x", 
+        "cost": {"input": 2.0, "output": 10.0}
+    },    
     "amazon.nova-pro-v1:0": {
         "provider": "aws", 
         "cost": {"input": 0.8, "output": 3.2}
@@ -163,6 +171,10 @@ VISION_MODELS = {
         "provider": "x", 
         "cost": {"input": 10.0, "output": 15.0}
     },
+    "grok-2-vision-1212": {
+        "provider": "x", 
+        "cost": {"input": 2.0, "output": 10.0}
+    },     
     "amazon.nova-pro-v1:0": {
         "provider": "aws", 
         "cost": {"input": 0.8, "output": 3.2}
@@ -248,6 +260,11 @@ IMAGE_MODELS = {
         "provider": "aws", 
         "cost": 0.08
     },
+    # "aurora": {
+    #     "provider": "x", 
+    #     "cost": ?
+    # },    
+
 }
 
 
