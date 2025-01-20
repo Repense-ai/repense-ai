@@ -3,7 +3,7 @@ import pytest
 from repenseai.config.test_models import TEST_VISION_MODELS
 
 from repenseai.genai.selector import APISelector
-from repenseai.genai.tasks.api_task import Task
+from repenseai.genai.tasks.api import Task
 
 from PIL import Image
 

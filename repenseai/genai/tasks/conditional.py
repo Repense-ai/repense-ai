@@ -1,4 +1,4 @@
-from repenseai.genai.tasks.base_task import BaseTask
+from repenseai.genai.tasks.base import BaseTask
 
 # Defining a pipeline step that will execute a task based on a condition.
 # This will be helpful when chaining branching execution paths.

@@ -2,7 +2,7 @@ import pytest
 
 from repenseai.config.test_models import TEST_TEXT_MODELS
 from repenseai.genai.selector import APISelector
-from repenseai.genai.tasks.api_task import Task
+from repenseai.genai.tasks.api import Task
 
 
 @pytest.mark.parametrize("model", TEST_TEXT_MODELS)

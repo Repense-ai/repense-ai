@@ -1,4 +1,4 @@
-from repenseai.genai.tasks.base_task import BaseTask
+from repenseai.genai.tasks.base import BaseTask
 from repenseai.utils import logs
 
 

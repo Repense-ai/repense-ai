@@ -1,6 +1,6 @@
 from copy import deepcopy
 from typing import Any
-from repenseai.genai.tasks.base_task import BaseTask
+from repenseai.genai.tasks.base import BaseTask
 
 
 class Task(BaseTask):
