@@ -122,7 +122,15 @@ TEXT_MODELS = {
     "llama-3.1-sonar-huge-128k-online": {
         "provider": "perplexity",
         "cost": {"input": 6.0, "output": 6.0},
-    },             
+    },
+    "writer/palmyra-med-70b": {
+        "provider": "nvidia",
+        "cost": {"input": 1.00, "output": 1.00},
+    },
+    "writer/palmyra-med-70b-32k": {
+        "provider": "nvidia",
+        "cost": {"input": 1.00, "output": 1.00},
+    },            
 }
 
 
