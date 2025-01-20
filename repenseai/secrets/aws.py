@@ -17,7 +17,14 @@ class AWSSecrets(BaseSecrets):
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self, secret_name: str, region_name: str, profile_name: str = None):
+    def __init__(self, 
+        secret_name: str, 
+        region_name: str, 
+        profile_name: str = None,
+        aws_access_key_id=None,
+        aws_secret_access_key=None,
+        aws_session_token=None
+    ):
         if not self._initialized:
             self._secrets = {}
 
@@ -25,15 +32,24 @@ class AWSSecrets(BaseSecrets):
             self.region_name = region_name
 
             if profile_name:
+
                 session = boto3.Session(profile_name=profile_name)
+
                 self.client = session.client(
                     service_name="secretsmanager",
-                    region_name=self.region_name
+                    region_name=self.region_name,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    aws_session_token=aws_session_token,
                 )
+
             else:
                 self.client = boto3.client(
                     service_name="secretsmanager",
-                    region_name=self.region_name
+                    region_name=self.region_name,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    aws_session_token=aws_session_token,
                 )
 
             self._initialized = True

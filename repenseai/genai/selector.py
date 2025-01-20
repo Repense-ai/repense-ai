@@ -2,7 +2,6 @@ import os
 import importlib
 import typing as tp
 
-from repenseai.secrets.aws import AWSSecrets
 from repenseai.secrets.base import BaseSecrets
 
 from repenseai.config.selection_params import (
@@ -101,13 +100,6 @@ class APISelector:
         api_str = f"repenseai.genai.api.{self.provider}"
         self.module_api = importlib.import_module(api_str)
 
-    def __get_secret_manager(self) -> BaseSecrets:
-        if not self.secrets_manager:
-            self.secrets_manager = AWSSecrets(
-                secret_name="genai",
-                region_name="us-east-2",
-            )
-
     def __get_api_key(self) -> str:
         if not self.api_key:
             string = f"{self.provider.upper()}_API_KEY"
@@ -117,7 +109,6 @@ class APISelector:
                 return self.api_key
 
             try:
-                self.__get_secret_manager()
                 self.api_key = self.secrets_manager.get_secret(string)
                 return self.api_key
             

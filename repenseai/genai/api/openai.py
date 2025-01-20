@@ -1,6 +1,8 @@
 import base64
 import io
 
+from pydantic import BaseModel
+
 from typing import Any, Dict, List, Union
 from openai import OpenAI
 
@@ -18,12 +20,17 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        json_mode: bool = False,
+        json_schema: BaseModel = None,
     ):
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.stream = stream
         self.max_tokens = max_tokens
+
+        self.json_mode = json_mode
+        self.json_schema = json_schema
 
         self.response = None
         self.tokens = None
@@ -51,7 +58,13 @@ class ChatAPI:
                 json_data.pop("temperature")
                 json_data.pop("max_tokens")
 
-            self.response = self.client.chat.completions.create(**json_data)
+            if self.json_mode:
+                json_data["response_format"] = self.json_schema
+                json_data.pop("stream")
+
+                self.response = self.client.beta.chat.completions.parse(**json_data)
+            else:
+                self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
                 self.tokens = self.get_tokens()
@@ -67,7 +80,10 @@ class ChatAPI:
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.model_dump()["choices"][0]["message"]["content"]
+            dump = self.response.model_dump()
+            if self.json_mode:
+                return dump["choices"][0]["message"]["parsed"]
+            return dump["choices"][0]["message"]["content"]
         else:
             return None
 
