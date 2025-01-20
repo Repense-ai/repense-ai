@@ -20,6 +20,7 @@ def similarity_index(str1, str2):
 
     str1_words = set(str1.split())
     str2_words = set(str2.split())
+    
     word_sim = len(str1_words.intersection(str2_words)) / len(
         str1_words.union(str2_words)
     )

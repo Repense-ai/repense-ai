@@ -2,7 +2,8 @@ import os
 import importlib
 import typing as tp
 
-from repenseai.aws.secrets_manager import SecretsManager
+from repenseai.secrets.aws import AWSSecrets
+from repenseai.secrets.base import BaseSecrets
 
 from repenseai.config.selection_params import (
     TEXT_MODELS,
@@ -44,7 +45,7 @@ class APISelector:
             model: str, 
             model_type: str, 
             api_key: str = None,
-            secrets_manager: SecretsManager = None,
+            secrets_manager: BaseSecrets = None,
             **kwargs
         ) -> None:
 
@@ -76,6 +77,13 @@ class APISelector:
         self.__get_prices()
         self.__get_module()
 
+        if self.api_key is None:
+            self.api_key = self.__get_api_key()
+
+            if self.api_key is None:
+                raise Exception("API key not found in env variables or secrets manager (cloud env)")
+
+
     def __gather_models(self) -> None:
         for models in self.models.values():
             self.all_models.update(models)
@@ -93,9 +101,9 @@ class APISelector:
         api_str = f"repenseai.genai.api.{self.provider}"
         self.module_api = importlib.import_module(api_str)
 
-    def __get_secret_manager(self) -> SecretsManager:
+    def __get_secret_manager(self) -> BaseSecrets:
         if not self.secrets_manager:
-            self.secrets_manager = SecretsManager(
+            self.secrets_manager = AWSSecrets(
                 secret_name="genai",
                 region_name="us-east-2",
             )
@@ -110,7 +118,7 @@ class APISelector:
 
             try:
                 self.__get_secret_manager()
-                self.api_key = self.secret_manager.get_secret(string)
+                self.api_key = self.secrets_manager.get_secret(string)
                 return self.api_key
             
             except Exception:
@@ -119,8 +127,6 @@ class APISelector:
         return self.api_key
 
     def get_api(self) -> tp.Any:
-        self.api_key = self.__get_api_key()
-
         match self.model_type:
             case "chat" | "search":
                 self.api = self.module_api.ChatAPI(
