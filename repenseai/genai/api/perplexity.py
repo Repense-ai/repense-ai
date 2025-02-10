@@ -68,8 +68,6 @@ class ChatAPI:
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 
-        print(json_data)
-
         try:
             self.response = requests.post(
                 url=self.url,

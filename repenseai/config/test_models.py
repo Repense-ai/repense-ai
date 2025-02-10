@@ -2,7 +2,7 @@ TEST_TEXT_MODELS = [
     "sabiazinho-3",
     "gpt-4o-mini",
     "claude-3-5-haiku-20241022",
-    "gemini-1.5-flash",
+    "gemini-2.0-flash",
     "mistral-small-latest",
     "command-r-08-2024",
     "llama-3.3-70b-versatile",

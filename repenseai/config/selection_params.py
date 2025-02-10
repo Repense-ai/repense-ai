@@ -3,6 +3,10 @@ TEXT_MODELS = {
         "provider": "deepseek",
         "cost": {"input": 0.14, "output": 0.28},
     },
+    "deepseek-reasoner": {
+        "provider": "deepseek",
+        "cost": {"input": 0.55, "output": 2.19},
+    },    
     "sabia-3": {
         "provider": "maritaca", 
         "cost": {"input": 1.0, "output": 2.0}
@@ -25,15 +29,15 @@ TEXT_MODELS = {
     },
     "o1-mini": {
         "provider": "openai", 
-        "cost": {"input": 3.00, "output": 12.0}
+        "cost": {"input": 1.10, "output": 4.40}
     },
+    "o3-mini": {
+        "provider": "openai", 
+        "cost": {"input": 1.10, "output": 4.40}
+    },    
     "claude-3-5-haiku-20241022": {
         "provider": "anthropic",
         "cost": {"input": 1.0, "output": 5.0},
-    },
-    "claude-3-5-sonnet-20240620": {
-        "provider": "anthropic",
-        "cost": {"input": 3.0, "output": 15.0},
     },
     "claude-3-5-sonnet-20241022": {
         "provider": "anthropic",
@@ -47,6 +51,14 @@ TEXT_MODELS = {
         "provider": "google", 
         "cost": {"input": 0.15, "output": 0.60}
     },
+    "gemini-2.0-flash": {
+        "provider": "google", 
+        "cost": {"input": 0.10, "output": 0.70}
+    },
+    "gemini-2.0-flash-lite-preview-02-05": {
+        "provider": "google", 
+        "cost": {"input": 0.075, "output": 0.30}
+    },         
     "mistral-large-latest": {
         "provider": "mistral",
         "cost": {"input": 2.0, "output": 6.0},
@@ -110,18 +122,6 @@ TEXT_MODELS = {
     "amazon.nova-micro-v1:0": {
         "provider": "aws", 
         "cost": {"input": 0.035, "output": 0.14}
-    },
-    "llama-3.1-sonar-small-128k-online": {
-        "provider": "perplexity",
-        "cost": {"input": 1.20, "output": 1.20},
-    },
-    "llama-3.1-sonar-large-128k-online": {
-        "provider": "perplexity",
-        "cost": {"input": 2.0, "output": 2.0},
-    },
-    "llama-3.1-sonar-huge-128k-online": {
-        "provider": "perplexity",
-        "cost": {"input": 6.0, "output": 6.0},
     },
     "writer/palmyra-med-70b": {
         "provider": "nvidia",
@@ -195,18 +195,14 @@ VISION_MODELS = {
 
 
 SEARCH_MODELS = {
-    "llama-3.1-sonar-small-128k-online": {
+    "sonar-pro": {
         "provider": "perplexity",
-        "cost": {"input": 1.20, "output": 1.20},
+        "cost": {"input": 4.0, "output": 16.0},
     },
-    "llama-3.1-sonar-large-128k-online": {
+    "sonar": {
         "provider": "perplexity",
         "cost": {"input": 2.0, "output": 2.0},
     },
-    "llama-3.1-sonar-huge-128k-online": {
-        "provider": "perplexity",
-        "cost": {"input": 6.0, "output": 6.0},
-    }, 
 }
 
 
