@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import re
 
 from repenseai.genai.benchmark.core.base_evaluator import BaseEvaluator
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 
 
 class MatchType(Enum):
@@ -23,7 +23,7 @@ class SimpleOutputEvaluator(BaseEvaluator):
         metrics: List[str] = None,
         match_type: MatchType = MatchType.NORMALIZED,
         similarity_threshold: float = 0.85,
-        llm_provider: Optional[BaseLLMProvider] = None  # Para matching semântico
+        agent_provider: Optional[BaseagentProvider] = None  # Para matching semântico
     ):
         super().__init__(name)
 
@@ -31,7 +31,7 @@ class SimpleOutputEvaluator(BaseEvaluator):
         self.metrics = metrics or ["accuracy"]
         self.match_type = match_type
         self.similarity_threshold = similarity_threshold
-        self.llm_provider = llm_provider
+        self.agent_provider = agent_provider
         self.valid_outputs = 0
         self.total_outputs = 0
         self.correct_outputs = 0
@@ -45,8 +45,8 @@ class SimpleOutputEvaluator(BaseEvaluator):
         return text
 
     async def _check_semantic_similarity(self, output: str, ground_truth: str) -> bool:
-        """Verifica similaridade semântica usando LLM"""
-        if not self.llm_provider:
+        """Verifica similaridade semântica usando agent"""
+        if not self.agent_provider:
             return False
         
         prompt = (
@@ -56,7 +56,7 @@ class SimpleOutputEvaluator(BaseEvaluator):
             "Respond with only 'True' if they mean the same thing, or 'False' if they don't."
         )
 
-        response = await self.llm_provider.generate(prompt)
+        response = await self.agent_provider.generate(prompt)
         return response.strip().lower() == 'true'
 
     async def _compare_outputs(self, output: str, ground_truth: str) -> bool:

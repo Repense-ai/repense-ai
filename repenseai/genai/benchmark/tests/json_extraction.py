@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 
 import json
 
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 from repenseai.genai.benchmark.core.base_test import BaseTest
 
 
@@ -38,12 +38,12 @@ class DataExtractionTest(BaseTest):
             
         return True
 
-    async def run(self, llm_provider: BaseLLMProvider) -> Dict[str, Any]:
+    async def run(self, agent_provider: BaseagentProvider) -> Dict[str, Any]:
         results = []
         
         for i, input_data in enumerate(self.inputs, 1):
             prompt = self._create_prompt(input_data, i)
-            response = await llm_provider.generate(prompt)
+            response = await agent_provider.generate(prompt)
             
             try:
                 parsed_response = json.loads(response)

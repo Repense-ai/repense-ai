@@ -4,7 +4,7 @@ from enum import Enum, auto
 from datetime import datetime
 import asyncio
 
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 from repenseai.genai.benchmark.core.base_test import BaseTest
 
 @dataclass
@@ -48,7 +48,7 @@ class SimpleOutputTest(BaseTest):
             
         return True
 
-    async def run(self, llm_provider: BaseLLMProvider) -> Dict[str, Any]:
+    async def run(self, agent_provider: BaseagentProvider) -> Dict[str, Any]:
         """
         Run the test with retry mechanism and timing information
         """
@@ -58,7 +58,7 @@ class SimpleOutputTest(BaseTest):
 
         try:
             for i, input_data in enumerate(self.inputs, 1):
-                result = await self._process_single_input(llm_provider, input_data, i)
+                result = await self._process_single_input(agent_provider, input_data, i)
                 results.append(result)
                 
         except Exception as e:
@@ -79,7 +79,7 @@ class SimpleOutputTest(BaseTest):
 
     async def _process_single_input(
         self, 
-        llm_provider: BaseLLMProvider, 
+        agent_provider: BaseagentProvider, 
         input_data: TestInput, 
         input_number: int
     ) -> Dict[str, Any]:
@@ -92,7 +92,7 @@ class SimpleOutputTest(BaseTest):
         while attempts < self.max_retries:
             try:
                 prompt = self._create_prompt(input_data, input_number)
-                response = await llm_provider.generate(prompt)
+                response = await agent_provider.generate(prompt)
                 
                 return {
                     'input_number': input_number,

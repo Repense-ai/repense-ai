@@ -2,7 +2,7 @@ import pytest
 
 from repenseai.config.test_models import TEST_VISION_MODELS
 
-from repenseai.genai.selector import APISelector
+from repenseai.genai.agent import Agent
 from repenseai.genai.tasks.api import Task
 
 from PIL import Image
@@ -16,7 +16,7 @@ def image():
 @pytest.mark.parametrize("model", TEST_VISION_MODELS)
 def test_vision_task_doc_type(model, image):
 
-    selector = APISelector(
+    agent = Agent(
         model=model, 
         model_type="vision",
         temperature=0.0,
@@ -25,10 +25,10 @@ def test_vision_task_doc_type(model, image):
 
     task = Task(
         instruction="Escreva apenas qual o tipo do documento em português",
-        selector=selector,
+        agent=agent,
     )
 
-    response = task.predict({"image": image})
+    response = task.run({"image": image})
 
     assert "nascimento" in response.get('response').lower()
     assert response.get('cost') > 0
@@ -37,7 +37,7 @@ def test_vision_task_doc_type(model, image):
 @pytest.mark.parametrize("model", TEST_VISION_MODELS)
 def test_vision_streaming_doc_type(model, image):
 
-    selector = APISelector(
+    agent = Agent(
         model=model,
         model_type="vision", 
         temperature=0.0, 
@@ -45,7 +45,7 @@ def test_vision_streaming_doc_type(model, image):
         max_tokens=100
     )
     
-    api = selector.get_api()
+    api = agent.get_api()
 
     response = api.call_api(
         prompt="Escreva apenas qual o tipo do documento em português",
@@ -60,7 +60,7 @@ def test_vision_streaming_doc_type(model, image):
         if text:
             string += text
 
-    cost = selector.calculate_cost(tokens=api.tokens, as_string=False)
+    cost = agent.calculate_cost(tokens=api.tokens, as_string=False)
 
     assert "nascimento" in string.lower()
     assert cost > 0

@@ -4,10 +4,10 @@
 
 
 class BaseTask(object):
-    """abstract object that implements a .predict() method"""
+    """abstract object that implements a .run() method"""
 
     def __init__(self):
         pass
 
-    def predict(self, **kwargs):
+    def run(self, **kwargs):
         pass

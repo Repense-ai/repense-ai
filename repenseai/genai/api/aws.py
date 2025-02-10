@@ -10,7 +10,7 @@ import boto3
 
 from repenseai.utils.logs import logger
 
-from repenseai.config.selection_params import VISION_MODELS
+from repenseai.genai.providers import VISION_MODELS
 
 
 class ChatAPI:

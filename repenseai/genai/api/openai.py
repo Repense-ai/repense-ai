@@ -1,9 +1,10 @@
 import base64
 import io
+import inspect
 
 from pydantic import BaseModel
 
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Callable
 from openai import OpenAI
 
 from PIL import Image
@@ -22,6 +23,7 @@ class ChatAPI:
         stream: bool = False,
         json_mode: bool = False,
         json_schema: BaseModel = None,
+        tools: List[Callable] = None,
     ):
         self.api_key = api_key
         self.model = model
@@ -32,10 +34,65 @@ class ChatAPI:
         self.json_mode = json_mode
         self.json_schema = json_schema
 
+        self.tools = None
+        self.json_tools = None
+
+        if tools:
+            self.tools = {tool.__name__: tool for tool in tools}
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
+
         self.response = None
         self.tokens = None
 
         self.client = OpenAI(api_key=self.api_key)
+
+    def __function_to_json(self, func: callable) -> dict:
+        
+        type_map = {
+            str: "string",
+            int: "integer",
+            float: "number",
+            bool: "boolean",
+            list: "array",
+            dict: "object",
+            type(None): "null",
+        }
+
+        try:
+            signature = inspect.signature(func)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to get signature for function {func.__name__}: {str(e)}"
+            )
+
+        parameters = {}
+        for param in signature.parameters.values():
+            try:
+                param_type = type_map.get(param.annotation, "string")
+            except KeyError as e:
+                raise KeyError(
+                    f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}"
+                )
+            parameters[param.name] = {"type": param_type}
+
+        required = [
+            param.name
+            for param in signature.parameters.values()
+            if param.default == inspect._empty
+        ]
+
+        return {
+            "type": "function",
+            "function": {
+                "name": func.__name__,
+                "description": func.__doc__ or "",
+                "parameters": {
+                    "type": "object",
+                    "properties": parameters,
+                    "required": required,
+                },
+            },
+        }        
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
         json_data = {
@@ -43,6 +100,7 @@ class ChatAPI:
             "temperature": self.temperature,
             "max_tokens": self.tokens,
             "stream": self.stream,
+            "tools": self.json_tools,
         }
 
         if isinstance(prompt, list):
@@ -54,7 +112,7 @@ class ChatAPI:
             if self.stream:
                 json_data["stream_options"] = {"include_usage": True}
 
-            if "o1" in self.model:
+            if "o1" or "o3" in self.model:
                 json_data.pop("temperature")
                 json_data.pop("max_tokens")
 
@@ -67,7 +125,13 @@ class ChatAPI:
                 self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
+
                 self.tokens = self.get_tokens()
+
+                if self.tools:
+                    if tool_calls := self.get_tool_calls():
+                        return tool_calls
+                    
                 return self.get_text()
 
             return self.response
@@ -77,13 +141,20 @@ class ChatAPI:
 
     def get_response(self) -> Any:
         return self.response
+    
+    def get_tool_calls(self) -> Union[None, List[Dict[str, Any]]]:
+        if self.response is not None:
+            dump = self.response.model_dump()
+            return dump["choices"][0]["message"].get("tool_calls")
+        else:
+            return None
 
     def get_text(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
             if self.json_mode:
-                return dump["choices"][0]["message"]["parsed"]
-            return dump["choices"][0]["message"]["content"]
+                return dump["choices"][0]["message"].get("parsed")
+            return dump["choices"][0]["message"].get("content")
         else:
             return None
 

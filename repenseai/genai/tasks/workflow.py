@@ -2,24 +2,24 @@ from repenseai.genai.tasks.base import BaseTask
 from repenseai.utils import logs
 
 
-class Pipeline(BaseTask):
+class Workflow(BaseTask):
 
     def __init__(self, steps):
         self.steps = steps
 
-    def predict(self, context):
+    def run(self, context):
         for step in self.steps:
             try:
                 if isinstance(step[0], BaseTask):
                     if step[1] is None:
-                        step[0].predict(context)
+                        step[0].run(context)
                     else:
                         if chat_history := context.get("chat_history"):
                             step[0].history = chat_history
                         elif memory_dict := context.get("memory_dict"):
                             step[0].history = memory_dict.get("chat_history", [])
                             
-                        context[step[1]] = step[0].predict(context)
+                        context[step[1]] = step[0].run(context)
                 else:
                     context[step[1]] = step[0](context)
 

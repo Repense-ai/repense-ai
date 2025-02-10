@@ -1,4 +1,4 @@
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 
 from repenseai.genai.benchmark.tests.option_question import OptionQuestionTest
 from repenseai.genai.benchmark.tests.json_extraction import DataExtractionTest
@@ -13,12 +13,12 @@ from repenseai.genai.benchmark.core.base_benchmark import Benchmark
 
 
 # Create providers
-openai_provider = BaseLLMProvider(
+openai_provider = BaseagentProvider(
     name="OpenAI",
     model="gpt-4o",
 )
 
-anthropic_provider = BaseLLMProvider(
+anthropic_provider = BaseagentProvider(
     name="Anthropic",
     model="claude-3-5-haiku-20241022",
 )

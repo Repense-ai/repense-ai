@@ -2,7 +2,7 @@ import io
 import base64
 
 from typing import Any, Dict, List, Union
-from repenseai.config.selection_params import VISION_MODELS
+from repenseai.genai.providers import VISION_MODELS
 
 from mistralai import Mistral
 from repenseai.utils.logs import logger

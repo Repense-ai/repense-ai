@@ -1,16 +1,16 @@
 from repenseai.genai.tasks.base import BaseTask
 
-# Defining a pipeline step that will execute a task based on a condition.
+# Defining a Workflow step that will execute a task based on a condition.
 # This will be helpful when chaining branching execution paths.
 # A BooleanConditionalTask can encapsulate another BooleanConditionalTask inside a condition.
-# this means we can create a pipeline such as:
-# predict user intention;
+# this means we can create a Workflow such as:
+# run user intention;
 # if user intention is recommendation:
-#     predict recommendation ids
+#     run recommendation ids
 #     if recommendation ids are empty:
-#         predict a chat message suggesting another path
+#         run a chat message suggesting another path
 #     otherwise:
-#         predict a speak message recommending the items
+#         run a speak message recommending the items
 # otherwise:
 #     if the user intention is interacting with the cart:
 #         if the user wants to add to the cart:
@@ -19,19 +19,19 @@ from repenseai.genai.tasks.base import BaseTask
 
 
 class DummyTask(BaseTask):
-    def predict(self, context):
+    def run(self, context):
         return context  # simply returns the input context unchanged
 
 
 class BooleanConditionalTask(BaseTask):
     """
-    A chatbot pipeline step that initializes with:
+    A chatbot Workflow step that initializes with:
 
     - a condition to evaluate (i.e. len(json.loads(response)) > 0)
     - a task to execute if the condition is true
     - a task to execute if the condition is false
 
-    It then interfaces using the same interface as a Task, with the .predict method
+    It then interfaces using the same interface as a Task, with the .run method
         requiring a user_input and a context, and the context requiring the response
         from the previous step (which needs evaluation).
     """
@@ -41,21 +41,21 @@ class BooleanConditionalTask(BaseTask):
         self.true_task = true_task
         self.false_task = false_task
 
-    def predict(self, context):
+    def run(self, context):
         if self.condition(context):
-            return self.true_task.predict(context)
+            return self.true_task.run(context)
         else:
-            return self.false_task.predict(context)
+            return self.false_task.run(context)
 
 
 class ConditionalTask(BaseTask):
     """
-    A chatbot pipeline step that initializes with:
+    A chatbot Workflow step that initializes with:
 
     - a condition to evaluate
     - a dict with {value: task} pairs
 
-    It then interfaces using the same interface as a Task, with the .predict method
+    It then interfaces using the same interface as a Task, with the .run method
         requiring a user_input and a context, executing the task that matches the value
         from the condition.
     """
@@ -65,8 +65,8 @@ class ConditionalTask(BaseTask):
         self.tasks = tasks
         self.default_task = default_task
 
-    def predict(self, context):
+    def run(self, context):
         if self.condition(context) in self.tasks.keys():
-            return self.tasks[self.condition(context)].predict(context)
+            return self.tasks[self.condition(context)].run(context)
         else:
-            return self.default_task.predict(context)
+            return self.default_task.run(context)

@@ -4,7 +4,7 @@ import typing as tp
 
 from repenseai.secrets.base import BaseSecrets
 
-from repenseai.config.selection_params import (
+from repenseai.genai.providers import (
     TEXT_MODELS,
     VISION_MODELS,
     IMAGE_MODELS,
@@ -38,11 +38,11 @@ def list_models(model_type: str = 'all') -> tp.List[str] | tp.Dict[str, tp.List[
     return models_dict
 
 
-class APISelector:
+class Agent:
     def __init__(
             self, 
             model: str, 
-            model_type: str, 
+            model_type: str,
             api_key: str = None,
             secrets_manager: BaseSecrets = None,
             **kwargs

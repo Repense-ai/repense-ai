@@ -2,8 +2,8 @@ import pytest
 
 from repenseai.config.test_models import TEST_AUDIO_MODELS
 
-from repenseai.genai.selector import APISelector
-from repenseai.genai.tasks.api_task import Task
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
 
 
 @pytest.fixture
@@ -14,17 +14,17 @@ def audio():
 @pytest.mark.parametrize("model", TEST_AUDIO_MODELS)
 def test_audio_task(model, audio):
 
-    selector = APISelector(
+    agent = Agent(
         model=model, 
         model_type="audio",
     )
 
     task = Task(
-        selector=selector,
+        agent=agent,
         audio_key="teste"
     )
 
-    response = task.predict({"teste": audio})
+    response = task.run({"teste": audio})
 
     assert "teste" in response.get('response').lower()
     assert response.get('cost') > 0

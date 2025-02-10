@@ -2,13 +2,13 @@ from typing import List, Dict, Any
 import asyncio
 
 from repenseai.genai.benchmark.core.base_test import BaseTest
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 from repenseai.genai.benchmark.core.base_evaluator import BaseEvaluator
 
 class Benchmark:
     def __init__(self):
         self.tests: List[BaseTest] = []
-        self.providers: List[BaseLLMProvider] = []
+        self.providers: List[BaseagentProvider] = []
         self.evaluators: Dict[str, BaseEvaluator] = {}
         self.results: Dict[str, Any] = {}
 
@@ -18,7 +18,7 @@ class Benchmark:
         else:
             print(f"Test {test.name} is not properly configured")
 
-    def add_provider(self, provider: BaseLLMProvider) -> None:
+    def add_provider(self, provider: BaseagentProvider) -> None:
         self.providers.append(provider)
 
     def add_evaluator(self, test_name: str, evaluator: BaseEvaluator) -> None:
@@ -46,7 +46,7 @@ class Benchmark:
         await asyncio.gather(*tasks)
         return self.results
 
-    async def _run_single_test(self, provider: BaseLLMProvider, test: BaseTest) -> None:
+    async def _run_single_test(self, provider: BaseagentProvider, test: BaseTest) -> None:
         """Helper method to run a single test"""
         if provider.name not in self.results:
             self.results[provider.name] = {}

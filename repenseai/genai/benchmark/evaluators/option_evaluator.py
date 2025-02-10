@@ -52,13 +52,13 @@ class OptionQuestionEvaluator(BaseEvaluator):
 
     def _evaluate_single_answer(self, result: Dict[str, Any]) -> EvaluationResult:
 
-        llm_answer = result['llm_answer'].strip().upper()[0]
+        agent_answer = result['agent_answer'].strip().upper()[0]
         correct_answer = result['correct_answer'].strip().upper()[0]
         
         return {
             'question_number': result['question_number'],
-            'is_correct': llm_answer == correct_answer,
-            'given_answer': llm_answer,
+            'is_correct': agent_answer == correct_answer,
+            'given_answer': agent_answer,
             'correct_answer': correct_answer,
             'confidence': 1.0
         }

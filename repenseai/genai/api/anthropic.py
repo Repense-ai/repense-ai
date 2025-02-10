@@ -2,7 +2,7 @@ import base64
 import httpx
 import io
 
-from repenseai.config.selection_params import VISION_MODELS
+from repenseai.genai.providers import VISION_MODELS
 
 from typing import Any, Dict, Union
 

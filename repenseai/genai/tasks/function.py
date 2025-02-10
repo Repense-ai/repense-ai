@@ -6,6 +6,6 @@ class FunctionTask(BaseTask):
     def __init__(self, function: Callable):
         self.function = function
 
-    def predict(self, context: dict, **kwargs):
+    def run(self, context: dict, **kwargs):
         response = self.function(context)
         return response

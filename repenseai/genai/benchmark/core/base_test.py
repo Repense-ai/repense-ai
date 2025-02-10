@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 
 class BaseTest(ABC):
     def __init__(self, name: str, description: Optional[str] = None):
@@ -10,8 +10,8 @@ class BaseTest(ABC):
         self.results = []
 
     @abstractmethod
-    async def run(self, llm_provider: BaseLLMProvider) -> Dict[str, Any]:
-        """Execute the test using the provided LLM"""
+    async def run(self, agent_provider: BaseagentProvider) -> Dict[str, Any]:
+        """Execute the test using the provided agent"""
         pass
 
     @abstractmethod

@@ -1,13 +1,13 @@
 from typing import Dict, Any
 
 from repenseai.genai.benchmark.core.base_evaluator import BaseEvaluator
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 
 
 class OpenQuestionEvaluator(BaseEvaluator):
-    def __init__(self, name: str, llm_provider: BaseLLMProvider = None):
+    def __init__(self, name: str, agent_provider: BaseagentProvider = None):
         super().__init__(name)
-        self.llm_provider = llm_provider
+        self.agent_provider = agent_provider
         self.total_score = 0.0
         self.max_score = 0.0
 
@@ -19,10 +19,10 @@ class OpenQuestionEvaluator(BaseEvaluator):
         for result in test_results['results']:
             criteria_scores = []
             for criterion in result['evaluation_criteria']:
-                # If we have an LLM provider, use it to evaluate the criterion
-                if self.llm_provider:
-                    score = await self._evaluate_criterion_with_llm(
-                        result['llm_answer'], 
+                # If we have an agent provider, use it to evaluate the criterion
+                if self.agent_provider:
+                    score = await self._evaluate_criterion_with_Agent(
+                        result['agent_answer'], 
                         criterion
                     )
                 else:
@@ -53,7 +53,7 @@ class OpenQuestionEvaluator(BaseEvaluator):
             'max_score': self.max_score
         }
 
-    async def _evaluate_criterion_with_llm(self, answer: str, criterion: str) -> float:
+    async def _evaluate_criterion_with_Agent(self, answer: str, criterion: str) -> float:
         prompt = (
             f"Evaluate if the following answer meets this criterion: \"{criterion}\"\n"
             f"Answer: {answer}\n\n"
@@ -61,7 +61,7 @@ class OpenQuestionEvaluator(BaseEvaluator):
             "Respond with only a number between 0 and 1."
         )
         
-        response = await self.llm_provider.generate(prompt)
+        response = await self.agent_provider.generate(prompt)
 
         try:
             return float(response)

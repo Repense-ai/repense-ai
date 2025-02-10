@@ -1,9 +1,9 @@
 from typing import Optional
 
 from repenseai.genai.tasks.api_task import Task
-from repenseai.genai.selector import APISelector
+from repenseai.genai.agent import Agent
 
-class BaseLLMProvider:
+class BaseagentProvider:
     def __init__(
         self,
         name: str,
@@ -18,7 +18,7 @@ class BaseLLMProvider:
         self.api_key = api_key
         self.kwargs = kwargs
         
-        self.selector = APISelector(
+        self.agent = Agent(
             model=model,
             model_type=model_type,
             api_key=api_key,
@@ -30,17 +30,17 @@ class BaseLLMProvider:
 
     async def generate(self, prompt: str, **kwargs) -> str:
         task = Task(
-            selector=self.selector,
+            agent=self.agent,
             instruction=prompt,
             simple_response=True,
             **kwargs
         )
         
-        response = task.predict(context={})
+        response = task.run(context={})
         
         # Update usage statistics
-        self.total_tokens += task.selector.api.tokens["total_tokens"]
-        self.total_cost += task.selector.calculate_cost(task.selector.api.tokens)
+        self.total_tokens += task.agent.api.tokens["total_tokens"]
+        self.total_cost += task.agent.calculate_cost(task.agent.api.tokens)
         
         return response
 

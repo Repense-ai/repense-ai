@@ -28,16 +28,16 @@ def similarity_index(str1, str2):
     return 0.5 * seq_sim + 0.5 * word_sim
 
 
-def extract_json_text(predictions_text: str) -> str:
+def extract_json_text(runions_text: str) -> str:
     try:
         try:
             pattern = r"(?<=```\n)([\s\S]*?)(?=\n```)"
-            json_text = re.search(pattern, predictions_text).group(0)
+            json_text = re.search(pattern, runions_text).group(0)
         except Exception:
             pattern = r"(?<=```json\n)([\s\S]*?)(?=\n```)"
-            json_text = re.search(pattern, predictions_text).group(0)
+            json_text = re.search(pattern, runions_text).group(0)
     except Exception:
-        return predictions_text
+        return runions_text
 
     return json_text
 

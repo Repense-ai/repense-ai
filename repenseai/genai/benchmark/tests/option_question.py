@@ -1,6 +1,6 @@
 from typing import TypedDict, List, Dict, Any
 
-from repenseai.genai.benchmark.core.base_provider import BaseLLMProvider
+from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 from repenseai.genai.benchmark.core.base_test import BaseTest
 
 class Question(TypedDict):
@@ -50,19 +50,19 @@ class OptionQuestionTest(BaseTest):
             if not any(question['correct_answer'] in option for option in question['options']):
                 raise TestValidationError(f"Question {i}'s correct answer must be in options")
 
-    async def run(self, llm_provider: BaseLLMProvider) -> Dict[str, Any]:
+    async def run(self, agent_provider: BaseagentProvider) -> Dict[str, Any]:
         results = []
         
         for i, question in enumerate(self.questions, 1):
             prompt = self._create_prompt(question, i)
-            response = await llm_provider.generate(prompt)
+            response = await agent_provider.generate(prompt)
             
             results.append({
                 'question_number': i,
                 'question': question['text'],
                 'options': question['options'],
                 'correct_answer': question['correct_answer'],
-                'llm_answer': response,
+                'agent_answer': response,
             })
         
         return {
