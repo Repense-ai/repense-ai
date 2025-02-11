@@ -94,15 +94,7 @@ TEXT_MODELS = {
     "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
-    },
-    "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": {
-        "provider": "together",
-        "cost": {"input": 0.88, "output": 0.88},
-    }, 
-    "meta-llama/Llama-3.3-70B-Instruct-Turbo": {
-        "provider": "together",
-        "cost": {"input": 0.88, "output": 0.88},
-    },    
+    },   
     "grok-beta": {
         "provider": "x", 
         "cost": {"input": 5.0, "output": 15.0}
@@ -292,7 +284,7 @@ VIDEO_MODELS = {
 }
 
 
-AGENT_MODELS = {
+TOOL_USAGE_MODELS = {
     "gpt-4o": {
         "provider": "openai", 
         "cost": {"input": 2.50, "output": 10.0}

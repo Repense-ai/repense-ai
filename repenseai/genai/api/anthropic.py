@@ -1,10 +1,12 @@
 import base64
 import httpx
 import io
+import inspect
+import json
 
 from repenseai.genai.providers import VISION_MODELS
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, List, Callable
 
 from anthropic import Anthropic
 
@@ -20,6 +22,8 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        tools: List[Callable] = None,
+        **kwargs,
     ):
         self.api_key = api_key
         self.model = model
@@ -30,7 +34,62 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
+        self.tools = None
+        self.json_tools = None
+
+        self.tool_flag = False
+
+        if tools:
+            self.tools = {tool.__name__: tool for tool in tools}
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
+
         self.client = Anthropic(api_key=self.api_key)
+
+
+    def __function_to_json(self, func: callable) -> dict:
+        
+        type_map = {
+            str: "string",
+            int: "integer",
+            float: "number",
+            bool: "boolean",
+            list: "array",
+            dict: "object",
+            type(None): "null",
+        }
+
+        try:
+            signature = inspect.signature(func)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to get signature for function {func.__name__}: {str(e)}"
+            )
+
+        parameters = {}
+        for param in signature.parameters.values():
+            try:
+                param_type = type_map.get(param.annotation, "string")
+            except KeyError as e:
+                raise KeyError(
+                    f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}"
+                )
+            parameters[param.name] = {"type": param_type}
+
+        required = [
+            param.name
+            for param in signature.parameters.values()
+            if param.default == inspect._empty
+        ]
+
+        return {
+            "name": func.__name__,
+            "description": func.__doc__ or "",
+            "input_schema": {
+                "type": "object",
+                "properties": parameters,
+                "required": required,
+            },
+        }         
 
     def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
         with self.client.messages.stream(**json_data) as stream:
@@ -77,6 +136,7 @@ class ChatAPI:
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
+            "tools": self.json_tools,
         }
 
         if isinstance(prompt, list):
@@ -91,7 +151,7 @@ class ChatAPI:
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
 
-            return self.get_text()
+            return self.get_output()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
@@ -99,8 +159,13 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
+            dump = self.response.model_dump()
+            if dump['stop_reason'] == "tool_use":
+                self.tool_flag = True
+                return {"role": "assistant", "content": dump['content']}
+            self.tool_flag = False
             return self.response.content[0].text
         else:
             return None
@@ -134,6 +199,24 @@ class ChatAPI:
                 "total_tokens": output_tokens + input_tokens,
             }
 
+    def process_tool_calls(self, message: dict) -> list:
+        tools = message.get("content")
+        tool_messages = []
+
+        for tool in tools:
+            if tool['type'] == "tool_use":
+                args = tool.get('input')
+                output = self.tools[tool.get('name')](**args)
+
+                tool_messages.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool.get('id'),
+                        "content": str(output)
+                    }
+                )
+
+        return [{"role": "user", "content": tool_messages}]
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str = ""):
@@ -280,11 +363,11 @@ class VisionAPI:
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
 
-            return self.get_text()
+            return self.get_output()
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.content[0].text
         else:

@@ -1,6 +1,7 @@
 import base64
 import io
 import inspect
+import json
 
 from pydantic import BaseModel
 
@@ -24,6 +25,7 @@ class ChatAPI:
         json_mode: bool = False,
         json_schema: BaseModel = None,
         tools: List[Callable] = None,
+        **kwargs,
     ):
         self.api_key = api_key
         self.model = model
@@ -34,15 +36,17 @@ class ChatAPI:
         self.json_mode = json_mode
         self.json_schema = json_schema
 
+        self.response = None
+        self.tokens = None
+
         self.tools = None
         self.json_tools = None
+
+        self.tool_flag = False
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
             self.json_tools = [self.__function_to_json(tool) for tool in tools]
-
-        self.response = None
-        self.tokens = None
 
         self.client = OpenAI(api_key=self.api_key)
 
@@ -119,20 +123,16 @@ class ChatAPI:
             if self.json_mode:
                 json_data["response_format"] = self.json_schema
                 json_data.pop("stream")
+                json_data.pop("tools")
 
                 self.response = self.client.beta.chat.completions.parse(**json_data)
             else:
                 self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
-
                 self.tokens = self.get_tokens()
-
-                if self.tools:
-                    if tool_calls := self.get_tool_calls():
-                        return tool_calls
                     
-                return self.get_text()
+                return self.get_output()
 
             return self.response
 
@@ -141,17 +141,16 @@ class ChatAPI:
 
     def get_response(self) -> Any:
         return self.response
-    
-    def get_tool_calls(self) -> Union[None, List[Dict[str, Any]]]:
-        if self.response is not None:
-            dump = self.response.model_dump()
-            return dump["choices"][0]["message"].get("tool_calls")
-        else:
-            return None
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
+
+            if dump["choices"][0]['finish_reason'] == "tool_calls":
+                self.tool_flag = True
+                return dump["choices"][0]["message"]
+            
+            self.tool_flag = False
             if self.json_mode:
                 return dump["choices"][0]["message"].get("parsed")
             return dump["choices"][0]["message"].get("content")
@@ -174,6 +173,27 @@ class ChatAPI:
         else:
             if chunk.model_dump()["usage"]:
                 self.tokens = chunk.model_dump()["usage"]
+
+    def process_tool_calls(self, message: dict) -> list:
+        tools = message.get("tool_calls")
+        tool_messages = []
+
+        for tool in tools:
+
+            config = tool.get('function')
+            args = json.loads(config.get('arguments'))
+
+            output = self.tools[config.get('name')](**args)
+
+            tool_messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool.get('id'),
+                    "content": str(output)
+                }
+            ) 
+
+        return tool_messages  
 
 
 class AudioAPI:
@@ -199,9 +219,9 @@ class AudioAPI:
 
         self.tokens = self.get_tokens()
 
-        return self.get_text()
+        return self.get_output()
     
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump().get('text')
         else:
@@ -322,14 +342,14 @@ class VisionAPI:
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                return self.get_text()
+                return self.get_output()
 
             return self.response
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["choices"][0]["message"]["content"]
         else:

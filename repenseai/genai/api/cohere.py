@@ -15,6 +15,7 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        **kwargs,
     ):
         self.api_key = api_key
         self.model = model
@@ -56,7 +57,7 @@ class ChatAPI:
                 self.response = self.client.chat(**json_data)
                 self.tokens = self.get_tokens()
 
-                return self.get_text()
+                return self.get_output()
 
             self.response = self.client.chat_stream(**json_data)
 
@@ -68,7 +69,7 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["message"]["content"][0]["text"]
         else:
@@ -146,7 +147,7 @@ class VisionAPI:
 
         return "Not Implemented"
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["message"]["content"][0]["text"]
         else:

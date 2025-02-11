@@ -21,6 +21,7 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        **kwargs,
     ):
         _ = api_key
         self.model = model
@@ -110,7 +111,7 @@ class ChatAPI:
             self.response = self.client.converse(**json_data)
             self.tokens = self.get_tokens()
 
-            return self.get_text()
+            return self.get_output()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['modelId']}: {e}")
@@ -118,7 +119,7 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response["output"]["message"]["content"][0]["text"]
         else:
@@ -312,7 +313,7 @@ class VisionAPI:
             self.response = self.client.converse(**json_data)
             self.tokens = self.get_tokens()
 
-            return self.get_text()
+            return self.get_output()
 
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['modelId']}: {e}")
@@ -320,7 +321,7 @@ class VisionAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response["output"]["message"]["content"][0]["text"]
         else:

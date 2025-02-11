@@ -1,10 +1,11 @@
-import base64
 import io
+import json
+import inspect
 
-from typing import Any, Dict, List, Union
+from typing import Any, List, Union, Callable
 from openai import OpenAI
 
-from PIL import Image
+from pydantic import BaseModel
 
 from repenseai.utils.logs import logger
 
@@ -17,6 +18,10 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        json_mode: bool = False,
+        json_schema: BaseModel = None,
+        tools: List[Callable] = None,        
+        **kwargs,
     ):
         self.api_key = api_key
         self.model = model
@@ -27,14 +32,75 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
+        self.json_mode = json_mode
+        self.json_schema = json_schema
+
+        self.tools = None
+        self.json_tools = None
+
+        self.tool_flag = False
+
+        if tools:
+            self.tools = {tool.__name__: tool for tool in tools}
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
+
         self.client = OpenAI(
             api_key=self.api_key,
             base_url="https://api.deepseek.com",
         )
 
+    def __function_to_json(self, func: callable) -> dict:
+        
+        type_map = {
+            str: "string",
+            int: "integer",
+            float: "number",
+            bool: "boolean",
+            list: "array",
+            dict: "object",
+            type(None): "null",
+        }
+
+        try:
+            signature = inspect.signature(func)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to get signature for function {func.__name__}: {str(e)}"
+            )
+
+        parameters = {}
+        for param in signature.parameters.values():
+            try:
+                param_type = type_map.get(param.annotation, "string")
+            except KeyError as e:
+                raise KeyError(
+                    f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}"
+                )
+            parameters[param.name] = {"type": param_type}
+
+        required = [
+            param.name
+            for param in signature.parameters.values()
+            if param.default == inspect._empty
+        ]
+
+        return {
+            "type": "function",
+            "function": {
+                "name": func.__name__,
+                "description": func.__doc__ or "",
+                "parameters": {
+                    "type": "object",
+                    "properties": parameters,
+                    "required": required,
+                },
+            },
+        }        
+
     def __process_prompt_list(self, prompt: list) -> list:
         for message in prompt:
-            message["content"] = message.get("content", [{}])[0].get("text", "")
+            if isinstance(message.get("content"), list):
+                message["content"] = message.get("content")[0].get("text", "")
 
         return prompt        
 
@@ -44,6 +110,7 @@ class ChatAPI:
             "temperature": self.temperature,
             "max_tokens": self.tokens,
             "stream": self.stream,
+            "tools": self.json_tools,
         }
 
         if isinstance(prompt, list):
@@ -51,15 +118,30 @@ class ChatAPI:
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 
+        print(json_data["messages"])
+
         try:
-            if self.stream:
+            if self.stream and not self.json_mode:
                 json_data["stream_options"] = {"include_usage": True}
+
+            if self.tool_flag:
+                json_data.pop('max_tokens')
+
+            if self.json_mode:
+                json_data["response_format"] = {
+                    "type": "json_object",
+                    "schema": self.json_schema.model_json_schema()
+                }
+
+                json_data.pop("stream")
+                json_data.pop("tools")
 
             self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                return self.get_text()
+                print(self.response)
+                return self.get_output()
 
             return self.response
 
@@ -69,9 +151,16 @@ class ChatAPI:
     def get_response(self) -> Any:
         return self.response
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.model_dump()["choices"][0]["message"]["content"]
+            dump = self.response.model_dump()
+
+            if dump["choices"][0]['finish_reason'] == "tool_calls":
+                self.tool_flag = True
+                return dump["choices"][0]["message"]
+            
+            self.tool_flag = False
+            return dump["choices"][0]["message"].get("content")
         else:
             return None
 
@@ -92,6 +181,27 @@ class ChatAPI:
             if chunk.model_dump()["usage"]:
                 self.tokens = chunk.model_dump()["usage"]
 
+    def process_tool_calls(self, message: dict) -> list:
+        tools = message.get("tool_calls")
+        tool_messages = []
+
+        for tool in tools:
+
+            config = tool.get('function')
+            args = json.loads(config.get('arguments'))
+
+            output = self.tools[config.get('name')](**args)
+
+            tool_messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool.get('id'),
+                    "content": str(output)
+                }
+            ) 
+
+        return tool_messages  
+    
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str = "whisper-1"):
@@ -106,7 +216,7 @@ class AudioAPI:
         
         return "Not implemented"
     
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump().get('text')
         else:
@@ -149,7 +259,7 @@ class VisionAPI:
 
         return "Not implemented"
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["choices"][0]["message"]["content"]
         else:

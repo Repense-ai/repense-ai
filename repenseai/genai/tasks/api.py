@@ -30,6 +30,7 @@ class Task(BaseTask):
         self.base_image_key = base_image_key
 
         self.prompt = None
+        self.api = self.agent.get_api()
 
     def __build_prompt(self, **kwargs):
 
@@ -56,88 +57,58 @@ class Task(BaseTask):
             self.prompt = self.history + self.prompt
         
         return self.prompt
-    
-    def __process_tool_calls(self, response: list) -> None:
-
-        self.prompt.append(
-            {
-                "role": "assistant",
-                "tool_calls": response
-            }
-        )
-
-        for r in response:
-            if r.get("type") == "function":
-
-                config = r.get('function')
-                args = json.loads(config.get('arguments'))
-
-                api = self.agent.get_api()
-                output = api.tools[config.get('name')](**args)
-
-                self.prompt.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": r.get('id'),
-                        "content": str(output)
-                    }
-                )        
-    
+        
     def __process_chat_or_search(self) -> dict:
-        api = self.agent.get_api()
         prompt = deepcopy(self.prompt)
 
-        response = api.call_api(prompt)
+        response = self.api.call_api(prompt)
 
         final_response = {
             "response": response,
-            "tokens": api.tokens,
-            "cost": self.agent.calculate_cost(api.tokens),
+            "tokens": self.api.tokens,
+            "cost": self.agent.calculate_cost(self.api.tokens),
         }
 
         if self.agent.model_type == "search":
-            final_response["citations"] = api.response.json().get("citations", [])   
+            final_response["citations"] = self.api.response.json().get("citations", [])   
 
         return final_response       
 
     def __process_vision(self, context: dict) -> dict:
-        api = self.agent.get_api()
         prompt = deepcopy(self.prompt)
 
         image = context.get(self.vision_key)
 
-        response = api.call_api(prompt, image)
+        response = self.api.call_api(prompt, image)
 
         return {
             "response": response,
-            "tokens": api.tokens,
-            "cost": self.agent.calculate_cost(api.tokens),
+            "tokens": self.api.tokens,
+            "cost": self.agent.calculate_cost(self.api.tokens),
         }
     
     def __process_audio(self, context: dict) -> dict:
-        api = self.agent.get_api()
         audio = context.get(self.audio_key)
 
-        response = api.call_api(audio)
+        response = self.api.call_api(audio)
 
         return {
             "response": response,
-            "tokens": api.tokens,
-            "cost": self.agent.calculate_cost(api.tokens),
+            "tokens": self.api.tokens,
+            "cost": self.agent.calculate_cost(self.api.tokens),
         }
     
     def __process_image(self, context: dict) -> dict:
-        api = self.agent.get_api()
         image = context.get(self.base_image_key)
 
         instruction = self.prompt[-1]["content"][0]["text"]
 
-        response = api.call_api(instruction, image)
+        response = self.api.call_api(instruction, image)
 
         return {
             "response": response,
-            "tokens": api.tokens,
-            "cost": self.agent.calculate_cost(api.tokens),
+            "tokens": self.api.tokens,
+            "cost": self.agent.calculate_cost(self.api.tokens),
         }
 
     def _process_api_call(self, context: dict) -> dict:
@@ -156,8 +127,12 @@ class Task(BaseTask):
             self.__build_prompt(**context)
             response = self._process_api_call(context)
 
-            if isinstance(response["response"], list):
-                self.__process_tool_calls(response["response"])
+            while self.api.tool_flag:
+                tools_response = self.api.process_tool_calls(response["response"])
+
+                self.prompt.append(response["response"])
+                self.prompt += tools_response
+
                 response = self._process_api_call(context)
 
             if self.simple_response:

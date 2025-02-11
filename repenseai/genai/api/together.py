@@ -1,10 +1,14 @@
 import io
 import base64
 import inspect
+import json
+import httpx
 
 from pydantic import BaseModel
 
 from typing import Any, Dict, List, Union, Callable
+
+from repenseai.genai.providers import VISION_MODELS
 
 from together import Together
 from repenseai.utils.logs import logger
@@ -22,7 +26,8 @@ class ChatAPI:
         stream: bool = False,
         json_mode: bool = False,
         json_schema: BaseModel = None,
-        tools: List[Callable] = None,        
+        tools: List[Callable] = None,
+        **kwargs,     
     ):
         
         self.model = model
@@ -31,22 +36,22 @@ class ChatAPI:
         self.max_tokens = max_tokens
 
         self.json_mode = json_mode
-        self.json_schema = {
-            "type": "json_object",
-            "schema": json_schema.model_json_schema() if json_schema else None,
-        }
+        self.json_schema = json_schema
 
         self.tools = None
         self.json_tools = None
 
+        self.tool_flag = False
+
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
-            self.json_tools = [self.__function_to_json(tool) for tool in tools]        
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
 
         self.response = None
         self.tokens = None
 
-        self.client = Together(api_key=api_key)
+        self.client = Together(api_key=api_key)   
+
 
     def __function_to_json(self, func: callable) -> dict:
         
@@ -96,38 +101,36 @@ class ChatAPI:
             },
         }        
 
-
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
+
+        if self.tools:
+            return "This model does not support tool calls"
+        
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
             "stream": self.stream,
             "stream_options": {"include_usage": True},
-            "tools": self.json_tools,
         }
 
         if isinstance(prompt, list):
             json_data["messages"] = prompt
         else:
-            json_data["messages"] = [{"role": "system", "content": prompt}]
+            json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
             if self.json_mode:
-                json_data["response_format"] = self.json_schema
-                json_data.pop("stream")
+                json_data["response_format"] = {
+                    "type": "json_object",
+                    "schema": self.json_schema.model_json_schema()
+                }
 
             self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
-
-                self.tokens = self.get_tokens()
-
-                if self.tools:
-                    if tool_calls := self.get_tool_calls():
-                        return tool_calls
-                    
-                return self.get_text()
+                self.tokens = self.get_tokens()                    
+                return self.get_output()
 
             return self.response
 
@@ -136,17 +139,17 @@ class ChatAPI:
 
     def get_response(self) -> Any:
         return self.response
-    
-    def get_tool_calls(self) -> Union[None, List[Dict[str, Any]]]:
+        
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
-            return dump["choices"][0]["message"].get("tool_calls")
-        else:
-            return None    
 
-    def get_text(self) -> Union[None, str]:
-        if self.response is not None:
-            return self.response.model_dump()["choices"][0]["message"]["content"]
+            if dump["choices"][0]['finish_reason'] == "tool_calls":
+                self.tool_flag = True
+                return dump["choices"][0]["message"]
+            
+            self.tool_flag = False
+            return dump["choices"][0]["message"].get("content")
         else:
             return None
 
@@ -166,6 +169,27 @@ class ChatAPI:
         else:
             if chunk.model_dump()["usage"]:
                 self.tokens = chunk.model_dump()["usage"]
+
+    def process_tool_calls(self, message: dict) -> list:
+        tools = message.get("tool_calls")
+        tool_messages = []
+
+        for tool in tools:
+
+            config = tool.get('function')
+            args = json.loads(config.get('arguments'))
+
+            output = self.tools[config.get('name')](**args)
+
+            tool_messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool.get('id'),
+                    "content": str(output)
+                }
+            ) 
+
+        return tool_messages                  
 
 
 class AudioAPI:
@@ -297,13 +321,13 @@ class VisionAPI:
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                return self.get_text()
+                return self.get_output()
 
             return self.response
         except Exception as e:
             logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
 
-    def get_text(self) -> Union[None, str]:
+    def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.model_dump()["choices"][0]["message"]["content"]
         else:
