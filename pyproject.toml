@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repenseai"
-version = "3.0.1"
+version = "3.0.2"
 description = "Repense package to support solutions with agents"
 authors = ["Samuel Baptista <samuel.baptista@repense.ai>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ packages = [{ include = "repenseai" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-anthropic = "^0.34.1"
+anthropic = "^0.40.0"
 black = "^24.8.0"
 boto3 = "^1.35.5"
 cohere = "^5.8.1"
