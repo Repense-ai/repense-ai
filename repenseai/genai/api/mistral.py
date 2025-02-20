@@ -26,6 +26,8 @@ class ChatAPI:
         self.stream = stream
         self.max_tokens = max_tokens
 
+        self.tool_flag = False
+
         self.response = None
         self.tokens = None
 

@@ -136,7 +136,6 @@ class ChatAPI:
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
-            "tools": self.json_tools,
         }
 
         if isinstance(prompt, list):
@@ -147,6 +146,9 @@ class ChatAPI:
         try:
             if self.stream:
                 return self._stream_api_call(json_data)
+            
+            if self.tools:
+                json_data["tools"] = self.json_tools
 
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
@@ -219,7 +221,7 @@ class ChatAPI:
         return [{"role": "user", "content": tool_messages}]
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str, **kwargs):
         self.client = Anthropic(api_key=api_key)
         self.model = model
 

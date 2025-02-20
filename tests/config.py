@@ -1,4 +1,4 @@
-TEST_TEXT_MODELS = [
+TEXT = [
     "sabiazinho-3",
     "gpt-4o-mini",
     "claude-3-5-haiku-20241022",
@@ -14,16 +14,33 @@ TEST_TEXT_MODELS = [
 ]
 
 
-TEST_VISION_MODELS = [
+VISION = [
     "gpt-4o",
     "claude-3-5-sonnet-20241022",
-    "gemini-1.5-flash",
+    "gemini-2.0-flash",
     "pixtral-12b-2409",
     "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
     "amazon.nova-lite-v1:0",
     "grok-vision-beta",
 ]
 
-TEST_AUDIO_MODELS = [
+AUDIO = [
     'whisper-1',
 ]
+
+TOOL = [
+    "gpt-4o",
+    "claude-3-5-sonnet-20241022",
+]
+
+JSON = [
+    "gpt-4o",
+]
+
+IMAGE = [
+    "black-forest-labs/FLUX.1.1-pro"
+]
+
+
+
+

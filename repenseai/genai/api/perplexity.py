@@ -22,6 +22,8 @@ class ChatAPI:
         self.stream = stream
         self.max_tokens = max_tokens
 
+        self.tool_flag = False
+
         self.url = "https://api.perplexity.ai/chat/completions"
 
         self.response = None

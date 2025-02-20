@@ -1,6 +1,6 @@
 from typing import Optional
 
-from repenseai.genai.tasks.api_task import Task
+from repenseai.genai.tasks.api import Task
 from repenseai.genai.agent import Agent
 
 class BaseagentProvider:

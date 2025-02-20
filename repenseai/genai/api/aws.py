@@ -29,6 +29,8 @@ class ChatAPI:
         self.stream = stream
         self.max_tokens = max_tokens
 
+        self.tool_flag = False
+
         self.response = None
         self.tokens = None
 
@@ -160,7 +162,7 @@ class ChatAPI:
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str, **kwargs):
         self.api_key = api_key
         self.model = model
 

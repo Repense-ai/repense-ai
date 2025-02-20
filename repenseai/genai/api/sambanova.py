@@ -30,6 +30,8 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
+        self.tool_flag = False
+
         self.client = OpenAI(
             api_key=api_key,
             base_url="https://api.sambanova.ai/v1",
@@ -98,7 +100,7 @@ class ChatAPI:
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str, **kwargs):
         self.client = OpenAI(api_key=api_key)
         self.model = model
 

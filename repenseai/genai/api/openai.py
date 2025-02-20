@@ -197,28 +197,33 @@ class ChatAPI:
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = "whisper-1"):
+    def __init__(self, api_key: str, model: str, **kwargs):
         self.client = OpenAI(api_key=api_key)
         self.model = model
+
+        self.kwargs = kwargs
 
         self.response = None
         self.tokens = None
 
     def call_api(self, audio: io.BufferedReader | bytes) -> str:
-        print(type(audio))
-
         if not isinstance(audio, io.BufferedReader):
             audio = get_memory_buffer(audio)
 
+        parameters = {
+            "model": self.model,
+            "file": audio,
+            "response_format": "verbose_json",
+        }
+
+        if language := self.kwargs.get("language"):
+            parameters["language"] = language
+
         self.response = self.client.audio.transcriptions.create(
-            model=self.model,
-            file=audio,
-            language="pt",
-            response_format="verbose_json",
+            **parameters
         )
 
         self.tokens = self.get_tokens()
-
         return self.get_output()
     
     def get_output(self) -> Union[None, str]:

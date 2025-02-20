@@ -7,7 +7,11 @@ class Workflow(BaseTask):
     def __init__(self, steps):
         self.steps = steps
 
-    def run(self, context):
+    def run(self, context: dict | None = None):
+
+        if not context:
+            context = {}
+            
         for step in self.steps:
             try:
                 if isinstance(step[0], BaseTask):

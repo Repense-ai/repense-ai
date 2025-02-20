@@ -15,7 +15,7 @@ A Python-based artificial intelligence and machine learning toolkit for various 
 
 ```
 repenseai/
-├── config/      # Configuration files
+├── tests/       # Project Tests
 ├── error/       # Error handling
 ├── genai/       # AI/ML core functionality
 ├── secrets/     # Secrets management
@@ -35,11 +35,523 @@ pip install poetry
 poetry install
 ```
 
+## Secrets
+
+1. Using a `.env` file in the root directory with your API keys:
+
+```
+GOOGLE_API_KEY=
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+MISTRAL_API_KEY=
+COHERE_API_KEY=
+GROQ_API_KEY=
+MARITACA_API_KEY=
+SAMBANOVA_API_KEY=
+TOGETHER_API_KEY=
+X_API_KEY=
+STABILITY_API_KEY=
+DEEPSEEK_API_KEY=
+PERPLEXITY_API_KEY=
+GOOGLE_CLOUD_API_KEY=
+NVIDIA_API_KEY=
+AWS_KEY=
+AWS_SECRET=
+```
+
+2. Using Cloud Providers:
+You can create your own classes to get cloud secrets
+```python
+class BaseSecrets(object):
+    """abstract object that implements a .get_secret() method"""
+
+    def __init__(self):
+        pass
+
+    def get_secret(self, **kwargs):
+        pass
+```
+
+You can use the `AWSSecrets` class that is already implemented
+```python
+from repenseai.secrets.aws import AWSSecrets
+
+# Initialize AWS Secrets Manager
+secrets = AWSSecrets(
+    secret_name="my-app-secrets",
+    region_name="us-east-1",
+    # Optional: Use AWS profile
+    profile_name="default",
+    # Or use direct credentials
+    # aws_access_key_id="YOUR_ACCESS_KEY",
+    # aws_secret_access_key="YOUR_SECRET_KEY"
+)
+
+# Retrieve a secret
+api_key = secrets.get_secret("API_KEY")
+database_url = secrets.get_secret("DATABASE_URL")
+
+# Secrets are cached after first retrieval
+api_key_cached = secrets.get_secret("API_KEY")  # Uses cached value
+```
+
+## Usage Examples
+
+### Check All Available Models
+
+```python
+from repenseai.genai.agent import list_models
+print(list_models())
+```
+
+### Instantiate The Agent with Your Secrets Manager  
+```python
+from repenseai.secrets.aws import AWSSecrets
+from repenseai.genai.agent import Agent
+
+# Initialize AWS Secrets Manager
+aws_secrets = AWSSecrets(
+    secret_name="my-app-secrets",
+    region_name="us-east-1",
+)
+
+# Initialize the Agent
+agent = Agent(
+    model="gpt-4o",
+    model_type="chat",
+    temperature=0.0,
+    max_tokens=100,
+    secrets_manager=aws_secrets,
+)
+```
+
+### Basic Chat Interaction
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+# Initialize the agent
+agent = Agent(
+    model="gpt-4o",
+    model_type="chat",
+    temperature=0.0,
+    max_tokens=100
+)
+
+# Create and run a simple task
+task = Task(
+    user="Say {text}",
+    agent=agent
+)
+
+response = task.run({"text": "'Hello, World!'"})
+
+print(f"Response: {response['response']}")  # Outputs the model's response
+print(f"Cost: {response['cost']}")  # Outputs the task's cost
+print(f"Tokens: {response['tokens']}")  # Outputs the token consumption
+
+# ---- #
+# If you just want to output the response
+# Add the simple response argument
+
+task = Task(
+    user="Say {text}",
+    agent=agent,
+    simple_response=True,
+)
+
+response = task.run({"text": "'Hello, World!'"})
+print(f"Response: {response}")  # Outputs the model's response
+
+# ---- #
+# If you want to continue the chat
+
+task.add_user_message("Hello!")
+new_response = task.run()
+
+print(f"New Response: {new_response}")  # Outputs the model's response
+
+# ---- #
+# To check conversation history
+print(task.prompt)
+```
+
+### Vision Tasks
+
+```python
+from PIL import Image
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+# Initialize vision agent
+agent = Agent(
+    model="grok-2-vision-1212",
+    model_type="vision",
+    temperature=0.0,
+    vision_key="my_image",
+)
+
+# Load image
+image = Image.open("path/to/your/image.jpg")
+
+# Create vision task
+task = Task(
+    user="Describe what you see in this image",
+    agent=agent,
+    simple_response=True,
+)
+
+# Run task with image
+response = task.run({"my_image": image})
+print(response)
+```
+
+### Tool Usage
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+def get_weather(latitude: float, longitude: float) -> str:
+    """Get weather information for a location"""
+    return "Sunny, 22°C"
+
+def get_location(city: str) -> tuple:
+    """Get coordinates for a city"""
+    return (48.8566, 2.3522)  # Example for Paris
+
+# Initialize agent with tools
+agent = Agent(
+    model="claude-3-5-sonnet-20241022",
+    model_type="chat",
+    tools=[get_weather, get_location]
+)
+
+# Create task
+task = Task(
+    user="What's the weather like in Paris today?",
+    agent=agent
+)
+
+response = task.run()
+print(response['response'])
+```
+
+### Streaming Responses
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+# Initialize streaming agent
+agent = Agent(
+    model="amazon.nova-pro-v1:0",
+    model_type="chat",
+    stream=True
+)
+
+task = Task(
+    user="Write a short story about a robot",
+    agent=agent
+)
+
+# Handle streaming response
+response = task.run()
+for chunk in response['response']:
+    text = agent.api.process_stream_chunk(chunk)
+    if text:
+        print(text, end='')
+
+cost = agent.calculate_cost(tokens=agent.api.tokens, as_string=True)
+print(cost)
+```
+
+### JSON Mode
+
+```python
+from pydantic import BaseModel
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+class Response(BaseModel):
+    reasoning: str
+    response: str
+
+agent = Agent(
+    model="gpt-4o",
+    model_type="chat",
+    json_mode=True,
+    json_schema=Response
+)
+
+task = Task(
+    user="What is 2+2?",
+    agent=agent,
+    simple_response=True
+)
+
+response = task.run()
+formatted_response = Response(**response)
+print(formatted_response.response)
+```
+
+### Image Generation
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+from repenseai.utils.image import display_base64_image
+
+agent = Agent(
+    model="black-forest-labs/FLUX.1.1-pro",
+    model_type="image",
+)
+
+task = Task(
+    user="A cute white fox in the forest",
+    agent=agent,
+    simple_response=True
+)
+
+response = task.run()
+display_base64_image(response)
+```
+
+### Audio Transcription
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+agent = Agent(
+    model="whisper-1",
+    model_type="audio",
+    audio_key="my_audio",
+)
+
+task = Task(agent=agent)
+my_audio = open("teste_audio.ogg", "rb")
+
+response = task.run({"my_audio": my_audio})
+
+print(f"Response: {response['response']}")  # Outputs the model's response
+print(f"Cost: {response['cost']}")  # Outputs the task's cost
+print(f"Tokens: {response['tokens']}")  # Outputs the token consumption
+```
+
+### Audio Generation
+
+```python
+PLACEHOLDER = ""
+```
+
+## Workflows
+
+All tasks can be bind togheter in workflows.
+We can mix tasks types and function to create the perfect solution.
+
+```python
+import json
+
+from PIL import Image
+
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+from repenseai.genai.tasks.workflow import Workflow
+
+from datetime import datetime
+
+# Function to format the final output
+def format_analysis(context):
+    """Format the vision and chat analysis into a structured output"""
+    vision_result = context.get('vision_analysis', '')
+    chat_result = context.get('chat_summary', '')
+    
+    formatted = {
+        'original_analysis': vision_result,
+        'summary': chat_result,
+        'timestamp': datetime.now().isoformat()
+    }
+    return formatted
+
+# Initialize vision agent
+vision_agent = Agent(
+    model="claude-3-5-sonnet-20241022",  # Using Claude for vision
+    model_type="vision",
+    temperature=0.0,
+    max_tokens=1000
+)
+
+# Initialize chat agent
+chat_agent = Agent(
+    model="gpt-4o",  # Using GPT-4 for text processing
+    model_type="chat",
+    temperature=0.0,
+    max_tokens=150
+)
+
+# Create vision task
+vision_task = Task(
+    user="Analyze this image and describe what you see in detail",
+    agent=vision_agent,
+)
+
+# Create chat task to summarize vision analysis
+chat_task = Task(
+    user="Summarize the following image analysis in 2-3 sentences: {vision_analysis}",
+    agent=chat_agent,
+)
+
+# Create workflow
+workflow = Workflow([
+    [vision_task, "vision_analysis"],
+    [chat_task, "chat_summary"],
+    [format_analysis, "final_output"]
+])
+
+# Run workflow
+image = Image.open("path/to/your/image.jpg")
+context = {"image": image}
+results = workflow.run(context)
+
+# Print results
+print(json.dumps(results['final_output'], indent=4))
+```
+
+### Conditonal Workflows
+
+```python
+from PIL import Image
+
+from datetime import datetime
+import json
+
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+from repenseai.genai.tasks.workflow import Workflow
+from repenseai.genai.tasks.function import FunctionTask
+
+from repenseai.genai.tasks.conditional import (
+    BooleanConditionalTask, 
+    ConditionalTask, 
+    DummyTask
+)
+
+# Helper functions
+def check_content_type(context):
+    """Determine if the image contains a person or an object"""
+    vision_result = context.get('vision_analysis', '').lower()
+    return 'person' if 'person' in vision_result else 'object'
+
+def contains_text(context):
+    """Check if the image contains text"""
+    vision_result = context.get('vision_analysis', '').lower()
+    return 'text' in vision_result or 'writing' in vision_result
+
+def format_final_output(context):
+    """Format all analysis results into a structured output"""
+    return {
+        'timestamp': datetime.now().isoformat(),
+        'content_type': context.get('content_type'),
+        'vision_analysis': context.get('vision_analysis'),
+        'detailed_analysis': context.get('detailed_analysis'),
+        'text_content': context.get('text_content'),
+    }
+
+# Initialize agents for different purposes
+vision_agent = Agent(
+    model="claude-3-5-sonnet-20241022",
+    model_type="vision",
+    temperature=0.0,
+    max_tokens=300
+)
+
+chat_agent_person = Agent(
+    model="gpt-4o",
+    model_type="chat",
+    temperature=0.0,
+    max_tokens=150
+)
+
+chat_agent_object = Agent(
+    model="claude-3-5-sonnet-20241022",
+    model_type="chat",
+    temperature=0.0,
+    max_tokens=150
+)
+
+# Create tasks
+vision_task = Task(
+    user="Analyze this image in detail, including any text if present",
+    agent=vision_agent,
+    simple_response=True
+
+)
+
+person_analysis_task = Task(
+    user="Analyze the person in this description, focusing on appearance and actions: {vision_analysis}",
+    agent=chat_agent_person,
+    simple_response=True
+)
+
+object_analysis_task = Task(
+    user="Provide a detailed analysis of the object described: {vision_analysis}",
+    agent=chat_agent_object,
+    simple_response=True
+)
+
+text_extraction_task = Task(
+    user="Extract and clean up any text content from this description: {vision_analysis}",
+    agent=chat_agent_person,
+    simple_response=True
+)
+
+# Create conditional tasks
+content_type_task = ConditionalTask(
+    condition=check_content_type,
+    tasks={
+        'person': person_analysis_task,
+        'object': object_analysis_task
+    },
+    default_task=DummyTask()
+)
+
+text_analysis_task = BooleanConditionalTask(
+    condition=contains_text,
+    true_task=text_extraction_task,
+    false_task=DummyTask()
+)
+
+# Create function tasks
+format_task = FunctionTask(format_final_output)
+
+# Create workflow
+workflow = Workflow([
+    [vision_task, "vision_analysis"],
+    [check_content_type, "content_type"],
+    [content_type_task, "detailed_analysis"],
+    [text_analysis_task, "text_content"],
+    [format_task, "final_output"]
+])
+
+# Run workflow
+def analyze_image(image_path):
+    image = Image.open(image_path)
+    context = {"image": image}
+    results = workflow.run(context)
+    return results['final_output']
+
+results = analyze_image("path/to/your/image.jpg")
+print(json.dumps(results, indent=2))
+```
+
 ## Development
 
 This project uses several development tools:
 
-- Poetry for dependency management
+- poetry for dependency management
 - pre-commit hooks for code quality
 - pytest for testing
 - flake8 for code linting
@@ -60,22 +572,9 @@ pre-commit install
 poetry run pytest
 ```
 
-## Examples
-
-Check the `notebooks/` directory for various usage examples:
-- Audio processing
-- Image generation
-- Model benchmarking
-- Search functionality
-- Streaming implementations
-
 ## Environment Variables
 
 Configure your environment by creating a `.env` file based on the provided template.
-
-## License
-
-[Add license information here]
 
 ## Contributing
 
@@ -84,3 +583,9 @@ Configure your environment by creating a `.env` file based on the provided templ
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
+
+## TODO
+
+1. Parallel Execution
+2. MultiAgent Setup
+3. Reasoning Task (Agent can go back and fourth with the task)

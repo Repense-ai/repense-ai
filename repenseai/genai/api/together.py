@@ -193,7 +193,7 @@ class ChatAPI:
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str, **kwargs):
         self.client = Together(api_key=api_key)
         self.model = model
 

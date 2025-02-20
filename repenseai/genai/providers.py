@@ -217,6 +217,18 @@ AUDIO_MODELS = {
 }
 
 
+SPEECH_MODELS = {
+    "tts-1": {
+        "provider": "openai", 
+        "cost": 15.00
+    },
+    "tts-1-hd": {
+        "provider": "openai", 
+        "cost": 30.00
+    },
+}
+
+
 RANK_MODELS = {}
 
 

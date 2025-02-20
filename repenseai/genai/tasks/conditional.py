@@ -19,8 +19,8 @@ from repenseai.genai.tasks.base import BaseTask
 
 
 class DummyTask(BaseTask):
-    def run(self, context):
-        return context  # simply returns the input context unchanged
+    def run(self, context: dict | None = None) -> dict:
+        return context or {}  # returns empty dict if context is None
 
 
 class BooleanConditionalTask(BaseTask):
@@ -41,7 +41,11 @@ class BooleanConditionalTask(BaseTask):
         self.true_task = true_task
         self.false_task = false_task
 
-    def run(self, context):
+    def run(self, context: dict | None = None):
+
+        if not context:
+            context = {}
+            
         if self.condition(context):
             return self.true_task.run(context)
         else:
@@ -65,7 +69,11 @@ class ConditionalTask(BaseTask):
         self.tasks = tasks
         self.default_task = default_task
 
-    def run(self, context):
+    def run(self, context: dict | None = None):
+
+        if not context:
+            context = {}
+
         if self.condition(context) in self.tasks.keys():
             return self.tasks[self.condition(context)].run(context)
         else:

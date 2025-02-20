@@ -11,6 +11,7 @@ from repenseai.genai.providers import (
     VIDEO_MODELS,
     SEARCH_MODELS,
     AUDIO_MODELS,
+    SPEECH_MODELS
 )
 
 from dotenv import find_dotenv, load_dotenv
@@ -27,6 +28,7 @@ def list_models(model_type: str = 'all') -> tp.List[str] | tp.Dict[str, tp.List[
         "video": VIDEO_MODELS,
         "search": SEARCH_MODELS,
         "audio": AUDIO_MODELS,
+        "speech": SPEECH_MODELS,
     }
 
     for model in models:
@@ -64,6 +66,7 @@ class Agent:
             "video": VIDEO_MODELS,
             "search": SEARCH_MODELS,
             "audio": AUDIO_MODELS,
+            "speech": SPEECH_MODELS,
         }
 
         self.all_models = {}
@@ -79,8 +82,8 @@ class Agent:
         if self.api_key is None:
             self.api_key = self.__get_api_key()
 
-            if self.api_key is None:
-                raise Exception("API key not found in env variables or secrets manager (cloud env)")
+            if self.api_key is None and self.provider != "aws":
+                raise Exception(f"API_KEY not found for provider {self.provider}.")
 
 
     def __gather_models(self) -> None:
@@ -90,11 +93,17 @@ class Agent:
     def __get_provider(self) -> None:
         if self.model_type not in self.models:
             raise Exception("Model type not found")
-
-        self.provider = self.all_models[self.model]["provider"]
+        
+        if "provider" in self.kwargs:
+            self.provider = self.kwargs["provider"]
+        else:
+            self.provider = self.all_models[self.model]["provider"]
 
     def __get_prices(self) -> None:
-        self.price = self.all_models[self.model]["cost"]
+        if "price" in self.kwargs:
+            self.price = self.kwargs["price"]
+        else:
+            self.price = self.all_models[self.model]["cost"]
 
     def __get_module(self) -> None:
         api_str = f"repenseai.genai.api.{self.provider}"
@@ -144,11 +153,17 @@ class Agent:
         return self.price
 
     def calculate_cost(
-        self, tokens: tp.Dict[str, int], as_string: str = False
+        self, tokens: tp.Union[tp.Dict[str, int], int, None] = None, as_string: str = False
     ) -> tp.Union[float, str]:
         
         if not tokens:
-            return 0
+            if self.api:
+                if tokens := self.api.tokens:
+                    pass
+                else:
+                    return 0
+            else:
+                return 0
 
         if isinstance(tokens, dict):
             if isinstance(self.price, dict):

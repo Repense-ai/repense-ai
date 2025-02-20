@@ -1,5 +1,5 @@
 class BaseSecrets(object):
-    """abstract object that implements a .run() method"""
+    """abstract object that implements a .get_secret() method"""
 
     def __init__(self):
         pass

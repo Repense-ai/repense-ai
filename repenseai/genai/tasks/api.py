@@ -9,17 +9,15 @@ class Task(BaseTask):
     def __init__(
         self,
         agent: Any,
+        user: str = "",
         simple_response: bool = False,
-        instruction: str = "",
-        prompt_template: str = "",
         history: list | None = None,
         vision_key: str = "image",
         audio_key: str = "audio",
         base_image_key: str = "base_image"
     ) -> None:
 
-        self.instruction = instruction
-        self.prompt_template = prompt_template
+        self.user = user
         self.history = history
 
         self.agent = agent
@@ -32,24 +30,20 @@ class Task(BaseTask):
         self.prompt = None
         self.api = self.agent.get_api()
 
-    def __build_prompt(self, **kwargs):
 
-        if self.prompt_template != "":
-            content = self.prompt_template.format(
-                instruction=self.instruction, **kwargs
-            )
-        else:
-            content = self.instruction
+    def __replace_tokens(self, text: str, tokens: dict) -> str:
+        for key, value in tokens.items():
+            text = text.replace("{" + key + "}", str(value))
+
+        return text
+
+    def __build_prompt(self, **kwargs):
+        content = self.__replace_tokens(self.user, kwargs)
 
         self.prompt = [
             {
-                "role": "user", 
-                "content": [
-                    {
-                        "type": "text", 
-                        "text": content
-                    }
-                ]
+                "role": "user",
+                "content": [{"type": "text", "text": content}]
             }
         ]
         
@@ -100,10 +94,9 @@ class Task(BaseTask):
     
     def __process_image(self, context: dict) -> dict:
         image = context.get(self.base_image_key)
+        user = self.prompt[-1]["content"][0]["text"]
 
-        instruction = self.prompt[-1]["content"][0]["text"]
-
-        response = self.api.call_api(instruction, image)
+        response = self.api.call_api(user, image)
 
         return {
             "response": response,
@@ -122,18 +115,32 @@ class Task(BaseTask):
             case "image":
                 return self.__process_image(context)                             
     
-    def run(self, context: dict) -> str:
+    def run(self, context: dict | None = None) -> str:
+        if not context:
+            context = {}
+
         try:
-            self.__build_prompt(**context)
-            response = self._process_api_call(context)
+            if not self.prompt:
+                self.__build_prompt(**context)
 
-            while self.api.tool_flag:
-                tools_response = self.api.process_tool_calls(response["response"])
+            response = self._process_api_call(context)                 
 
-                self.prompt.append(response["response"])
-                self.prompt += tools_response
+            if self.agent.model_type == "chat":
 
-                response = self._process_api_call(context)
+                while self.api.tool_flag:
+                    tools_response = self.api.process_tool_calls(response["response"])
+
+                    self.prompt.append(response["response"])   
+                    self.prompt += tools_response
+
+                    response = self._process_api_call(context)
+
+            self.prompt.append(
+                {
+                    "role": "assistant",
+                    "content": response["response"]
+                }
+            )   
 
             if self.simple_response:
                 return response["response"]
@@ -142,5 +149,22 @@ class Task(BaseTask):
 
         except Exception as e:
             raise e
+        
+    def add_user_message(self, message: str) -> None:
+        self.prompt.append(
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": message}]
+            }
+        )
+
+    def add_assistant_message(self, message: str) -> bool:
+        self.prompt.append(
+            {
+                "role": "assistant",
+                "content": [{"type": "text", "text": message}]
+            }
+        )
+
         
     

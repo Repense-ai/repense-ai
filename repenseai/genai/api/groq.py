@@ -27,6 +27,8 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
+        self.tool_flag = False
+
         self.client = Groq(api_key=self.api_key)
 
     def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
@@ -93,7 +95,7 @@ class ChatAPI:
 
 
 class AudioAPI:
-    def __init__(self, api_key: str, model: str = ""):
+    def __init__(self, api_key: str, model: str, **kwargs):
         self.client = Groq(api_key=api_key)
         self.model = model
 
