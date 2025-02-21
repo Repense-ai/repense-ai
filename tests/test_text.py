@@ -5,7 +5,7 @@ from repenseai.genai.agent import Agent
 from repenseai.genai.tasks.api import Task
 
 
-@pytest.mark.parametrize("model", ["gemini-2.0-flash"])
+@pytest.mark.parametrize("model", TEXT)
 def test_chat_with_image_history(model):
 
     agent = Agent(

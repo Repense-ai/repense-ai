@@ -1,6 +1,7 @@
 from typing import Any, List, Union
 from google import genai
 from google.genai import types
+import io
 
 class ChatAPI:
     def __init__(
@@ -26,9 +27,29 @@ class ChatAPI:
             max_output_tokens=max_tokens,
         )
 
-    def __process_str_prompt(self, prompt: str) -> str:
+    def __convert_image_to_bytes(self, img):
+        if hasattr(img, 'convert'):  # Check if it's a PIL Image
+            img_byte_arr = io.BytesIO()
+            img.convert('RGB').save(img_byte_arr, format='JPEG')
+            return img_byte_arr.getvalue()
+        return img  # Return as-is if already bytes
+
+    def __process_str_prompt(self, prompt: str, image: Union[Any, List[Any]] = None) -> str:
         self.prompt = prompt
-        content = [{"role": "user", "parts": [{"text": prompt}]}]
+        content = [{
+            "role": "user",
+            "parts": [{"text": prompt}]
+        }]
+
+        # Add images if provided
+        if image is not None:
+            if isinstance(image, list):
+                for img in image:
+                    img_bytes = self.__convert_image_to_bytes(img)
+                    content[0]["parts"].append({"inline_data": {"mime_type": "image/jpeg", "data": img_bytes}})
+            else:
+                img_bytes = self.__convert_image_to_bytes(image)
+                content[0]["parts"].append({"inline_data": {"mime_type": "image/jpeg", "data": img_bytes}})
 
         if self.stream:
             self.response = self.client.models.generate_content_stream(
@@ -52,13 +73,32 @@ class ChatAPI:
         contents = []
         for message in prompt:
             role = "user" if message.get("role") == "user" else "model"
-            text = message.get("content", [{}])[0].get("text", "")
-            contents.append({
-                "role": role,
-                "parts": [{"text": text}]
-            })
+            parts = []
+            
+            # Handle text content
+            if isinstance(message.get("content"), str):
+                text = message.get("content")
+                parts.append({"text": text})
+            else:
+                for content_item in message.get("content", []):
+                    if content_item.get("type") == "text":
+                        parts.append({"text": content_item.get("text", "")})
+                    elif content_item.get("type") == "image":
+                        img_bytes = self.__convert_image_to_bytes(content_item.get("image"))
+                        parts.append({"inline_data": {"mime_type": "image/jpeg", "data": img_bytes}})
 
-        self.prompt = contents[-1]["parts"][0]["text"]
+            if parts:  # Only add message if it has parts
+                contents.append({
+                    "role": role,
+                    "parts": parts
+                })
+
+        if not contents:
+            raise ValueError("No valid content found in prompt messages")
+
+        # Get the last text part for token counting
+        self.prompt = next((part["text"] for msg in reversed(contents) 
+                          for part in msg["parts"] if "text" in part), "")
 
         if self.stream:
             self.response = self.client.models.generate_content_stream(
@@ -77,9 +117,9 @@ class ChatAPI:
         
         return self.response
 
-    def call_api(self, prompt: list | str):
+    def call_api(self, prompt: Union[str, list], image: Union[Any, List[Any]] = None):
         if isinstance(prompt, str):
-            return self.__process_str_prompt(prompt)
+            return self.__process_str_prompt(prompt, image)
         else:
             return self.__process_list_prompt(prompt)
 
@@ -113,15 +153,16 @@ class ChatAPI:
             return None
 
     def process_stream_chunk(self, chunk: Any) -> str:
-        if not hasattr(chunk, 'candidates_token_count') or chunk.candidates_token_count == 0:
-            return chunk.text
-        else:
+        if chunk.usage_metadata.candidates_token_count:
             self.tokens = {
-                "completion_tokens": chunk.candidates_token_count,
-                "prompt_tokens": chunk.prompt_token_count,
-                "total_tokens": chunk.candidates_token_count + chunk.prompt_token_count,
+                "completion_tokens": chunk.usage_metadata.candidates_token_count,
+                "prompt_tokens": chunk.usage_metadata.prompt_token_count,
+                "total_tokens": chunk.usage_metadata.candidates_token_count + chunk.usage_metadata.prompt_token_count,
             }
             return chunk.text
+        else:
+            return chunk.text
+
 
 
 class VisionAPI:
@@ -150,9 +191,19 @@ class VisionAPI:
         self.tokens = None
 
     def __process_list_prompt(self, prompt: list) -> str:
-        return prompt[-1]["content"][0].get("text", "")
+        if isinstance(prompt[-1].get("content"), str):
+            return prompt[-1]["content"]
+        return next((item["text"] for item in prompt[-1]["content"] 
+                    if item.get("type") == "text"), "")
 
-    def call_api(self, prompt: str | list, image: Union[Any, List[Any]]):
+    def __convert_image_to_bytes(self, img):
+        if hasattr(img, 'convert'):  # Check if it's a PIL Image
+            img_byte_arr = io.BytesIO()
+            img.convert('RGB').save(img_byte_arr, format='JPEG')
+            return img_byte_arr.getvalue()
+        return img  # Return as-is if already bytes
+
+    def call_api(self, prompt: Union[str, list], image: Union[Any, List[Any]]):
         if isinstance(prompt, list):
             self.prompt = self.__process_list_prompt(prompt)
         else:
@@ -160,14 +211,20 @@ class VisionAPI:
 
         self.image = image
 
-        contents = []
-        contents.append({"text": self.prompt})
+        contents = [{
+            "role": "user",
+            "parts": [
+                {"text": self.prompt}
+            ]
+        }]
         
         if isinstance(self.image, list):
             for img in self.image:
-                contents.append({"image": img})
+                img_bytes = self.__convert_image_to_bytes(img)
+                contents[0]["parts"].append({"inline_data": {"mime_type": "image/jpeg", "data": img_bytes}})
         else:
-            contents.append({"image": self.image})
+            img_bytes = self.__convert_image_to_bytes(self.image)
+            contents[0]["parts"].append({"inline_data": {"mime_type": "image/jpeg", "data": img_bytes}})
 
         if self.stream:
             self.response = self.client.models.generate_content_stream(
@@ -207,14 +264,14 @@ class VisionAPI:
             return None
 
     def process_stream_chunk(self, chunk: Any) -> str:
-        if not hasattr(chunk, 'candidates_token_count') or chunk.candidates_token_count == 0:
+        if chunk.usage_metadata.candidates_token_count:
+            self.tokens = {
+                "completion_tokens": chunk.usage_metadata.candidates_token_count,
+                "prompt_tokens": chunk.usage_metadata.prompt_token_count,
+                "total_tokens": chunk.usage_metadata.candidates_token_count + chunk.usage_metadata.prompt_token_count,
+            }
             return chunk.text
         else:
-            self.tokens = {
-                "completion_tokens": chunk.candidates_token_count,
-                "prompt_tokens": chunk.prompt_token_count,
-                "total_tokens": chunk.candidates_token_count + chunk.prompt_token_count,
-            }
             return chunk.text
 
 

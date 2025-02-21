@@ -73,21 +73,21 @@ class ImageAPI:
 
         self.allowed_sp = [
             "3d-model",
-            "analog-film" ,
+            "analog-film",
             "anime", 
             "cinematic", 
-            "comic-book" ,
-            "digital-art" ,
+            "comic-book",
+            "digital-art",
             "enhance", 
-            "fantasy-art" ,
+            "fantasy-art",
             "isometric", 
-            "line-art" ,
-            "low-poly" ,
-            "modeling-compound" ,
-            "neon-punk" ,
+            "line-art",
+            "low-poly",
+            "modeling-compound",
+            "neon-punk",
             "origami", 
             "photographic", 
-            "pixel-art" ,
+            "pixel-art",
             "tile-texture",
         ]
 
@@ -170,15 +170,19 @@ class ImageAPI:
             return {"none": ''}
         else:
             if isinstance(image, str):
-                img = Image.open(image)
+                try:
+                    img = Image.open(image)
+                except Exception:
+                    img = Image.open(io.BytesIO(base64.b64decode(image)))
+
                 img_byte_arr = io.BytesIO()
 
-                img = self._resize_image(image)
+                img = self._resize_image(img)
                 img.save(img_byte_arr, format="PNG")
 
                 img_byte_arr = img_byte_arr.getvalue()
 
-                return {"image": img}
+                return {"image": img_byte_arr}
             elif isinstance(image, Image.Image):
                 img_byte_arr = io.BytesIO()
 

@@ -27,7 +27,7 @@ def test_streaming_with_image_history(model):
         simple_response=True,
     )
 
-    response = task.run({})
+    response = task.run()
     string = ""
 
     for chunk in response:
