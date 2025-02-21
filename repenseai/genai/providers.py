@@ -220,11 +220,11 @@ AUDIO_MODELS = {
 SPEECH_MODELS = {
     "tts-1": {
         "provider": "openai", 
-        "cost": 15.00
+        "cost": 0.000015
     },
     "tts-1-hd": {
         "provider": "openai", 
-        "cost": 30.00
+        "cost": 0.000030
     },
 }
 
@@ -276,11 +276,14 @@ IMAGE_MODELS = {
         "provider": "aws", 
         "cost": 0.08
     },
+    "imagen-3.0-generate-002": {
+        "provider": "google", 
+        "cost": {'input': 0.03, 'output': 0.03}
+    },
     # "aurora": {
     #     "provider": "x", 
     #     "cost": ?
     # },    
-
 }
 
 

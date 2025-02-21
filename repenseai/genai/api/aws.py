@@ -161,20 +161,6 @@ class ChatAPI:
             }
 
 
-class AudioAPI:
-    def __init__(self, api_key: str, model: str, **kwargs):
-        self.api_key = api_key
-        self.model = model
-
-    def call_api(self, audio: io.BufferedReader):
-        _ = audio
-
-        return "Not Implemented"
-
-    def get_tokens(self):
-        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-
-
 class VisionAPI:
     def __init__(
         self,
@@ -443,3 +429,39 @@ class ImageAPI:
 
     def get_tokens(self):
         return 1
+    
+
+class AudioAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, audio: Any):
+        _ = audio
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"  
+
+    def get_tokens(self):
+        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+
+
+class SpeechAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, text: str) -> bytes:
+        _ = text
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"    
+
+    def get_tokens(self):
+        return 0
+    
+    

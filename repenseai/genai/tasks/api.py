@@ -14,6 +14,7 @@ class Task(BaseTask):
         history: list | None = None,
         vision_key: str = "image",
         audio_key: str = "audio",
+        speech_key: str = "speech",      
         base_image_key: str = "base_image"
     ) -> None:
 
@@ -25,6 +26,7 @@ class Task(BaseTask):
 
         self.vision_key = vision_key
         self.audio_key = audio_key
+        self.speech_key = speech_key
         self.base_image_key = base_image_key
 
         self.prompt = None
@@ -92,6 +94,16 @@ class Task(BaseTask):
             "cost": self.agent.calculate_cost(self.api.tokens),
         }
     
+    def __process_speech(self, context: dict) -> dict:
+        speech = context.get(self.speech_key)
+        response = self.api.call_api(speech)
+
+        return {
+            "response": response,
+            "tokens": self.api.tokens,
+            "cost": self.agent.calculate_cost(self.api.tokens),
+        }    
+    
     def __process_image(self, context: dict) -> dict:
         image = context.get(self.base_image_key)
         user = self.prompt[-1]["content"][0]["text"]
@@ -112,8 +124,10 @@ class Task(BaseTask):
                 return self.__process_vision(context)
             case "audio":
                 return self.__process_audio(context)
+            case "speech":
+                return self.__process_speech(context)            
             case "image":
-                return self.__process_image(context)                             
+                return self.__process_image(context)                           
     
     def run(self, context: dict | None = None) -> str:
         if not context:

@@ -21,20 +21,6 @@ class ChatAPI:
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
 
 
-class AudioAPI:
-    def __init__(self, api_key: str, model: str, **kwargs):
-        self.api_key = api_key
-        self.model = model
-
-    def call_api(self, prompt: Any):
-        _ = prompt
-
-        return "Not implemented"
-
-    def get_tokens(self):
-        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
-
 class VisionAPI:
     def __init__(self, api_key: str, model: str = ""):
         self.api_key = api_key
@@ -202,8 +188,18 @@ class ImageAPI:
                 img_byte_arr = img_byte_arr.getvalue()
 
                 return {"image": img_byte_arr}
+            elif isinstance(image, bytes):
+                img = Image.open(io.BytesIO(image))
+                img_byte_arr = io.BytesIO()
+
+                img = self._resize_image(img)
+                img.save(img_byte_arr, format="PNG")
+
+                img_byte_arr = img_byte_arr.getvalue()
+
+                return {"image": img_byte_arr}
             else:
-                raise Exception("Incorrect image type! Accepted: img_string or PIL Image")
+                raise Exception("Incorrect image type! Accepted: img_string, PIL Image, or bytes")
             
 
     def _resize_image(self, image: Image.Image) -> Image.Image:
@@ -272,3 +268,37 @@ class ImageAPI:
 
     def get_tokens(self):
         return 1
+  
+    
+class AudioAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, audio: Any):
+        _ = audio
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"  
+
+    def get_tokens(self):
+        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+
+
+class SpeechAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, text: str) -> bytes:
+        _ = text
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"    
+
+    def get_tokens(self):
+        return 0      

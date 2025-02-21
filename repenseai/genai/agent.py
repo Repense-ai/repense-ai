@@ -143,7 +143,11 @@ class Agent:
             case "image":
                 self.api = self.module_api.ImageAPI(
                     api_key=self.api_key, model=self.model, **self.kwargs
-                )                
+                )
+            case "speech":
+                self.api = self.module_api.SpeechAPI(
+                    api_key=self.api_key, model=self.model, **self.kwargs
+                )                                   
             case _:
                 raise Exception(self.model_type + " API not found")
 

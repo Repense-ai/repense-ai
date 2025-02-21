@@ -239,14 +239,97 @@ class AudioAPI:
 
             return duration
         else:
-            return None    
+            return None
+
+class SpeechAPI:
+    def __init__(
+            self, 
+            api_key: str, 
+            model: str, 
+            voice: str,
+            **kwargs
+        ):
+
+        self.client = OpenAI(api_key=api_key)
+
+        self.model = model
+        self.voice = voice
+
+        self.kwargs = kwargs
+
+        self.response = None
+        self.tokens = None
+        self.response_format = None
+
+        self.allowed_voices = [
+            'alloy', 'ash', 'coral', 
+            'echo', 'fable', 'onyx', 
+            'nova', 'sage', 'shimmer'
+        ]
+
+        self.allowed_format = [
+            'mp3', 'opus', 'aac', 
+            'flac', 'wav', 'pcm'
+        ]
+
+        self.__validate_voice()
+        self.__validate_format()
+
+    def __validate_voice(self) -> None:
+        if not self.voice in self.allowed_voices:
+            raise ValueError(f"Voice {self.voice} not allowed for model {self.model}")
+        
+    def __validate_format(self) -> None:
+        if format := self.kwargs.get("response_format"):
+            if not format in self.allowed_format:
+
+                logger(f"Format {format} not allowed for model {self.model}")
+                logger(f"Setting format to 'mp3'")
+
+                self.response_format = 'mp3'
+            else:
+                self.response_format = format
+
+
+    def call_api(self, text: str) -> bytes:
+
+        parameters = {
+            "model": self.model,
+            "voice": self.voice,
+            "input": text,
+            "response_format": self.response_format,
+        }
+
+        if speed := self.kwargs.get("speed"):
+            if not 0.25 <= speed <= 4.0:
+
+                logger("Speed must be between 0.25 and 4.0")
+                logger("Setting speed to 1.0")
+
+                speed = 1.0
+            
+            parameters["speed"] = speed         
+
+        self.response = self.client.audio.speech.create(**parameters)
+        self.tokens = self.get_tokens(text)
+
+        return self.get_output()
+    
+    def get_output(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.content
+        else:
+            return None
+
+    def get_tokens(self, text: str) -> int:
+        return round(len(text) / 4)
 
 
 class VisionAPI:
     def __init__(
         self,
         api_key: str,
-        model: str = "gpt-4-turbo",
+        model: str = "gpt-4o",
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,

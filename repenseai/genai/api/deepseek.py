@@ -201,35 +201,6 @@ class ChatAPI:
             ) 
 
         return tool_messages  
-    
-
-class AudioAPI:
-    def __init__(self, api_key: str, model: str = "whisper-1"):
-        self.client = OpenAI(api_key=api_key)
-        self.model = model
-
-        self.response = None
-        self.tokens = None
-
-    def call_api(self, audio: io.BufferedReader | bytes) -> str:
-        _ = audio
-        
-        return "Not implemented"
-    
-    def get_output(self) -> Union[None, str]:
-        if self.response is not None:
-            return self.response.model_dump().get('text')
-        else:
-            return None
-
-    def get_tokens(self) -> Union[None, str]:
-        if self.response is not None:
-            duration = self.response.model_dump().get('duration')
-            duration = round(duration / 60, 2)
-
-            return duration
-        else:
-            return None    
 
 
 class VisionAPI:
@@ -292,7 +263,46 @@ class ImageAPI:
         _ = image
         _ = prompt
 
-        return "Not implemented"
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"  
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+    
+
+class AudioAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, audio: Any):
+        _ = audio
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"  
+
+    def get_tokens(self):
+        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+
+
+class SpeechAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, text: str) -> bytes:
+        _ = text
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"    
+
+    def get_tokens(self):
+        return 0
+    
+

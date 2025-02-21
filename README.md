@@ -189,7 +189,6 @@ agent = Agent(
     model="grok-2-vision-1212",
     model_type="vision",
     temperature=0.0,
-    vision_key="my_image",
 )
 
 # Load image
@@ -200,6 +199,7 @@ task = Task(
     user="Describe what you see in this image",
     agent=agent,
     simple_response=True,
+    vision_key="my_image",
 )
 
 # Run task with image
@@ -328,12 +328,14 @@ from repenseai.genai.tasks.api import Task
 agent = Agent(
     model="whisper-1",
     model_type="audio",
+)
+
+task = Task(
+    agent=agent,
     audio_key="my_audio",
 )
 
-task = Task(agent=agent)
 my_audio = open("teste_audio.ogg", "rb")
-
 response = task.run({"my_audio": my_audio})
 
 print(f"Response: {response['response']}")  # Outputs the model's response
@@ -344,7 +346,24 @@ print(f"Tokens: {response['tokens']}")  # Outputs the token consumption
 ### Audio Generation
 
 ```python
-PLACEHOLDER = ""
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+agent = Agent(
+    model="tts-1", 
+    model_type="speech",
+    voice="shimmer",
+)
+
+task = Task(
+    agent=agent,
+    speech_key="teste"
+)
+
+response = task.run({"teste": "Estou testando um audio em portugues gerado pela openai"})
+
+with open("audios/output_speech.mp3", "wb") as f:
+    f.write(response['response'])
 ```
 
 ## Workflows

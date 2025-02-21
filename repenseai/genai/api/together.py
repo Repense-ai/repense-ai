@@ -2,13 +2,10 @@ import io
 import base64
 import inspect
 import json
-import httpx
 
 from pydantic import BaseModel
 
 from typing import Any, Dict, List, Union, Callable
-
-from repenseai.genai.providers import VISION_MODELS
 
 from together import Together
 from repenseai.utils.logs import logger
@@ -190,20 +187,6 @@ class ChatAPI:
             ) 
 
         return tool_messages                  
-
-
-class AudioAPI:
-    def __init__(self, api_key: str, model: str, **kwargs):
-        self.client = Together(api_key=api_key)
-        self.model = model
-
-    def call_api(self, audio: io.BufferedReader):
-        _ = audio
-
-        return "Not Implemented"
-
-    def get_tokens(self):
-        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
 
 
 class VisionAPI:
@@ -424,3 +407,37 @@ class ImageAPI:
             "prompt_tokens": prompt_tokens, 
             "total_tokens": prompt_tokens + completion_tokens,
         }
+    
+
+class AudioAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, audio: Any):
+        _ = audio
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"  
+
+    def get_tokens(self):
+        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+
+
+class SpeechAPI:
+    def __init__(self, api_key: str, model: str, **kwargs):
+        self.api_key = api_key
+        self.model = model
+
+    def call_api(self, text: str) -> bytes:
+        _ = text
+
+        return self.get_output()
+    
+    def get_output(self):
+        return "Not Implemented"    
+
+    def get_tokens(self):
+        return 0

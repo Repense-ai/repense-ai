@@ -28,6 +28,10 @@ AUDIO = [
     'whisper-1',
 ]
 
+SPEECH = [
+    'tts-1',
+]
+
 TOOL = [
     "gpt-4o",
     "claude-3-5-sonnet-20241022",
@@ -38,7 +42,11 @@ JSON = [
 ]
 
 IMAGE = [
-    "black-forest-labs/FLUX.1.1-pro"
+    "black-forest-labs/FLUX.1.1-pro",
+    "stability/generate/sd3.5-medium/sd3",
+    "stability/generate/default/core",
+    "amazon.nova-canvas-v1:0",
+    "imagen-3.0-generate-002",
 ]
 
 
