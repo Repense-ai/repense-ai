@@ -43,6 +43,10 @@ TEXT_MODELS = {
         "provider": "anthropic",
         "cost": {"input": 3.0, "output": 15.0},
     },
+    "claude-3-7-sonnet-20250219": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
+    },    
     "gemini-1.5-pro": {
         "provider": "google", 
         "cost": {"input": 2.50, "output": 10.0}

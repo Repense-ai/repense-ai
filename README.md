@@ -104,6 +104,34 @@ from repenseai.genai.agent import list_models
 print(list_models())
 ```
 
+### Using models that are not listed
+
+If you encounter a KeyError like this `KeyError: claude-3-7-sonnet-20250219'`, it is because our list of models is not updated.
+You can solve this issue by adding the `provider` and the `price` as arguments.
+
+Currently, we are only considering `input` and `output` tokens to calculate the cost.
+Keep in mind that this is only an approximation. Cached tokens or thinking tokens are still not considered.
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+# Initialize Agent with Provider and Price
+agent = Agent(
+    model="claude-3-7-sonnet-20250219",
+    model_type="chat",
+    provider="anthropic",
+    price={"input": 3.0, "output": 15.0},
+)
+
+task = Task(
+    user="Write a short story about the color blue",
+    agent=agent
+)
+
+response = task.run()
+```
+
 ### Instantiate The Agent with Your Secrets Manager  
 ```python
 from repenseai.secrets.aws import AWSSecrets
@@ -177,6 +205,31 @@ print(f"New Response: {new_response}")  # Outputs the model's response
 print(task.prompt)
 ```
 
+## Anthropic Thinking
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+
+# Initialize Agent with Provider and Price
+agent = Agent(
+    model="claude-3-7-sonnet-20250219",
+    model_type="chat",
+    thinking=True
+)
+
+task = Task(
+    user="Write a short story about the color blue",
+    agent=agent,
+    simple_response=True
+)
+
+response = task.run()
+
+print(f"Reasoning:\n\n{response['thinking']}\n\n")  # Outputs the model's reasoning
+print(f"Response:\n\n{response['output']}")  # Outputs the model's response
+```
+
 ### Vision Tasks
 
 ```python
@@ -223,7 +276,7 @@ def get_location(city: str) -> tuple:
 
 # Initialize agent with tools
 agent = Agent(
-    model="claude-3-5-sonnet-20241022",
+    model="claude-3-7-sonnet-20250219",
     model_type="chat",
     tools=[get_weather, get_location]
 )

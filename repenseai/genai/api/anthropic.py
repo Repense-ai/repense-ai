@@ -22,6 +22,7 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        thinking: bool = False,
         tools: List[Callable] = None,
         **kwargs,
     ):
@@ -30,6 +31,7 @@ class ChatAPI:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.stream = stream
+        self.thinking = thinking
 
         self.response = None
         self.tokens = None
@@ -144,6 +146,14 @@ class ChatAPI:
             json_data['messages'] = [{"role": "user", "content": prompt}]
 
         try:
+            if self.thinking:
+                json_data['thinking'] = {
+                    "type": "enabled",
+                    "budget_tokens": int(self.max_tokens * 0.75)
+                }
+
+                json_data['temperature'] = 1.0
+
             if self.stream:
                 return self._stream_api_call(json_data)
             
@@ -168,6 +178,14 @@ class ChatAPI:
                 self.tool_flag = True
                 return {"role": "assistant", "content": dump['content']}
             self.tool_flag = False
+            if self.thinking:
+                try:
+                    return {
+                        "thinking": self.response.content[-2].thinking,
+                        "output": self.response.content[-1].text
+                    }
+                except IndexError:
+                    return self.response.content[-1].text
             return self.response.content[0].text
         else:
             return None
