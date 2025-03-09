@@ -334,7 +334,6 @@ class Response(BaseModel):
 agent = Agent(
     model="gpt-4o",
     model_type="chat",
-    json_mode=True,
     json_schema=Response
 )
 

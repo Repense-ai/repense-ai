@@ -1,5 +1,33 @@
 # Changelog
 
+## Version 4.0.3
+
+### New Features
+
+#### API Enhancements
+- Added JSON schema support for Anthropic and OpenAI chat APIs
+- Improved JSON mode handling in chat and vision APIs
+- Added support for gpt-4.5-preview model to OpenAI provider
+
+### Changes
+
+#### Dependencies
+- Updated dependency management to separate development dependencies from production dependencies
+
+#### Provider Updates
+- Enhanced mode priority hierarchy implementation:
+  1. JSON mode (highest priority)
+  2. TOOLS mode
+  3. STREAM mode (lowest priority)
+- Added JSON mode support to Anthropic provider
+- Updated test configurations to validate JSON mode and model support
+
+### Bug Fixes
+- No specific bug fixes in this release
+
+### Removals
+- No features or methods were removed
+
 ## Version 4.0.2
 
 ### New Features
