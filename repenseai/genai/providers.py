@@ -23,6 +23,10 @@ TEXT_MODELS = {
         "provider": "openai", 
         "cost": {"input": 2.50, "output": 10.0}
     },
+    "gpt-4.5-preview": {
+        "provider": "openai", 
+        "cost": {"input": 75.00, "output": 150.00}
+    },    
     "o1-preview": {
         "provider": "openai", 
         "cost": {"input": 15.00, "output": 60.0}

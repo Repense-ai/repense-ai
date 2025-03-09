@@ -30,6 +30,6 @@ def test_json_mode(model):
     try:
         formatted_response = Response(**response)
     except Exception as e:
-        pytest.fail(f"Failed to create Weather class from response: {e}")
+        pytest.fail(f"Failed to format the response: {e}")
 
     assert "4" in formatted_response.response

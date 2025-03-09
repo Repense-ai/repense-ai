@@ -22,7 +22,6 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
-        json_mode: bool = False,
         json_schema: BaseModel = None,
         tools: List[Callable] = None,
         **kwargs,
@@ -33,7 +32,6 @@ class ChatAPI:
         self.stream = stream
         self.max_tokens = max_tokens
 
-        self.json_mode = json_mode
         self.json_schema = json_schema
 
         self.response = None
@@ -113,25 +111,27 @@ class ChatAPI:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
-            if self.stream:
+            if self.stream and not self.json_schema:
                 json_data["stream_options"] = {"include_usage": True}
+                json_data.pop("tools")
 
             if "o1" or "o3" in self.model:
                 json_data.pop("temperature")
                 json_data.pop("max_tokens")
 
-            if self.json_mode:
+            if self.json_schema:
                 json_data["response_format"] = self.json_schema
+
                 json_data.pop("stream")
                 json_data.pop("tools")
 
+                self.stream = False
                 self.response = self.client.beta.chat.completions.parse(**json_data)
             else:
                 self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                    
                 return self.get_output()
 
             return self.response
@@ -151,7 +151,7 @@ class ChatAPI:
                 return dump["choices"][0]["message"]
             
             self.tool_flag = False
-            if self.json_mode:
+            if self.json_schema:
                 return dump["choices"][0]["message"].get("parsed")
             return dump["choices"][0]["message"].get("content")
         else:
@@ -332,13 +332,17 @@ class VisionAPI:
         model: str = "gpt-4o",
         temperature: float = 0.0,
         max_tokens: int = 3500,
+        json_schema: BaseModel = None,
         stream: bool = False,
+        **kwargs,
     ):
         self.client = OpenAI(api_key=api_key)
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.stream = stream
+
+        self.json_schema = json_schema
 
         self.response = None
         self.tokens = None
@@ -423,23 +427,43 @@ class VisionAPI:
         }
 
         try:
-            if self.stream:
+            if self.stream and not self.json_schema:
                 json_data["stream_options"] = {"include_usage": True}
 
-            self.response = self.client.chat.completions.create(**json_data)
+            if "o1" or "o3" in self.model:
+                json_data.pop("temperature")
+                json_data.pop("max_tokens")
+
+            if self.json_schema:
+                json_data["response_format"] = self.json_schema
+                json_data.pop("stream")
+
+                self.stream = False
+
+                self.response = self.client.beta.chat.completions.parse(**json_data)
+            else:
+                self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
                 self.tokens = self.get_tokens()
                 return self.get_output()
 
             return self.response
-
+        
         except Exception as e:
-            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
+            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")        
 
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.model_dump()["choices"][0]["message"]["content"]
+            dump = self.response.model_dump()
+
+            if dump["choices"][0]['finish_reason'] == "tool_calls":
+                self.tool_flag = True
+                return dump["choices"][0]["message"]
+            
+            if self.json_schema:
+                return dump["choices"][0]["message"].get("parsed")
+            return dump["choices"][0]["message"].get("content")
         else:
             return None
 

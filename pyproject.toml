@@ -1,25 +1,21 @@
 [tool.poetry]
 name = "repenseai"
-version = "4.0.2"
+version = "4.0.3"
 description = "Repense package to support solutions with agents"
 authors = ["Samuel Baptista <samuel.baptista@repense.ai>"]
 readme = "README.md"
 packages = [{ include = "repenseai" }]
 
-
 [tool.poetry.dependencies]
 python = "^3.12"
+google-genai = "^1.2.0"
 anthropic = "0.47.1"
-black = "^24.8.0"
 boto3 = "1.36.24"
 cohere = "^5.8.1"
-flake8 = "^7.1.1"
 groq = "0.18.0"
 mistralai = "^1.0.2"
 openai = "^1.42.0"
 pillow = "^10.4.0"
-pre-commit = "^3.8.0"
-pytest = "^8.3.2"
 python-dotenv = "^1.0.1"
 unidecode = "^1.3.8"
 setuptools = "^75.1.0"
@@ -30,8 +26,12 @@ rouge-score = "^0.1.2"
 nltk = "^3.9.1"
 matplotlib = "^3.10.0"
 jsonschema = "^4.23.0"
-google-genai = "^1.2.0"
 
+[tool.poetry.dev-dependencies]
+black = "^24.8.0"
+flake8 = "^7.1.1"
+pre-commit = "^3.8.0"
+pytest = "^8.3.2"
 
 [build-system]
 requires = ["poetry-core"]

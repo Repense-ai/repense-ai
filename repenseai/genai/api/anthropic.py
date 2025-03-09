@@ -9,9 +9,12 @@ from repenseai.genai.providers import VISION_MODELS
 from typing import Any, Dict, Union, List, Callable
 
 from anthropic import Anthropic
+from pydantic import BaseModel
 
 from PIL import Image
+
 from repenseai.utils.logs import logger
+from repenseai.utils.text import extract_json_text
 
 
 class ChatAPI:
@@ -24,6 +27,7 @@ class ChatAPI:
         stream: bool = False,
         thinking: bool = False,
         tools: List[Callable] = None,
+        json_schema: BaseModel = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -36,6 +40,8 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
+        self.json_schema = json_schema
+
         self.tools = None
         self.json_tools = None
 
@@ -47,6 +53,19 @@ class ChatAPI:
 
         self.client = Anthropic(api_key=self.api_key)
 
+
+    def __schema_to_string(self) -> str:
+        schema = {
+            k: v['type'] for k,v 
+            in self.json_schema.model_json_schema()['properties'].items()
+        }
+
+        string = ''
+
+        for k, v in schema.items():
+            string += f'"{k}": "{v}",\n'
+
+        return string
 
     def __function_to_json(self, func: callable) -> dict:
         
@@ -154,11 +173,20 @@ class ChatAPI:
 
                 json_data['temperature'] = 1.0
 
-            if self.stream:
+            if self.stream and not self.tools and not self.json_schema:
                 return self._stream_api_call(json_data)
             
-            if self.tools:
+            if self.tools and not self.json_schema:
                 json_data["tools"] = self.json_tools
+
+            if self.json_schema:
+                json_string = self.__schema_to_string()
+                output_prompt = (
+                    "\n\nPlease provide the output information in a valid JSON format:\n\n"
+                    f"{json_string}"
+                )
+
+                json_data['messages'].append({"role": "user", "content": output_prompt})
 
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
@@ -179,13 +207,18 @@ class ChatAPI:
                 return {"role": "assistant", "content": dump['content']}
             self.tool_flag = False
             if self.thinking:
+                text = self.response.content[-1].text
+                if self.json_schema:
+                    text = json.loads(extract_json_text(text))
                 try:
                     return {
                         "thinking": self.response.content[-2].thinking,
-                        "output": self.response.content[-1].text
+                        "output": text
                     }
                 except IndexError:
-                    return self.response.content[-1].text
+                    return text
+            if self.json_schema:
+                return json.loads(extract_json_text(self.response.content[0].text))
             return self.response.content[0].text
         else:
             return None

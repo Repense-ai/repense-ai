@@ -1,8 +1,8 @@
 TEXT = [
+    "gemini-2.0-flash",
     "sabiazinho-3",
     "gpt-4o-mini",
     "claude-3-5-haiku-20241022",
-    "gemini-2.0-flash",
     "mistral-small-latest",
     "command-r-08-2024",
     "llama-3.3-70b-versatile",
@@ -15,9 +15,9 @@ TEXT = [
 
 
 VISION = [
+    "gemini-2.0-flash",
     "gpt-4o",
     "claude-3-5-sonnet-20241022",
-    "gemini-2.0-flash",
     "pixtral-12b-2409",
     "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
     "amazon.nova-lite-v1:0",
@@ -39,6 +39,7 @@ TOOL = [
 
 JSON = [
     "gpt-4o",
+    "claude-3-5-sonnet-20241022",
 ]
 
 IMAGE = [
