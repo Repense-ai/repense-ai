@@ -39,7 +39,7 @@ class Server:
         response = await self.session.list_tools()
         
         self.tools = response.tools
-        self.tools_list = [tool["name"] for tool in self.tools]
+        self.tools_list = [tool.name for tool in self.tools]
 
         return self.tools
 

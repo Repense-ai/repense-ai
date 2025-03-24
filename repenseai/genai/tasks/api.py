@@ -181,4 +181,90 @@ class Task(BaseTask):
         )
 
         
-    
+class AsyncTask(BaseTask):
+    def __init__(
+        self,
+        agent: Any,
+        user: str = "",
+        simple_response: bool = False,
+        history: list | None = None,
+    ) -> None:
+        
+        self.user = user
+        self.history = history
+        self.agent = agent
+        self.simple_response = simple_response
+
+        self.prompt = None
+        self.api = None
+
+    def __replace_tokens(self, text: str, tokens: dict) -> str:
+        for key, value in tokens.items():
+            text = text.replace("{" + key + "}", str(value))
+        return text
+
+    def __build_prompt(self, **kwargs):
+        content = self.__replace_tokens(self.user, kwargs)
+        self.prompt = [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": content}]
+            }
+        ]
+        if self.history:
+            self.prompt = self.history + self.prompt
+        return self.prompt
+
+    async def __process_chat(self) -> dict:
+        prompt = deepcopy(self.prompt)
+
+        self.api = await self.agent.get_api()
+        response = await self.api.call_api(prompt)
+        
+        final_response = {
+            "response": response,
+            "tokens": self.api.tokens,
+            "cost": self.agent.calculate_cost(self.api.tokens),
+        }
+
+        return final_response
+
+    async def _process_api_call(self, context: dict) -> dict:
+        match self.agent.model_type:
+            case "chat":
+                return await self.__process_chat()
+            case _:
+                raise NotImplementedError(f"Model type {self.agent.model_type} not implemented for async")
+
+    async def run(self, context: dict | None = None) -> str:
+        if not context:
+            context = {}
+
+        try:
+            if not self.prompt:
+                self.__build_prompt(**context)
+
+            response = await self._process_api_call(context)
+
+            while self.api.tool_flag:
+                tools_response = await self.api.process_tool_calls(response["response"])
+
+                self.prompt.append(response["response"])   
+                self.prompt += tools_response
+                
+                response = await self._process_api_call(context)
+
+            self.prompt.append(
+                {
+                    "role": "assistant",
+                    "content": response["response"]
+                }
+            )   
+
+            if self.simple_response:
+                return response["response"]
+            
+            return response
+
+        except Exception as e:
+            raise e    
