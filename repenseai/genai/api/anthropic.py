@@ -5,6 +5,9 @@ import inspect
 import json
 
 from repenseai.genai.providers import VISION_MODELS
+from repenseai.genai.mcp.server import Server
+
+from mcp.types import Tool
 
 from typing import Any, Dict, Union, List, Callable
 
@@ -28,6 +31,7 @@ class ChatAPI:
         thinking: bool = False,
         tools: List[Callable] = None,
         json_schema: BaseModel = None,
+        server: Server = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -37,35 +41,45 @@ class ChatAPI:
         self.stream = stream
         self.thinking = thinking
 
+        self.json_schema = json_schema
+        self.server = server
+
         self.response = None
         self.tokens = None
 
-        self.json_schema = json_schema
-
         self.tools = None
-        self.json_tools = None
+        self.server_tools = None
 
+        self.json_tools = []
         self.tool_flag = False
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
-            self.json_tools = [self.__function_to_json(tool) for tool in tools]
+            self.json_tools += self.__process_tools(tools)
+
+        if self.server is not None:
+            self.server_tools = self.server.connect() 
+            self.json_tools += self.__process_tools(self.server_tools)
 
         self.client = Anthropic(api_key=self.api_key)
 
+    def __process_tools(self, tools: List[Callable | Tool]) -> list:
+        tool_list = []
 
-    def __schema_to_string(self) -> str:
-        schema = {
-            k: v['type'] for k,v 
-            in self.json_schema.model_json_schema()['properties'].items()
+        for tool in tools:
+            if isinstance(tool, Tool):
+                tool_list.append(self.__mcp_tool_to_json(tool))
+            else:
+                tool_list.append(self.__function_to_json(tool))
+
+        return tool_list
+    
+    def __mcp_tool_to_json(self, tool: Tool) -> dict:
+        return {
+            "name": tool.name,
+            "description": tool.description,
+            "input_schema": tool.inputSchema,
         }
-
-        string = ''
-
-        for k, v in schema.items():
-            string += f'"{k}": "{v}",\n'
-
-        return string
 
     def __function_to_json(self, func: callable) -> dict:
         
@@ -110,12 +124,20 @@ class ChatAPI:
                 "properties": parameters,
                 "required": required,
             },
-        }         
+        }
 
-    def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
-        with self.client.messages.stream(**json_data) as stream:
-            for message in stream:
-                yield message
+    def __schema_to_string(self) -> str:
+        schema = {
+            k: v['type'] for k,v 
+            in self.json_schema.model_json_schema()['properties'].items()
+        }
+
+        string = ''
+
+        for k, v in schema.items():
+            string += f'"{k}": "{v}",\n'
+
+        return string           
 
     def __process_content_image(self, image_url: dict) -> dict:
         url = image_url.get('url')
@@ -151,6 +173,11 @@ class ChatAPI:
                 content[0] = img_dict                
 
         return prompt
+    
+    def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
+        with self.client.messages.stream(**json_data) as stream:
+            for message in stream:
+                yield message    
 
     def call_api(self, prompt: list | str) -> Any:
         json_data = {
@@ -259,7 +286,17 @@ class ChatAPI:
         for tool in tools:
             if tool['type'] == "tool_use":
                 args = tool.get('input')
-                output = self.tools[tool.get('name')](**args)
+                tool_name = tool.get('name')
+
+                output = None
+
+                if self.server_tools:
+                    if tool_name in self.server.tools_list:
+                        tool_output = self.server.call_tool(tool_name, args)
+                        output = tool_output.content
+
+                if not output:
+                    output = self.tools[tool_name](**args)
 
                 tool_messages.append(
                     {

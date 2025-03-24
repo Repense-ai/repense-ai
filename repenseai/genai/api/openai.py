@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from typing import Any, Dict, List, Union, Callable
 from openai import OpenAI
 
+from mcp.types import Tool
+
 from PIL import Image
 
 from repenseai.utils.audio import get_memory_buffer
@@ -44,9 +46,31 @@ class ChatAPI:
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
-            self.json_tools = [self.__function_to_json(tool) for tool in tools]
+            self.json_tools = self.__process_tools(tools)
 
         self.client = OpenAI(api_key=self.api_key)
+
+    def __process_tools(self, tools: List[Callable | Tool]) -> list:
+        tool_list = []
+
+        for tool in tools:
+            if isinstance(tool, Tool):
+                tool_list.append(self.__mcp_tool_to_json(tool))
+            else:
+                tool_list.append(self.__function_to_json(tool))
+
+        return tool_list
+
+    def __mcp_tool_to_json(self, tool: Tool) -> dict:
+                
+        return {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.inputSchema
+            },
+        }  
 
     def __function_to_json(self, func: callable) -> dict:
         

@@ -3,6 +3,7 @@ import importlib
 import typing as tp
 
 from repenseai.secrets.base import BaseSecrets
+from repenseai.genai.mcp.server import Server
 
 from repenseai.genai.providers import (
     TEXT_MODELS,
@@ -47,6 +48,7 @@ class Agent:
             model_type: str,
             api_key: str = None,
             secrets_manager: BaseSecrets = None,
+            server: Server = None,
             **kwargs
         ) -> None:
 
@@ -54,6 +56,7 @@ class Agent:
         self.model_type = model_type
         self.api_key = api_key
         self.secrets_manager = secrets_manager
+        self.server = server
 
         self.tokens = None
         self.api = None
@@ -78,13 +81,17 @@ class Agent:
         self.__get_provider()
         self.__get_prices()
         self.__get_module()
+        self.__check_server()
 
         if self.api_key is None:
             self.api_key = self.__get_api_key()
 
             if self.api_key is None and self.provider != "aws":
                 raise Exception(f"API_KEY not found for provider {self.provider}.")
-
+            
+    def __check_server(self) -> None:
+        if self.server is not None and self.model_type != "chat":
+            raise Exception("MCP servers only works with chat models")
 
     def __gather_models(self) -> None:
         for models in self.models.values():
@@ -130,7 +137,7 @@ class Agent:
         match self.model_type:
             case "chat" | "search":
                 self.api = self.module_api.ChatAPI(
-                    api_key=self.api_key, model=self.model, **self.kwargs
+                    api_key=self.api_key, model=self.model, server=self.server, **self.kwargs
                 )
             case "vision":
                 self.api = self.module_api.VisionAPI(
