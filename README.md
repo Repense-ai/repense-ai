@@ -1,5 +1,8 @@
 # RepenseAI
 
+[![PyPI](https://img.shields.io/pypi/v/repenseai)](https://pypi.org/project/repenseai/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A Python-based artificial intelligence and machine learning toolkit for various AI tasks including audio processing, image generation, and language models.
 
 ## Features
@@ -10,6 +13,25 @@ A Python-based artificial intelligence and machine learning toolkit for various 
 - 🔍 Search functionality
 - 📊 Benchmarking tools
 - ⚡ Streaming support
+
+## Providers
+
+Currently supported providers are:
+- Anthropic
+- AWS
+- Google
+- Groq
+- Mistral
+- OpenAI
+- Sambanova
+- Maritaca
+- Perplexity
+- Together
+- X
+- Nvidia
+- Deepseek
+- Stability
+- Cohere
 
 ## Project Structure
 
@@ -105,10 +127,10 @@ print(list_models())
 
 ### Using models that are not listed
 
-If you encounter a KeyError like this `KeyError: claude-3-7-sonnet-20250219'`, it is because our list of models is not updated.
+If you encounter a KeyError like this `KeyError: claude-3-7-sonnet-20250219'`, it is because our list of models is not updated.  
 You can solve this issue by adding the `provider` and the `price` as arguments.
 
-Currently, we are only considering `input` and `output` tokens to calculate the cost.
+Currently, we are only considering `input` and `output` tokens to calculate the cost.  
 Keep in mind that this is only an approximation. Cached tokens or thinking tokens are still not considered.
 
 ```python
@@ -292,7 +314,7 @@ print(response['response'])
 
 ### MCP Servers
 
-RepenseAI supports MCP (Model Control Protocol) servers for enhanced tool integration.
+RepenseAI supports MCP (Model Control Protocol) servers for enhanced tool integration.  
 You can use MCP servers either through Docker or by installing them directly with pip.
 
 
@@ -480,7 +502,7 @@ with open("audios/output_speech.mp3", "wb") as f:
 
 ## Workflows
 
-All tasks can be bind togheter in workflows.
+All tasks can be bind togheter in workflows.  
 We can mix tasks types and function to create the perfect solution.
 
 ```python
@@ -683,6 +705,7 @@ This project uses several development tools:
 - pre-commit hooks for code quality
 - pytest for testing
 - flake8 for code linting
+- black for formatting
 
 ### Setup Development Environment
 
@@ -718,4 +741,4 @@ Configure your environment by creating a `.env` file based on the provided templ
 2. MultiAgent Setup
 3. Reasoning Task (Agent can go back and fourth with the task)
 4. Other models types (Embeddings, Rerank, Moderation)
-5. Latest updates (OpenAI audio prompts, Grok image generation)
+5. Latest updates (OpenAI audio prompts, etc)
