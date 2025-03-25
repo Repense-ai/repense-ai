@@ -127,7 +127,7 @@ print(list_models())
 
 ### Using models that are not listed
 
-If you encounter a KeyError like this `KeyError: claude-3-7-sonnet-20250219'`, it is because our list of models is not updated.  
+If you encounter a KeyError like this `KeyError: claude-3-7-sonnet-20250219'`, it is because our list of models is not updated.
 You can solve this issue by adding the `provider` and the `price` as arguments.
 
 Currently, we are only considering `input` and `output` tokens to calculate the cost.  
