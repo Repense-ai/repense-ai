@@ -363,7 +363,7 @@ async def main():
     )
 
     task = AsyncTask(
-        user="qual foi a última mensagem do canal SLACK_CHANNEL_ID={slack_id}",
+        user="What was the last message sent in the channel {slack_id}?",
         agent=agent
     )
     
