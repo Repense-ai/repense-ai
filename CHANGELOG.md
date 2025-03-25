@@ -1,5 +1,35 @@
 # Changelog
 
+## Version 4.0.4
+
+### New Features
+
+#### MCP Integration
+- Added Server class for MCP integration
+- Implemented async support for MCP tools
+- Added tests for MCP server functionality
+
+#### Model Updates
+- Added grok-2-image model to supported models list
+
+#### API Enhancements
+- Added async classes for improved performance
+- Enhanced server connection handling in AsyncChatAPI
+- Added MCP tool support in chat APIs
+
+### Changes
+
+#### Architecture
+- Refactored API classes to support async operations
+- Updated server integration patterns
+- Enhanced test coverage for async functionality
+
+### Bug Fixes
+- No specific bug fixes in this release
+
+### Removals
+- No features or methods were removed
+
 ## Version 4.0.3
 
 ### New Features
