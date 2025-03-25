@@ -7,6 +7,7 @@ A Python-based artificial intelligence and machine learning toolkit for various 
 
 ## Features
 
+- 🔌 MCP servers integration for enhanced tool capabilities
 - 🎵 Audio processing capabilities
 - 🖼️ Image generation and manipulation
 - 🤖 Integration with various AI models
@@ -317,7 +318,6 @@ print(response['response'])
 RepenseAI supports MCP (Model Control Protocol) servers for enhanced tool integration.  
 You can use MCP servers either through Docker or by installing them directly with pip.
 
-
 #### Using MCP in Jupyter Notebooks
 
 When working with MCP servers in Jupyter notebooks, you'll need to apply `nest_asyncio` to enable asynchronous operations within the notebook environment:
@@ -329,7 +329,9 @@ nest_asyncio.apply()
 
 #### Using Docker for MCP Servers
 
-To use MCP servers with RepenseAI, you'll need to use the asynchronous classes (`AsyncAgent` and `AsyncTask`) since MCP server operations are inherently asynchronous. This ensures proper handling of concurrent operations and prevents blocking behavior.
+To use MCP servers with RepenseAI, you'll need to use the asynchronous classes (`AsyncAgent` and `AsyncTask`) since MCP server operations are inherently asynchronous.  
+
+This ensures proper handling of concurrent operations and prevents blocking behavior.
 
 Here's how to set up a Docker-based MCP server:
 
