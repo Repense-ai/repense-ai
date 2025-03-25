@@ -3,7 +3,6 @@ import httpx
 import io
 import inspect
 import json
-import asyncio
 
 from repenseai.genai.providers import VISION_MODELS
 from repenseai.genai.mcp.server import Server
@@ -43,22 +42,20 @@ class AsyncChatAPI:
         self.thinking = thinking
         self.json_schema = json_schema
         self.server = server
+
         self.response = None
         self.tokens = None
         self.tools = None
         self.server_tools = None
+
         self.json_tools = []
         self.tool_flag = False
+        
         self.client = Anthropic(api_key=api_key)
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
             self.json_tools = [self.__function_to_json(tool) for tool in tools]
-
-        if self.server is not None:
-            self.server_tools = asyncio.run(self.server.connect())
-            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]
-
 
     def __mcp_tool_to_json(self, tool: Tool) -> dict:
         return {
@@ -153,6 +150,11 @@ class AsyncChatAPI:
                 yield message
 
     async def call_api(self, prompt: list | str) -> Any:
+
+        if self.server is not None:
+            self.server_tools = await self.server.connect()
+            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]    
+                
         json_data = {
             "model": self.model,
             "temperature": self.temperature,

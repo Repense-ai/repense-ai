@@ -9,12 +9,223 @@ from typing import Any, Dict, List, Union, Callable
 from openai import OpenAI
 
 from mcp.types import Tool
+from repenseai.genai.mcp.server import Server
 
 from PIL import Image
 
 from repenseai.utils.audio import get_memory_buffer
 from repenseai.utils.logs import logger
 
+
+class AsyncChatAPI:
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-4o",
+        temperature: float = 0.0,
+        max_tokens: int = 3500,
+        stream: bool = False,
+        json_schema: BaseModel = None,
+        tools: List[Callable] = None,
+        server: Server = None,
+        **kwargs,
+    ):
+        self.api_key = api_key
+        self.model = model
+        self.temperature = temperature
+        self.stream = stream
+        self.max_tokens = max_tokens
+
+        self.json_schema = json_schema
+        self.server = server
+
+        self.response = None
+        self.tokens = None
+
+        self.tools = None
+        self.json_tools = []
+
+        self.tool_flag = False
+        self.server_tools = None        
+
+        if tools:
+            self.tools = {tool.__name__: tool for tool in tools}
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
+
+        self.client = OpenAI(api_key=self.api_key)
+
+    def __mcp_tool_to_json(self, tool: Tool) -> dict:
+                
+        return {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.inputSchema
+            },
+        }  
+
+    def __function_to_json(self, func: callable) -> dict:
+        
+        type_map = {
+            str: "string",
+            int: "integer",
+            float: "number",
+            bool: "boolean",
+            list: "array",
+            dict: "object",
+            type(None): "null",
+        }
+
+        try:
+            signature = inspect.signature(func)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to get signature for function {func.__name__}: {str(e)}"
+            )
+
+        parameters = {}
+        for param in signature.parameters.values():
+            try:
+                param_type = type_map.get(param.annotation, "string")
+            except KeyError as e:
+                raise KeyError(
+                    f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}"
+                )
+            parameters[param.name] = {"type": param_type}
+
+        required = [
+            param.name
+            for param in signature.parameters.values()
+            if param.default == inspect._empty
+        ]
+
+        return {
+            "type": "function",
+            "function": {
+                "name": func.__name__,
+                "description": func.__doc__ or "",
+                "parameters": {
+                    "type": "object",
+                    "properties": parameters,
+                    "required": required,
+                },
+            },
+        }        
+
+    async def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
+
+        if self.server is not None:
+            self.server_tools = await self.server.connect()
+            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]  
+                    
+        json_data = {
+            "model": self.model,
+            "temperature": self.temperature,
+            "max_tokens": self.tokens,
+            "stream": self.stream,
+            "tools": self.json_tools,
+        }
+
+        if isinstance(prompt, list):
+            json_data["messages"] = prompt
+        else:
+            json_data["messages"] = [{"role": "user", "content": prompt}]
+
+        try:
+            if self.stream and not self.json_schema:
+                json_data["stream_options"] = {"include_usage": True}
+                json_data.pop("tools")
+
+            if "o1" or "o3" in self.model:
+                json_data.pop("temperature")
+                json_data.pop("max_tokens")
+
+            if self.json_schema:
+                json_data["response_format"] = self.json_schema
+
+                json_data.pop("stream")
+                json_data.pop("tools")
+
+                self.stream = False
+                self.response = self.client.beta.chat.completions.parse(**json_data)
+            else:
+                self.response = self.client.chat.completions.create(**json_data)
+
+            if not self.stream:
+                self.tokens = self.get_tokens()
+                return self.get_output()
+
+            return self.response
+
+        except Exception as e:
+            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
+
+    def get_response(self) -> Any:
+        return self.response
+
+    def get_output(self) -> Union[None, str]:
+        if self.response is not None:
+            dump = self.response.model_dump()
+
+            if dump["choices"][0]['finish_reason'] == "tool_calls":
+                self.tool_flag = True
+                return dump["choices"][0]["message"]
+            
+            self.tool_flag = False
+            if self.json_schema:
+                return dump["choices"][0]["message"].get("parsed")
+            return dump["choices"][0]["message"].get("content")
+        else:
+            return None
+
+    def get_tokens(self) -> Union[None, str]:
+        if self.response is not None:
+            return self.response.model_dump()["usage"]
+        else:
+            return None
+
+    def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
+        if chunk.choices:
+            content = chunk.choices[0].delta.content
+            if content:
+                return content
+            else:
+                self.tokens = chunk.model_dump()["usage"]
+        else:
+            if chunk.model_dump()["usage"]:
+                self.tokens = chunk.model_dump()["usage"]
+
+    async def process_tool_calls(self, message: dict) -> list:
+        tools = message.get("tool_calls")
+        tool_messages = []
+
+        for tool in tools:
+
+            config = tool.get('function')
+
+            args = json.loads(config.get('arguments'))
+            tool_name = config.get('name')
+
+            output = None
+
+            if self.server_tools:
+                if tool_name in self.server.tools_list:
+                    tool_output = await self.server.call_tool(tool_name, args)
+                    output = tool_output.content
+
+            if not output:
+                output = await self.tools[tool_name](**args)            
+
+            tool_messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool.get('id'),
+                    "content": str(output)
+                }
+            ) 
+
+        return tool_messages
 
 class ChatAPI:
     def __init__(
@@ -264,6 +475,7 @@ class AudioAPI:
             return duration
         else:
             return None
+
 
 class SpeechAPI:
     def __init__(

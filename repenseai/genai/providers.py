@@ -244,6 +244,10 @@ MODERATION_MODELS = {}
 
 
 IMAGE_MODELS = {
+    "grok-2-image": {
+        "provider": "x",
+        "cost": 0.07,
+    },
     "black-forest-labs/FLUX.1.1-pro": {
         "provider": "together", 
         "cost": {'input': 0.04, 'output': 0.04}
@@ -311,5 +315,17 @@ TOOL_USAGE_MODELS = {
     "gpt-4o": {
         "provider": "openai", 
         "cost": {"input": 2.50, "output": 10.0}
+    },
+}
+
+
+MCP_SERVER_MODELS = {
+    "claude-3-5-sonnet-20241022": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
+    },
+    "claude-3-7-sonnet-20250219": {
+        "provider": "anthropic",
+        "cost": {"input": 3.0, "output": 15.0},
     },
 }

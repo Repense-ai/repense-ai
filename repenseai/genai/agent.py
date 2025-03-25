@@ -216,7 +216,6 @@ class Agent:
         self.__get_provider()
         self.__get_prices()
         self.__get_module()
-        self.__check_server()
 
         if self.api_key is None:
             self.api_key = self.__get_api_key()
@@ -224,10 +223,6 @@ class Agent:
             if self.api_key is None and self.provider != "aws":
                 raise Exception(f"API_KEY not found for provider {self.provider}.")
             
-    def __check_server(self) -> None:
-        if self.server is not None and self.model_type != "chat":
-            raise Exception("MCP servers only works with chat models")
-
     def __gather_models(self) -> None:
         for models in self.models.values():
             self.all_models.update(models)

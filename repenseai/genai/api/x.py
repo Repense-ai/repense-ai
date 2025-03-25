@@ -239,21 +239,37 @@ class VisionAPI:
 
 
 class ImageAPI:
-    def __init__(self, api_key: str, model: str = "", **kwargs):
+    def __init__(self, api_key: str, model: str = "grok-2-image", **kwargs):
         self.api_key = api_key
         self.model = model
 
+        self.response = None
+        self.tokens = None
+
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url="https://api.x.ai/v1",
+        )
+
     def call_api(self, prompt: Any, image: Any):
         _ = image
-        _ = prompt
 
+        json_data = {
+            "model": self.model,
+            "prompt": prompt,
+            "response_format": 'b64_json',
+        }
+
+        self.response = self.client.images.generate(**json_data)
+        self.tokens = self.get_tokens()
+        
         return self.get_output()
     
     def get_output(self):
-        return "Not Implemented"  
+        return self.response.data[0].b64_json
 
     def get_tokens(self):
-        return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
+        return 1
     
 
 class AudioAPI:
