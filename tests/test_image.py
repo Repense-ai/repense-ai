@@ -7,7 +7,7 @@ from repenseai.genai.tasks.api import Task
 
 
 @pytest.mark.parametrize("model", IMAGE)
-def test_audio_task(model):
+def test_image_task(model):
 
     agent = Agent(
         model=model, 

@@ -53,7 +53,6 @@ X_API_KEY=
 STABILITY_API_KEY=
 DEEPSEEK_API_KEY=
 PERPLEXITY_API_KEY=
-GOOGLE_CLOUD_API_KEY=
 NVIDIA_API_KEY=
 AWS_KEY=
 AWS_SECRET=
@@ -291,6 +290,51 @@ response = task.run()
 print(response['response'])
 ```
 
+### MCP Servers
+
+```python
+import os
+import asyncio
+
+from repenseai.genai.mcp.server import Server
+from repenseai.genai.agent import AsyncAgent
+from repenseai.genai.tasks.api import AsyncTask
+
+# If you are testing in a jupyter notebook, you need to run the following command
+import nest_asyncio
+nest_asyncio.apply()
+
+args = [
+    "run",
+    "-i",
+    "--rm",
+    "-e",
+    "SLACK_BOT_TOKEN=" + os.getenv("SLACK_BOT_TOKEN"),
+    "-e",
+    "SLACK_TEAM_ID=" + os.getenv("SLACK_TEAM_ID"),
+    "mcp/slack"
+]
+
+server = Server(name="slack", command='docker', args=args)
+
+async def main():
+    agent = AsyncAgent(
+        model="claude-3-5-sonnet-20241022",
+        model_type="chat",
+        server=server
+    )
+
+    task = AsyncTask(
+        user="qual foi a ultima mensagem do canal SLACK_CHANNEL_ID={slack_id}",
+        agent=agent
+    )
+    
+    response = await task.run({"slack_id": os.getenv("SLACK_CHANNEL_ID")})
+    print(response['response'])
+
+asyncio.run(main())
+```
+
 ### Streaming Responses
 
 ```python
@@ -445,6 +489,7 @@ def format_analysis(context):
         'summary': chat_result,
         'timestamp': datetime.now().isoformat()
     }
+
     return formatted
 
 # Initialize vision agent
@@ -502,7 +547,6 @@ import json
 from repenseai.genai.agent import Agent
 from repenseai.genai.tasks.api import Task
 from repenseai.genai.tasks.workflow import Workflow
-from repenseai.genai.tasks.function import FunctionTask
 
 from repenseai.genai.tasks.conditional import (
     BooleanConditionalTask, 
@@ -595,16 +639,13 @@ text_analysis_task = BooleanConditionalTask(
     false_task=DummyTask()
 )
 
-# Create function tasks
-format_task = FunctionTask(format_final_output)
-
 # Create workflow
 workflow = Workflow([
     [vision_task, "vision_analysis"],
     [check_content_type, "content_type"],
     [content_type_task, "detailed_analysis"],
     [text_analysis_task, "text_content"],
-    [format_task, "final_output"]
+    [format_final_output, "final_output"]
 ])
 
 # Run workflow
@@ -657,6 +698,8 @@ Configure your environment by creating a `.env` file based on the provided templ
 
 ## TODO
 
-1. Parallel Execution
+1. Benchmark Class
 2. MultiAgent Setup
 3. Reasoning Task (Agent can go back and fourth with the task)
+4. Other models types (Embeddings, Rerank, Moderation)
+5. Latest updates (OpenAI audio prompts, Grok image generation)

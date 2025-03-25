@@ -26,12 +26,20 @@ rouge-score = "^0.1.2"
 nltk = "^3.9.1"
 matplotlib = "^3.10.0"
 jsonschema = "^4.23.0"
+mcp = "^1.5.0"
 
 [tool.poetry.dev-dependencies]
 black = "^24.8.0"
 flake8 = "^7.1.1"
 pre-commit = "^3.8.0"
 pytest = "^8.3.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest-asyncio = "^0.26.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
 requires = ["poetry-core"]
