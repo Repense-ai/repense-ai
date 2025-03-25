@@ -292,6 +292,25 @@ print(response['response'])
 
 ### MCP Servers
 
+RepenseAI supports MCP (Model Control Protocol) servers for enhanced tool integration.
+You can use MCP servers either through Docker or by installing them directly with pip.
+
+
+#### Using MCP in Jupyter Notebooks
+
+When working with MCP servers in Jupyter notebooks, you'll need to apply `nest_asyncio` to enable asynchronous operations within the notebook environment:
+
+```python
+import nest_asyncio
+nest_asyncio.apply()
+```
+
+#### Using Docker for MCP Servers
+
+To use MCP servers with RepenseAI, you'll need to use the asynchronous classes (`AsyncAgent` and `AsyncTask`) since MCP server operations are inherently asynchronous. This ensures proper handling of concurrent operations and prevents blocking behavior.
+
+Here's how to set up a Docker-based MCP server:
+
 ```python
 import os
 import asyncio
@@ -300,9 +319,6 @@ from repenseai.genai.mcp.server import Server
 from repenseai.genai.agent import AsyncAgent
 from repenseai.genai.tasks.api import AsyncTask
 
-# If you are testing in a jupyter notebook, you need to run the following command
-import nest_asyncio
-nest_asyncio.apply()
 
 args = [
     "run",
@@ -325,7 +341,7 @@ async def main():
     )
 
     task = AsyncTask(
-        user="qual foi a ultima mensagem do canal SLACK_CHANNEL_ID={slack_id}",
+        user="qual foi a última mensagem do canal SLACK_CHANNEL_ID={slack_id}",
         agent=agent
     )
     
