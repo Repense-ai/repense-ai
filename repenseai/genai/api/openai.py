@@ -116,8 +116,9 @@ class AsyncChatAPI:
     async def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
 
         if self.server is not None:
-            self.server_tools = await self.server.connect()
-            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]  
+            if self.server_tools is None:
+                self.server_tools = await self.server.list_tools()
+                self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]  
                     
         json_data = {
             "model": self.model,

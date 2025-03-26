@@ -217,8 +217,10 @@ class AsyncTask(BaseTask):
 
     async def __process_chat(self) -> dict:
         prompt = deepcopy(self.prompt)
+        
+        if not self.api:
+            self.api = await self.agent.get_api()
 
-        self.api = await self.agent.get_api()
         response = await self.api.call_api(prompt)
         
         final_response = {
@@ -259,7 +261,10 @@ class AsyncTask(BaseTask):
                     "role": "assistant",
                     "content": response["response"]
                 }
-            )   
+            )
+            
+            if self.agent.server:
+                await self.agent.server.cleanup()  
 
             if self.simple_response:
                 return response["response"]
