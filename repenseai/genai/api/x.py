@@ -38,15 +38,15 @@ class ChatAPI:
         )
 
     def __process_prompt_list(self, prompt: list) -> list:
-        
+
         if self.model not in VISION_MODELS:
             for history in prompt:
-                content = history.get('content', [])
+                content = history.get("content", [])
 
-                if content[0].get('type') == 'image_url':
+                if content[0].get("type") == "image_url":
                     prompt.remove(history)
 
-        return prompt  
+        return prompt
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
         json_data = {
@@ -137,7 +137,7 @@ class VisionAPI:
             return f"data:image/png;base64,{image_string}"
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
-        
+
     def __create_content_image(self, image: Any) -> Dict[str, Any]:
         img = self.__process_image(image)
 
@@ -150,7 +150,7 @@ class VisionAPI:
         }
 
         return img_dict
-        
+
     def __process_prompt_content(self, prompt: str | list) -> list:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
@@ -172,7 +172,7 @@ class VisionAPI:
         else:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
-            )                
+            )
 
         return content
 
@@ -190,7 +190,7 @@ class VisionAPI:
         content = self.__process_content_image(content, image)
 
         prompt = self.__process_prompt(prompt, content)
-           
+
         json_data = {
             "model": self.model,
             "messages": prompt,
@@ -257,20 +257,20 @@ class ImageAPI:
         json_data = {
             "model": self.model,
             "prompt": prompt,
-            "response_format": 'b64_json',
+            "response_format": "b64_json",
         }
 
         self.response = self.client.images.generate(**json_data)
         self.tokens = self.get_tokens()
-        
+
         return self.get_output()
-    
+
     def get_output(self):
         return self.response.data[0].b64_json
 
     def get_tokens(self):
         return 1
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -281,9 +281,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -298,9 +298,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0

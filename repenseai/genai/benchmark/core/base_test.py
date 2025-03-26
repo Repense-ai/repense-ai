@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 
 from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 
+
 class BaseTest(ABC):
     def __init__(self, name: str, description: Optional[str] = None):
         self.name = name

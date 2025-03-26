@@ -34,53 +34,51 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
-        self.client = boto3.client(
-            "bedrock-runtime", 
-            region_name="us-east-1"
-        )
+        self.client = boto3.client("bedrock-runtime", region_name="us-east-1")
 
     def __process_content_image(self, image_url: dict) -> dict:
-        url = image_url.get('url')
+        url = image_url.get("url")
         image_content = httpx.get(url).content
 
         return image_content
 
     def __get_media_type(self, image_url: dict) -> str:
-        return "png" if "png" in image_url.get('url') else "jpeg"
+        return "png" if "png" in image_url.get("url") else "jpeg"
 
     def __process_prompt_list(self, prompt: list) -> list:
 
         # Remove type if exists
         for message in prompt:
-            for i, content in enumerate(message.get('content', [])):                
+            for i, content in enumerate(message.get("content", [])):
                 if content:
-                    if content.get('type'):
-                        del message['content'][i]['type']
-                    if image_url := content.get('image_url'):
-                        message['content'][i] = {
+                    if content.get("type"):
+                        del message["content"][i]["type"]
+                    if image_url := content.get("image_url"):
+                        message["content"][i] = {
                             "image": {
-                                "format": self.__get_media_type(image_url), 
-                                'source': {
+                                "format": self.__get_media_type(image_url),
+                                "source": {
                                     "bytes": self.__process_content_image(image_url),
-                                }
+                                },
                             }
                         }
-                        
+
         if self.model not in VISION_MODELS:
             for message in prompt:
-                if "image" in message.get('content', [{"": ""}])[0]:
+                if "image" in message.get("content", [{"": ""}])[0]:
                     prompt.remove(message)
 
         # Merge consecutive user messages
         i = 0
         while i < len(prompt) - 1:
-            if prompt[i]['role'] == 'user' and prompt[i + 1]['role'] == 'user':
-                if isinstance(prompt[i]['content'], list):
-                    prompt[i]['content'].extend(prompt[i + 1]['content'])
+            if prompt[i]["role"] == "user" and prompt[i + 1]["role"] == "user":
+                if isinstance(prompt[i]["content"], list):
+                    prompt[i]["content"].extend(prompt[i + 1]["content"])
                 else:
-                    prompt[i]['content'] = [prompt[i]['content']] + (
-                        prompt[i + 1]['content'] if isinstance(prompt[i + 1]['content'], list) 
-                        else [prompt[i + 1]['content']]
+                    prompt[i]["content"] = [prompt[i]["content"]] + (
+                        prompt[i + 1]["content"]
+                        if isinstance(prompt[i + 1]["content"], list)
+                        else [prompt[i + 1]["content"]]
                     )
                 prompt.pop(i + 1)
             else:
@@ -90,7 +88,7 @@ class ChatAPI:
 
     def call_api(self, prompt: list | str) -> None:
 
-        inference_config =  {
+        inference_config = {
             "temperature": self.temperature,
             "maxTokens": self.max_tokens,
         }
@@ -108,7 +106,7 @@ class ChatAPI:
         try:
             if self.stream:
                 self.response = self.client.converse_stream(**json_data)
-                return self.response['stream']
+                return self.response["stream"]
 
             self.response = self.client.converse(**json_data)
             self.tokens = self.get_tokens()
@@ -130,8 +128,8 @@ class ChatAPI:
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
 
-            input_tokens = self.response['usage']['inputTokens']
-            output_tokens = self.response['usage']['outputTokens']
+            input_tokens = self.response["usage"]["inputTokens"]
+            output_tokens = self.response["usage"]["outputTokens"]
 
             return {
                 "completion_tokens": output_tokens,
@@ -148,11 +146,11 @@ class ChatAPI:
 
             if text:
                 return text
-            
+
         if "metadata" in chunk:
 
-            input_tokens = chunk["metadata"]['usage']['inputTokens']
-            output_tokens = chunk["metadata"]['usage']['outputTokens']
+            input_tokens = chunk["metadata"]["usage"]["inputTokens"]
+            output_tokens = chunk["metadata"]["usage"]["outputTokens"]
 
             self.tokens = {
                 "completion_tokens": output_tokens,
@@ -170,10 +168,7 @@ class VisionAPI:
         max_tokens: int = 3500,
         stream: bool = False,
     ):
-        self.client = boto3.client(
-            "bedrock-runtime", 
-            region_name="us-east-1"
-        )
+        self.client = boto3.client("bedrock-runtime", region_name="us-east-1")
 
         _ = api_key
 
@@ -206,17 +201,19 @@ class VisionAPI:
             content = prompt[-1].get("content", [])
 
         return content
-    
-    def __process_content_image(self, content: list, image: str | Image.Image | list) -> bytearray:
+
+    def __process_content_image(
+        self, content: list, image: str | Image.Image | list
+    ) -> bytearray:
         if isinstance(image, str) or isinstance(image, Image.Image):
             img = self._process_image(image)
 
             img_dict = {
                 "image": {
-                    "format": "png", 
-                    'source': {
+                    "format": "png",
+                    "source": {
                         "bytes": img,
-                    }
+                    },
                 }
             }
 
@@ -229,10 +226,10 @@ class VisionAPI:
                 img = self._process_image(img)
                 img_dict = {
                     "image": {
-                        "format": "png", 
-                        'source': {
+                        "format": "png",
+                        "source": {
                             "bytes": img,
-                        }
+                        },
                     }
                 }
 
@@ -241,7 +238,7 @@ class VisionAPI:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
-        
+
         return content
 
     def __process_prompt(self, prompt: str | list, content: list) -> list:
@@ -250,21 +247,22 @@ class VisionAPI:
 
             # Remove type if exists
             for message in prompt:
-                for i, content in enumerate(message.get('content', [])):
+                for i, content in enumerate(message.get("content", [])):
                     if content:
-                        if content.get('type'):
-                            del message['content'][i]['type']
-            
+                        if content.get("type"):
+                            del message["content"][i]["type"]
+
             # Merge consecutive user messages
             i = 0
             while i < len(prompt) - 1:
-                if prompt[i]['role'] == 'user' and prompt[i + 1]['role'] == 'user':
-                    if isinstance(prompt[i]['content'], list):
-                        prompt[i]['content'].extend(prompt[i + 1]['content'])
+                if prompt[i]["role"] == "user" and prompt[i + 1]["role"] == "user":
+                    if isinstance(prompt[i]["content"], list):
+                        prompt[i]["content"].extend(prompt[i + 1]["content"])
                     else:
-                        prompt[i]['content'] = [prompt[i]['content']] + (
-                            prompt[i + 1]['content'] if isinstance(prompt[i + 1]['content'], list) 
-                            else [prompt[i + 1]['content']]
+                        prompt[i]["content"] = [prompt[i]["content"]] + (
+                            prompt[i + 1]["content"]
+                            if isinstance(prompt[i + 1]["content"], list)
+                            else [prompt[i + 1]["content"]]
                         )
                     prompt.pop(i + 1)
                 else:
@@ -282,7 +280,7 @@ class VisionAPI:
 
         prompt = self.__process_prompt(prompt, content)
 
-        inference_config =  {
+        inference_config = {
             "temperature": self.temperature,
             "maxTokens": self.max_tokens,
         }
@@ -296,7 +294,7 @@ class VisionAPI:
         try:
             if self.stream:
                 self.response = self.client.converse_stream(**json_data)
-                return self.response['stream']
+                return self.response["stream"]
 
             self.response = self.client.converse(**json_data)
             self.tokens = self.get_tokens()
@@ -318,8 +316,8 @@ class VisionAPI:
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
 
-            input_tokens = self.response['usage']['inputTokens']
-            output_tokens = self.response['usage']['outputTokens']
+            input_tokens = self.response["usage"]["inputTokens"]
+            output_tokens = self.response["usage"]["outputTokens"]
 
             return {
                 "completion_tokens": output_tokens,
@@ -331,16 +329,16 @@ class VisionAPI:
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if "contentBlockDelta" in chunk:
-            
+
             text = chunk["contentBlockDelta"]["delta"]["text"]
 
             if text:
                 return text
-            
+
         if "metadata" in chunk:
 
-            input_tokens = chunk["metadata"]['usage']['inputTokens']
-            output_tokens = chunk["metadata"]['usage']['outputTokens']
+            input_tokens = chunk["metadata"]["usage"]["inputTokens"]
+            output_tokens = chunk["metadata"]["usage"]["outputTokens"]
 
             self.tokens = {
                 "completion_tokens": output_tokens,
@@ -351,30 +349,24 @@ class VisionAPI:
 
 class ImageAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "", 
-            aspect_ratio: str = '1:1',
-            cfg_scale: int = 10,
-            **kwargs,
-        ):
+        self,
+        api_key: str,
+        model: str = "",
+        aspect_ratio: str = "1:1",
+        cfg_scale: int = 10,
+        **kwargs,
+    ):
 
         _ = api_key
 
-        self.client = boto3.client(
-            "bedrock-runtime", 
-            region_name="us-east-1"
-        )
+        self.client = boto3.client("bedrock-runtime", region_name="us-east-1")
 
         self.cfg_scale = cfg_scale
 
         self.model = model.split("/")[-1]
         self.aspect_ratio = aspect_ratio
 
-        self.allowed_ar = [
-            '16:9', '1:1', '2:3',
-            '3:2', '4:5', '5:4', '9:16'
-        ]
+        self.allowed_ar = ["16:9", "1:1", "2:3", "3:2", "4:5", "5:4", "9:16"]
 
         self.response = None
         self.tokens = None
@@ -384,18 +376,18 @@ class ImageAPI:
     def __check_aspect_ratio(self):
 
         if self.aspect_ratio not in self.allowed_ar:
-            self.aspect_ratio = '1:1'
+            self.aspect_ratio = "1:1"
 
         sizes = {
-            '16:9': {'width': 1024, 'height': 576},
-            '1:1': {'width': 512, 'height': 512},
-            '2:3': {'width': 512, 'height': 768},
-            '3:2': {'width': 768, 'height': 512},
-            '4:5': {'width': 512, 'height': 640},
-            '5:4': {'width': 640, 'height': 512},
-            '9:16': {'width': 576, 'height': 1024},
+            "16:9": {"width": 1024, "height": 576},
+            "1:1": {"width": 512, "height": 512},
+            "2:3": {"width": 512, "height": 768},
+            "3:2": {"width": 768, "height": 512},
+            "4:5": {"width": 512, "height": 640},
+            "5:4": {"width": 640, "height": 512},
+            "9:16": {"width": 576, "height": 1024},
         }
-        
+
         return sizes[self.aspect_ratio]
 
     def call_api(self, prompt: Any, image: Any = None):
@@ -411,25 +403,24 @@ class ImageAPI:
                 "cfgScale": self.cfg_scale,
                 "numberOfImages": 1,
                 "quality": "premium",
-            }
+            },
         }
 
         model_response = self.client.invoke_model(
-            modelId=f"{self.model}", 
-            body=json.dumps(payload)
+            modelId=f"{self.model}", body=json.dumps(payload)
         )
 
         self.response = json.loads(model_response["body"].read())
         self.tokens = self.get_tokens()
 
         return self.get_image()
-    
+
     def get_image(self):
         return self.response["images"][0]
 
     def get_tokens(self):
         return 1
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -440,9 +431,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -457,11 +448,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0
-    
-    

@@ -24,9 +24,9 @@ class ChatAPI:
         json_mode: bool = False,
         json_schema: BaseModel = None,
         tools: List[Callable] = None,
-        **kwargs,     
+        **kwargs,
     ):
-        
+
         self.model = model
         self.temperature = temperature
         self.stream = stream
@@ -47,11 +47,10 @@ class ChatAPI:
         self.response = None
         self.tokens = None
 
-        self.client = Together(api_key=api_key)   
-
+        self.client = Together(api_key=api_key)
 
     def __function_to_json(self, func: callable) -> dict:
-        
+
         type_map = {
             str: "string",
             int: "integer",
@@ -96,13 +95,13 @@ class ChatAPI:
                     "required": required,
                 },
             },
-        }        
+        }
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> None:
 
         if self.tools:
             return "This model does not support tool calls"
-        
+
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -120,13 +119,13 @@ class ChatAPI:
             if self.json_mode:
                 json_data["response_format"] = {
                     "type": "json_object",
-                    "schema": self.json_schema.model_json_schema()
+                    "schema": self.json_schema.model_json_schema(),
                 }
 
             self.response = self.client.chat.completions.create(**json_data)
 
             if not self.stream:
-                self.tokens = self.get_tokens()                    
+                self.tokens = self.get_tokens()
                 return self.get_output()
 
             return self.response
@@ -136,15 +135,15 @@ class ChatAPI:
 
     def get_response(self) -> Any:
         return self.response
-        
+
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
 
-            if dump["choices"][0]['finish_reason'] == "tool_calls":
+            if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True
                 return dump["choices"][0]["message"]
-            
+
             self.tool_flag = False
             return dump["choices"][0]["message"].get("content")
         else:
@@ -173,20 +172,16 @@ class ChatAPI:
 
         for tool in tools:
 
-            config = tool.get('function')
-            args = json.loads(config.get('arguments'))
+            config = tool.get("function")
+            args = json.loads(config.get("arguments"))
 
-            output = self.tools[config.get('name')](**args)
+            output = self.tools[config.get("name")](**args)
 
             tool_messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tool.get('id'),
-                    "content": str(output)
-                }
-            ) 
+                {"role": "tool", "tool_call_id": tool.get("id"), "content": str(output)}
+            )
 
-        return tool_messages                  
+        return tool_messages
 
 
 class VisionAPI:
@@ -336,22 +331,19 @@ class VisionAPI:
 
 class ImageAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "", 
-            aspect_ratio: str = '1:1',
-            **kwargs,
-        ):
+        self,
+        api_key: str,
+        model: str = "",
+        aspect_ratio: str = "1:1",
+        **kwargs,
+    ):
 
         self.client = Together(api_key=api_key)
 
         self.model = model
         self.aspect_ratio = aspect_ratio
 
-        self.allowed_ar = [
-            '16:9', '1:1', '2:3',
-            '3:2', '4:5', '5:4', '9:16'
-        ]
+        self.allowed_ar = ["16:9", "1:1", "2:3", "3:2", "4:5", "5:4", "9:16"]
 
         self.response = None
         self.tokens = None
@@ -361,18 +353,18 @@ class ImageAPI:
     def __check_aspect_ratio(self):
 
         if self.aspect_ratio not in self.allowed_ar:
-            self.aspect_ratio = '1:1'
+            self.aspect_ratio = "1:1"
 
         sizes = {
-            '16:9': {'width': 1024, 'height': 576},
-            '1:1': {'width': 512, 'height': 512},
-            '2:3': {'width': 512, 'height': 768},
-            '3:2': {'width': 768, 'height': 512},
-            '4:5': {'width': 512, 'height': 640},
-            '5:4': {'width': 640, 'height': 512},
-            '9:16': {'width': 576, 'height': 1024},
+            "16:9": {"width": 1024, "height": 576},
+            "1:1": {"width": 512, "height": 512},
+            "2:3": {"width": 512, "height": 768},
+            "3:2": {"width": 768, "height": 512},
+            "4:5": {"width": 512, "height": 640},
+            "5:4": {"width": 640, "height": 512},
+            "9:16": {"width": 576, "height": 1024},
         }
-        
+
         return sizes[self.aspect_ratio]
 
     def call_api(self, prompt: Any, image: Any = None):
@@ -394,7 +386,7 @@ class ImageAPI:
         self.tokens = self.get_tokens()
 
         return self.get_image()
-    
+
     def get_image(self):
         return self.response.data[0].b64_json
 
@@ -403,11 +395,11 @@ class ImageAPI:
         prompt_tokens = 0
 
         return {
-            "completion_tokens": completion_tokens, 
-            "prompt_tokens": prompt_tokens, 
+            "completion_tokens": completion_tokens,
+            "prompt_tokens": prompt_tokens,
             "total_tokens": prompt_tokens + completion_tokens,
         }
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -418,9 +410,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -435,9 +427,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0

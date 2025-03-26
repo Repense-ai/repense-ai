@@ -7,7 +7,7 @@ from repenseai.genai.tasks.api import Task
 
 @pytest.mark.parametrize("model", TOOL)
 def test_tool_usage(model):
-    
+
     def get_lat_long_from_id(id):
         """get latitude and longitude from id"""
         return 48.8566, 2.3522
@@ -17,7 +17,7 @@ def test_tool_usage(model):
         return "The weather is sunny"
 
     agent = Agent(
-        model=model, 
+        model=model,
         model_type="chat",
         tools=[get_lat_long_from_id, get_weather],
     )
@@ -29,5 +29,5 @@ def test_tool_usage(model):
 
     response = task.run({})
 
-    assert "sunny" in response.get('response').lower()
-    assert response.get('cost') > 0
+    assert "sunny" in response.get("response").lower()
+    assert response.get("cost") > 0

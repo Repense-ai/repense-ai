@@ -10,16 +10,13 @@ from repenseai.genai.tasks.api import Task
 def test_image_task(model):
 
     agent = Agent(
-        model=model, 
+        model=model,
         model_type="image",
     )
 
-    task = Task(
-        agent=agent,
-        user="a funny fox"
-    )
+    task = Task(agent=agent, user="a funny fox")
 
     response = task.run({})
 
-    assert response.get('response') is not None
-    assert response.get('cost') > 0
+    assert response.get("response") is not None
+    assert response.get("cost") > 0

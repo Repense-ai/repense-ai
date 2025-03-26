@@ -31,16 +31,16 @@ class ChatAPI:
         self.client = ClientV2(api_key=self.api_key)
 
     def __process_prompt_list(self, prompt: list) -> list:
-        
+
         if self.model not in VISION_MODELS:
             for history in prompt:
-                content = history.get('content', [])
+                content = history.get("content", [])
 
-                if content[0].get('type') == 'image_url':
+                if content[0].get("type") == "image_url":
                     prompt.remove(history)
 
-        return prompt  
-    
+        return prompt
+
     def call_api(self, prompt: list | str) -> None:
         json_data = {
             "model": self.model,
@@ -170,13 +170,13 @@ class ImageAPI:
         _ = prompt
 
         return self.get_output()
-    
+
     def get_output(self):
         return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -187,14 +187,14 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
         return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
-    
+
+
 class SpeechAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
         self.api_key = api_key
@@ -204,9 +204,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
-        return 0    
+        return 0

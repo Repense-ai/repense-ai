@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
+
 class BaseEvaluator(ABC):
     def __init__(self, name: str):
         self.name = name

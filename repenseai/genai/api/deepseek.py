@@ -1,4 +1,3 @@
-import io
 import json
 import inspect
 
@@ -20,7 +19,7 @@ class ChatAPI:
         stream: bool = False,
         json_mode: bool = False,
         json_schema: BaseModel = None,
-        tools: List[Callable] = None,        
+        tools: List[Callable] = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -50,7 +49,7 @@ class ChatAPI:
         )
 
     def __function_to_json(self, func: callable) -> dict:
-        
+
         type_map = {
             str: "string",
             int: "integer",
@@ -95,14 +94,14 @@ class ChatAPI:
                     "required": required,
                 },
             },
-        }        
+        }
 
     def __process_prompt_list(self, prompt: list) -> list:
         for message in prompt:
             if isinstance(message.get("content"), list):
                 message["content"] = message.get("content")[0].get("text", "")
 
-        return prompt        
+        return prompt
 
     def call_api(self, prompt: list | str) -> Any:
         json_data = {
@@ -125,12 +124,12 @@ class ChatAPI:
                 json_data["stream_options"] = {"include_usage": True}
 
             if self.tool_flag:
-                json_data.pop('max_tokens')
+                json_data.pop("max_tokens")
 
             if self.json_mode:
                 json_data["response_format"] = {
                     "type": "json_object",
-                    "schema": self.json_schema.model_json_schema()
+                    "schema": self.json_schema.model_json_schema(),
                 }
 
                 json_data.pop("stream")
@@ -155,10 +154,10 @@ class ChatAPI:
         if self.response is not None:
             dump = self.response.model_dump()
 
-            if dump["choices"][0]['finish_reason'] == "tool_calls":
+            if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True
                 return dump["choices"][0]["message"]
-            
+
             self.tool_flag = False
             return dump["choices"][0]["message"].get("content")
         else:
@@ -187,20 +186,16 @@ class ChatAPI:
 
         for tool in tools:
 
-            config = tool.get('function')
-            args = json.loads(config.get('arguments'))
+            config = tool.get("function")
+            args = json.loads(config.get("arguments"))
 
-            output = self.tools[config.get('name')](**args)
+            output = self.tools[config.get("name")](**args)
 
             tool_messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tool.get('id'),
-                    "content": str(output)
-                }
-            ) 
+                {"role": "tool", "tool_call_id": tool.get("id"), "content": str(output)}
+            )
 
-        return tool_messages  
+        return tool_messages
 
 
 class VisionAPI:
@@ -264,13 +259,13 @@ class ImageAPI:
         _ = prompt
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -281,9 +276,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -298,11 +293,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0
-    
-

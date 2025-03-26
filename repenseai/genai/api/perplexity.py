@@ -1,7 +1,6 @@
-import io
 import requests
 
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from repenseai.utils.logs import logger
 
@@ -33,27 +32,28 @@ class ChatAPI:
 
     def __build_headers(self):
         self.headers = {
-            "Authorization": f"Bearer {self.api_key }",
-            "Content-Type": "application/json"
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
         }
 
     def __process_prompt_list(self, prompt: list) -> list:
 
         i = 0
         while i < len(prompt) - 1:
-            if prompt[i]['role'] == 'user' and prompt[i + 1]['role'] == 'user':
-                if isinstance(prompt[i]['content'], list):
-                    prompt[i]['content'].extend(prompt[i + 1]['content'])
+            if prompt[i]["role"] == "user" and prompt[i + 1]["role"] == "user":
+                if isinstance(prompt[i]["content"], list):
+                    prompt[i]["content"].extend(prompt[i + 1]["content"])
                 else:
-                    prompt[i]['content'] = [prompt[i]['content']] + (
-                        prompt[i + 1]['content'] if isinstance(prompt[i + 1]['content'], list) 
-                        else [prompt[i + 1]['content']]
+                    prompt[i]["content"] = [prompt[i]["content"]] + (
+                        prompt[i + 1]["content"]
+                        if isinstance(prompt[i + 1]["content"], list)
+                        else [prompt[i + 1]["content"]]
                     )
                 prompt.pop(i + 1)
             else:
                 i += 1
 
-        return prompt        
+        return prompt
 
     def call_api(self, prompt: list | str) -> Any:
 
@@ -73,9 +73,7 @@ class ChatAPI:
 
         try:
             self.response = requests.post(
-                url=self.url,
-                headers=self.headers,
-                json=json_data
+                url=self.url, headers=self.headers, json=json_data
             )
 
             if not self.stream:
@@ -103,8 +101,10 @@ class ChatAPI:
         if chunk.choices[0].finish_reason == "stop":
             self.tokens = chunk.json()["usage"]
         else:
-            string += chunk.choices[0].delta.content
-                
+            string = chunk.choices[0].delta.content
+
+        return string
+
 
 class VisionAPI:
     def __init__(
@@ -142,9 +142,11 @@ class VisionAPI:
 
     def process_stream_chunk(self, chunk: Any) -> Union[str, None]:
         if chunk.choices[0].finish_reason == "stop":
-            tokens = chunk.model_dump()["usage"]
+            self.tokens = chunk.model_dump()["usage"]
         else:
-            string += chunk.choices[0].delta.content
+            string = chunk.choices[0].delta.content
+
+        return string
 
 
 class ImageAPI:
@@ -157,13 +159,13 @@ class ImageAPI:
         _ = prompt
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -174,9 +176,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -191,9 +193,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0

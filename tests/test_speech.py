@@ -10,17 +10,16 @@ from repenseai.genai.tasks.api import Task
 def test_audio_task(model):
 
     agent = Agent(
-        model=model, 
+        model=model,
         model_type="speech",
         voice="shimmer",
     )
 
-    task = Task(
-        agent=agent,
-        speech_key="teste"
+    task = Task(agent=agent, speech_key="teste")
+
+    response = task.run(
+        {"teste": "Estou testando um audio em portugues gerado pela openai"}
     )
 
-    response = task.run({"teste": "Estou testando um audio em portugues gerado pela openai"})
-
-    assert response.get('response') is not None
-    assert response.get('cost') > 0
+    assert response.get("response") is not None
+    assert response.get("cost") > 0

@@ -1,4 +1,3 @@
-from io import BufferedReader
 from typing import Any, Dict, List, Union
 
 from groq import Groq
@@ -34,13 +33,13 @@ class ChatAPI:
     def __process_prompt_list(self, prompt: List[Dict[str, str]]) -> list:
         if self.model not in VISION_MODELS:
             for message in prompt:
-                message['content'] = message.get('content', [{}])[0].get('text', '')
+                message["content"] = message.get("content", [{}])[0].get("text", "")
 
             return prompt
         else:
             for message in prompt:
                 if message.get("role") == "assistant":
-                    message['content'] = message.get('content', [{}])[0].get('text', '')
+                    message["content"] = message.get("content", [{}])[0].get("text", "")
 
             return prompt
 
@@ -147,13 +146,13 @@ class ImageAPI:
         _ = prompt
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -164,9 +163,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -181,9 +180,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0

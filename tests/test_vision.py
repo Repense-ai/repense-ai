@@ -17,7 +17,7 @@ def image():
 def test_vision_task_doc_type(model, image):
 
     agent = Agent(
-        model=model, 
+        model=model,
         model_type="vision",
         temperature=0.0,
         max_tokens=100,
@@ -30,5 +30,5 @@ def test_vision_task_doc_type(model, image):
 
     response = task.run({"image": image})
 
-    assert "nascimento" in response.get('response').lower()
-    assert response.get('cost') > 0
+    assert "nascimento" in response.get("response").lower()
+    assert response.get("cost") > 0

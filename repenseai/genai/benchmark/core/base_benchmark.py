@@ -5,6 +5,7 @@ from repenseai.genai.benchmark.core.base_test import BaseTest
 from repenseai.genai.benchmark.core.base_provider import BaseagentProvider
 from repenseai.genai.benchmark.core.base_evaluator import BaseEvaluator
 
+
 class Benchmark:
     def __init__(self):
         self.tests: List[BaseTest] = []
@@ -42,11 +43,13 @@ class Benchmark:
         for provider in self.providers:
             for test in self.tests:
                 tasks.append(self._run_single_test(provider, test))
-        
+
         await asyncio.gather(*tasks)
         return self.results
 
-    async def _run_single_test(self, provider: BaseagentProvider, test: BaseTest) -> None:
+    async def _run_single_test(
+        self, provider: BaseagentProvider, test: BaseTest
+    ) -> None:
         """Helper method to run a single test"""
         if provider.name not in self.results:
             self.results[provider.name] = {}
@@ -54,24 +57,24 @@ class Benchmark:
         try:
             test_results = await test.run(provider)
             evaluator = self.evaluators.get(test.name)
-            
+
             if evaluator:
                 evaluation = await evaluator.evaluate(test_results)
                 self.results[provider.name][test.name] = {
-                    'test_results': test_results,
-                    'evaluation': evaluation,
-                    'score': evaluator.get_score()
+                    "test_results": test_results,
+                    "evaluation": evaluation,
+                    "score": evaluator.get_score(),
                 }
             else:
                 self.results[provider.name][test.name] = {
-                    'test_results': test_results,
-                    'evaluation': None,
-                    'score': None
+                    "test_results": test_results,
+                    "evaluation": None,
+                    "score": None,
                 }
         except Exception as exc:
             self.results[provider.name][test.name] = {
-                'test_results': None,
-                'evaluation': None,
-                'score': None,
-                'issue': str(exc)
+                "test_results": None,
+                "evaluation": None,
+                "score": None,
+                "issue": str(exc),
             }

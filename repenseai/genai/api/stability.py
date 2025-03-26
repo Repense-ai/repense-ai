@@ -37,16 +37,16 @@ class VisionAPI:
 
 class ImageAPI:
     def __init__(
-            self, 
-            api_key: str, 
-            model: str = "",
-            aspect_ratio: str = '1:1',
-            strength: float = 0.5,
-            seed: int = 0, 
-            cfg_scale: int = 10,
-            style_preset: str = "",
-            **kwargs,
-        ):
+        self,
+        api_key: str,
+        model: str = "",
+        aspect_ratio: str = "1:1",
+        strength: float = 0.5,
+        seed: int = 0,
+        cfg_scale: int = 10,
+        style_preset: str = "",
+        **kwargs,
+    ):
 
         self.api_key = api_key
         self.model = model
@@ -55,8 +55,8 @@ class ImageAPI:
         self.cfg_scale = cfg_scale
         self.strength = strength
         self.style_preset = style_preset
-        
-        self.root_url = 'https://api.stability.ai/v2beta/stable-image'
+
+        self.root_url = "https://api.stability.ai/v2beta/stable-image"
 
         self.response = None
         self.tokens = None
@@ -66,27 +66,33 @@ class ImageAPI:
         self.action = None
 
         self.allowed_ar = [
-            '16:9', '1:1', '21:9', 
-            '2:3', '3:2', '4:5', 
-            '5:4', '9:16', '9:21'
+            "16:9",
+            "1:1",
+            "21:9",
+            "2:3",
+            "3:2",
+            "4:5",
+            "5:4",
+            "9:16",
+            "9:21",
         ]
 
         self.allowed_sp = [
             "3d-model",
             "analog-film",
-            "anime", 
-            "cinematic", 
+            "anime",
+            "cinematic",
             "comic-book",
             "digital-art",
-            "enhance", 
+            "enhance",
             "fantasy-art",
-            "isometric", 
+            "isometric",
             "line-art",
             "low-poly",
             "modeling-compound",
             "neon-punk",
-            "origami", 
-            "photographic", 
+            "origami",
+            "photographic",
             "pixel-art",
             "tile-texture",
         ]
@@ -96,7 +102,6 @@ class ImageAPI:
         self.__check_aspect_ratio()
         self.__check_style_preset()
 
-
     def __set_model_info(self):
         splitted = self.model.split("/")
 
@@ -104,18 +109,16 @@ class ImageAPI:
         self.action = splitted[1]
         self.model_name = splitted[-2] if splitted[-2] != "default" else None
 
-
     def __build_url(self):
         self.url = f"{self.root_url}/{self.action}/{self.model_type}"
-    
 
     def __check_aspect_ratio(self):
         if self.aspect_ratio not in self.allowed_ar:
-            self.aspect_ratio = '1:1'
+            self.aspect_ratio = "1:1"
 
     def __check_style_preset(self):
         if self.style_preset not in self.allowed_sp:
-            self.style_preset = 'photographic'
+            self.style_preset = "photographic"
 
     def __build_upscale_data(self, prompt: Any, image: Any):
 
@@ -130,7 +133,6 @@ class ImageAPI:
 
         return payload
 
-        
     def __build_generate_data(self, prompt: Any, image: Any):
 
         payload = {
@@ -138,7 +140,7 @@ class ImageAPI:
             "output_format": "png",
             "seed": self.seed,
             "cfg_scale": self.cfg_scale,
-            "style_preset": self.style_preset
+            "style_preset": self.style_preset,
         }
 
         if self.model_name:
@@ -152,7 +154,6 @@ class ImageAPI:
             payload["mode"] = "text-to-image"
 
         return payload
-    
 
     def __build_data(self, prompt: Any, image: Any):
 
@@ -164,10 +165,9 @@ class ImageAPI:
         build_function = build_data_dict[self.action]
         return build_function(prompt, image)
 
-
     def __build_files(self, image: Any):
         if not image:
-            return {"none": ''}
+            return {"none": ""}
         else:
             if isinstance(image, str):
                 try:
@@ -203,8 +203,9 @@ class ImageAPI:
 
                 return {"image": img_byte_arr}
             else:
-                raise Exception("Incorrect image type! Accepted: img_string, PIL Image, or bytes")
-            
+                raise Exception(
+                    "Incorrect image type! Accepted: img_string, PIL Image, or bytes"
+                )
 
     def _resize_image(self, image: Image.Image) -> Image.Image:
         max_size = 16384
@@ -219,7 +220,7 @@ class ImageAPI:
             width = int(width * ratio)
             height = int(height * ratio)
 
-            image = image.resize((new_width, new_height))
+            image = image.resize((width, height))
 
         if max(width, height) > max_size:
             aspect_ratio = width / height
@@ -229,7 +230,9 @@ class ImageAPI:
             else:
                 new_height = max_size
                 new_width = int(new_height * aspect_ratio)
+
             image = image.resize((new_width, new_height))
+
         elif min(width, height) < min_size:
             aspect_ratio = width / height
             if width < height:
@@ -238,10 +241,10 @@ class ImageAPI:
             else:
                 new_height = min_size
                 new_width = int(new_height * aspect_ratio)
+
             image = image.resize((new_width, new_height))
 
-        return image            
-
+        return image
 
     def call_api(self, prompt: Any, image: Any = None):
         data = self.__build_data(prompt, image)
@@ -249,10 +252,7 @@ class ImageAPI:
 
         self.response = requests.post(
             self.url,
-            headers={
-                "authorization": f"Bearer {self.api_key}",
-                "accept": "image/*"
-            },
+            headers={"authorization": f"Bearer {self.api_key}", "accept": "image/*"},
             files=files,
             data=data,
         )
@@ -265,15 +265,13 @@ class ImageAPI:
 
     def get_image(self):
         if self.model_type == "creative":
-            return self.response.json()['id']
-        return base64.b64encode(
-            self.response.content
-        ).decode('utf-8')
+            return self.response.json()["id"]
+        return base64.b64encode(self.response.content).decode("utf-8")
 
     def get_tokens(self):
         return 1
-  
-    
+
+
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
         self.api_key = api_key
@@ -283,9 +281,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -300,9 +298,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
-        return 0      
+        return 0

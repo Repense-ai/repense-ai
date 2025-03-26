@@ -1,6 +1,6 @@
 TEXT = [
     "gpt-4o-mini",
-    "claude-3-5-haiku-20241022",    
+    "claude-3-5-haiku-20241022",
     "gemini-2.0-flash",
     "sabiazinho-3",
     "mistral-small-latest",
@@ -25,11 +25,11 @@ VISION = [
 ]
 
 AUDIO = [
-    'whisper-1',
+    "whisper-1",
 ]
 
 SPEECH = [
-    'tts-1',
+    "tts-1",
 ]
 
 TOOL = [
@@ -55,7 +55,3 @@ IMAGE = [
     "imagen-3.0-generate-002",
     "grok-2-image",
 ]
-
-
-
-
