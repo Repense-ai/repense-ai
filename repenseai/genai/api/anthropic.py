@@ -50,7 +50,7 @@ class AsyncChatAPI:
 
         self.json_tools = []
         self.tool_flag = False
-        
+
         self.client = Anthropic(api_key=api_key)
 
         if tools:
@@ -62,7 +62,7 @@ class AsyncChatAPI:
             "name": tool.name,
             "description": tool.description,
             "input_schema": tool.inputSchema,
-        }            
+        }
 
     def __function_to_json(self, func: callable) -> dict:
         type_map = {
@@ -110,29 +110,29 @@ class AsyncChatAPI:
 
     def __schema_to_string(self) -> str:
         schema = {
-            k: v['type'] for k, v 
-            in self.json_schema.model_json_schema()['properties'].items()
+            k: v["type"]
+            for k, v in self.json_schema.model_json_schema()["properties"].items()
         }
 
-        string = ''
+        string = ""
         for k, v in schema.items():
             string += f'"{k}": "{v}",\n'
         return string
 
     def __process_content_image(self, image_url: dict) -> str:
-        url = image_url.get('url')
+        url = image_url.get("url")
         image_content = httpx.get(url).content
         return base64.standard_b64encode(image_content).decode("utf-8")
 
     def __get_media_type(self, image_url: dict) -> str:
-        return "image/png" if "png" in image_url.get('url') else "image/jpeg"
+        return "image/png" if "png" in image_url.get("url") else "image/jpeg"
 
     def __process_prompt_list(self, prompt: list) -> list:
         for history in prompt:
-            content = history.get('content', [])
-            
-            if content[0].get('type') == 'image_url':
-                image_url = content[0].get('image_url')
+            content = history.get("content", [])
+
+            if content[0].get("type") == "image_url":
+                image_url = content[0].get("image_url")
                 img_dict = {
                     "type": "image",
                     "source": {
@@ -152,9 +152,12 @@ class AsyncChatAPI:
     async def call_api(self, prompt: list | str) -> Any:
 
         if self.server is not None:
-            self.server_tools = await self.server.connect()
-            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]    
-                
+            if self.server_tools is None:
+                self.server_tools = await self.server.list_tools()
+                self.json_tools += [
+                    self.__mcp_tool_to_json(tool) for tool in self.server_tools
+                ]
+
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -162,21 +165,21 @@ class AsyncChatAPI:
         }
 
         if isinstance(prompt, list):
-            json_data['messages'] = self.__process_prompt_list(prompt)
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
-            json_data['messages'] = [{"role": "user", "content": prompt}]
+            json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
             if self.thinking:
-                json_data['thinking'] = {
+                json_data["thinking"] = {
                     "type": "enabled",
-                    "budget_tokens": int(self.max_tokens * 0.75)
+                    "budget_tokens": int(self.max_tokens * 0.75),
                 }
-                json_data['temperature'] = 1.0
+                json_data["temperature"] = 1.0
 
             if self.stream and not self.json_tools and not self.json_schema:
                 return self._stream_api_call(json_data)
-            
+
             if self.json_tools and not self.json_schema:
                 json_data["tools"] = self.json_tools
 
@@ -186,7 +189,7 @@ class AsyncChatAPI:
                     "\n\nPlease provide the output information in a valid JSON format:\n\n"
                     f"{json_string}"
                 )
-                json_data['messages'].append({"role": "user", "content": output_prompt})
+                json_data["messages"].append({"role": "user", "content": output_prompt})
 
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
@@ -200,9 +203,9 @@ class AsyncChatAPI:
         tool_messages = []
 
         for tool in tools:
-            if tool['type'] == "tool_use":
-                args = tool.get('input')
-                tool_name = tool.get('name')
+            if tool["type"] == "tool_use":
+                args = tool.get("input")
+                tool_name = tool.get("name")
 
                 output = None
 
@@ -217,8 +220,8 @@ class AsyncChatAPI:
                 tool_messages.append(
                     {
                         "type": "tool_result",
-                        "tool_use_id": tool.get('id'),
-                        "content": str(output)
+                        "tool_use_id": tool.get("id"),
+                        "content": str(output),
                     }
                 )
 
@@ -230,10 +233,10 @@ class AsyncChatAPI:
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
-            if dump['stop_reason'] == "tool_use":
+            if dump["stop_reason"] == "tool_use":
                 self.tool_flag = True
-                return {"role": "assistant", "content": dump['content']}
-            
+                return {"role": "assistant", "content": dump["content"]}
+
             self.tool_flag = False
             if self.thinking:
                 text = self.response.content[-1].text
@@ -242,7 +245,7 @@ class AsyncChatAPI:
                 try:
                     return {
                         "thinking": self.response.content[-2].thinking,
-                        "output": text
+                        "output": text,
                     }
                 except IndexError:
                     return text
@@ -321,7 +324,7 @@ class ChatAPI:
         self.client = Anthropic(api_key=self.api_key)
 
     def __function_to_json(self, func: callable) -> dict:
-        
+
         type_map = {
             str: "string",
             int: "integer",
@@ -367,19 +370,19 @@ class ChatAPI:
 
     def __schema_to_string(self) -> str:
         schema = {
-            k: v['type'] for k,v 
-            in self.json_schema.model_json_schema()['properties'].items()
+            k: v["type"]
+            for k, v in self.json_schema.model_json_schema()["properties"].items()
         }
 
-        string = ''
+        string = ""
 
         for k, v in schema.items():
             string += f'"{k}": "{v}",\n'
 
-        return string           
+        return string
 
     def __process_content_image(self, image_url: dict) -> dict:
-        url = image_url.get('url')
+        url = image_url.get("url")
 
         image_content = httpx.get(url).content
         image = base64.standard_b64encode(image_content).decode("utf-8")
@@ -387,18 +390,18 @@ class ChatAPI:
         return image
 
     def __get_media_type(self, image_url: dict) -> str:
-        return "image/png" if "png" in image_url.get('url') else "image/jpeg"
+        return "image/png" if "png" in image_url.get("url") else "image/jpeg"
 
     def __process_prompt_list(self, prompt: list) -> list:
         for history in prompt:
-            content = history.get('content', [])
-            
-            if content[0].get('type') == 'image_url':
+            content = history.get("content", [])
+
+            if content[0].get("type") == "image_url":
                 if self.model not in VISION_MODELS:
                     prompt.remove(history)
                     continue
 
-                image_url = content[0].get('image_url')
+                image_url = content[0].get("image_url")
 
                 img_dict = {
                     "type": "image",
@@ -409,14 +412,14 @@ class ChatAPI:
                     },
                 }
 
-                content[0] = img_dict                
+                content[0] = img_dict
 
         return prompt
-    
+
     def _stream_api_call(self, json_data: Dict[str, Any]) -> Any:
         with self.client.messages.stream(**json_data) as stream:
             for message in stream:
-                yield message    
+                yield message
 
     def call_api(self, prompt: list | str) -> Any:
         json_data = {
@@ -426,22 +429,22 @@ class ChatAPI:
         }
 
         if isinstance(prompt, list):
-            json_data['messages'] = self.__process_prompt_list(prompt)
+            json_data["messages"] = self.__process_prompt_list(prompt)
         else:
-            json_data['messages'] = [{"role": "user", "content": prompt}]
+            json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
             if self.thinking:
-                json_data['thinking'] = {
+                json_data["thinking"] = {
                     "type": "enabled",
-                    "budget_tokens": int(self.max_tokens * 0.75)
+                    "budget_tokens": int(self.max_tokens * 0.75),
                 }
 
-                json_data['temperature'] = 1.0
+                json_data["temperature"] = 1.0
 
             if self.stream and not self.tools and not self.json_schema:
                 return self._stream_api_call(json_data)
-            
+
             if self.tools and not self.json_schema:
                 json_data["tools"] = self.json_tools
 
@@ -452,7 +455,7 @@ class ChatAPI:
                     f"{json_string}"
                 )
 
-                json_data['messages'].append({"role": "user", "content": output_prompt})
+                json_data["messages"].append({"role": "user", "content": output_prompt})
 
             self.response = self.client.messages.create(**json_data)
             self.tokens = self.get_tokens()
@@ -468,9 +471,9 @@ class ChatAPI:
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
-            if dump['stop_reason'] == "tool_use":
+            if dump["stop_reason"] == "tool_use":
                 self.tool_flag = True
-                return {"role": "assistant", "content": dump['content']}
+                return {"role": "assistant", "content": dump["content"]}
             self.tool_flag = False
             if self.thinking:
                 text = self.response.content[-1].text
@@ -479,7 +482,7 @@ class ChatAPI:
                 try:
                     return {
                         "thinking": self.response.content[-2].thinking,
-                        "output": text
+                        "output": text,
                     }
                 except IndexError:
                     return text
@@ -523,9 +526,9 @@ class ChatAPI:
         tool_messages = []
 
         for tool in tools:
-            if tool['type'] == "tool_use":
-                args = tool.get('input')
-                tool_name = tool.get('name')
+            if tool["type"] == "tool_use":
+                args = tool.get("input")
+                tool_name = tool.get("name")
 
                 output = None
 
@@ -540,8 +543,8 @@ class ChatAPI:
                 tool_messages.append(
                     {
                         "type": "tool_result",
-                        "tool_use_id": tool.get('id'),
-                        "content": str(output)
+                        "tool_use_id": tool.get("id"),
+                        "content": str(output),
                     }
                 )
 
@@ -612,7 +615,7 @@ class VisionAPI:
             return image_string
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
-        
+
     def __create_content_image(self, image: str | Image.Image) -> dict:
         img = self._process_image(image)
         img_dict = {
@@ -625,7 +628,7 @@ class VisionAPI:
         }
 
         return img_dict
-    
+
     def __process_prompt_content(self, prompt: str | list) -> bytearray:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
@@ -633,8 +636,10 @@ class VisionAPI:
             content = prompt[-1].get("content", [])
 
         return content
-    
-    def __process_content_image(self, content: list, image: str | Image.Image | list) -> list:
+
+    def __process_content_image(
+        self, content: list, image: str | Image.Image | list
+    ) -> list:
         if isinstance(image, str) or isinstance(image, Image.Image):
             img_dict = self.__create_content_image(image)
             content.insert(0, img_dict)
@@ -647,7 +652,7 @@ class VisionAPI:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
             )
-        
+
         return content
 
     def __process_prompt(self, prompt: str | list, content: list) -> list:
@@ -729,13 +734,13 @@ class ImageAPI:
         _ = prompt
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -746,9 +751,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -763,9 +768,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0

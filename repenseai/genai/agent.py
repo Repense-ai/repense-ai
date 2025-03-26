@@ -12,14 +12,15 @@ from repenseai.genai.providers import (
     VIDEO_MODELS,
     SEARCH_MODELS,
     AUDIO_MODELS,
-    SPEECH_MODELS
+    SPEECH_MODELS,
 )
 
 from dotenv import find_dotenv, load_dotenv
+
 load_dotenv(find_dotenv())
 
 
-def list_models(model_type: str = 'all') -> tp.List[str] | tp.Dict[str, tp.List[str]]:
+def list_models(model_type: str = "all") -> tp.List[str] | tp.Dict[str, tp.List[str]]:
     models_dict = {}
 
     models = {
@@ -37,18 +38,19 @@ def list_models(model_type: str = 'all') -> tp.List[str] | tp.Dict[str, tp.List[
 
     if model_type in models:
         return models_dict[model_type]
-    
+
     return models_dict
 
-class AsyncAgent():
+
+class AsyncAgent:
     def __init__(
-        self, 
-        model: str, 
+        self,
+        model: str,
         model_type: str,
         api_key: str = None,
         secrets_manager: BaseSecrets = None,
         server: Server = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         self.model = model
         self.model_type = model_type
@@ -96,7 +98,7 @@ class AsyncAgent():
     def __get_provider(self) -> None:
         if self.model_type not in self.models:
             raise Exception("Model type not found")
-        
+
         if "provider" in self.kwargs:
             self.provider = self.kwargs["provider"]
         else:
@@ -123,20 +125,20 @@ class AsyncAgent():
             try:
                 self.api_key = self.secrets_manager.get_secret(string)
                 return self.api_key
-            
+
             except Exception:
                 return None
-            
+
         return self.api_key
 
     async def get_api(self) -> tp.Any:
         match self.model_type:
             case "chat":
                 self.api = self.module_api.AsyncChatAPI(
-                    api_key=self.api_key, 
-                    model=self.model, 
-                    server=self.server, 
-                    **self.kwargs
+                    api_key=self.api_key,
+                    model=self.model,
+                    server=self.server,
+                    **self.kwargs,
                 )
             case _:
                 raise Exception(f"{self.model_type} async API not implemented")
@@ -147,9 +149,9 @@ class AsyncAgent():
         return self.price
 
     def calculate_cost(
-        self, 
-        tokens: tp.Union[tp.Dict[str, int], int, None] = None, 
-        as_string: str = False
+        self,
+        tokens: tp.Union[tp.Dict[str, int], int, None] = None,
+        as_string: str = False,
     ) -> tp.Union[float, str]:
         if not tokens:
             if self.api:
@@ -171,7 +173,7 @@ class AsyncAgent():
                 total = (input_cost + output_cost) / 1_000_000
         else:
             total = self.price * tokens
-            
+
         if as_string:
             return f"U${total:.5f}"
 
@@ -180,13 +182,13 @@ class AsyncAgent():
 
 class Agent:
     def __init__(
-            self, 
-            model: str, 
-            model_type: str,
-            api_key: str = None,
-            secrets_manager: BaseSecrets = None,
-            **kwargs
-        ) -> None:
+        self,
+        model: str,
+        model_type: str,
+        api_key: str = None,
+        secrets_manager: BaseSecrets = None,
+        **kwargs,
+    ) -> None:
 
         self.model = model
         self.model_type = model_type
@@ -210,7 +212,6 @@ class Agent:
         self.all_models = {}
         self.__build()
 
-
     def __build(self) -> None:
         self.__gather_models()
         self.__get_provider()
@@ -222,7 +223,7 @@ class Agent:
 
             if self.api_key is None and self.provider != "aws":
                 raise Exception(f"API_KEY not found for provider {self.provider}.")
-            
+
     def __gather_models(self) -> None:
         for models in self.models.values():
             self.all_models.update(models)
@@ -230,7 +231,7 @@ class Agent:
     def __get_provider(self) -> None:
         if self.model_type not in self.models:
             raise Exception("Model type not found")
-        
+
         if "provider" in self.kwargs:
             self.provider = self.kwargs["provider"]
         else:
@@ -257,10 +258,10 @@ class Agent:
             try:
                 self.api_key = self.secrets_manager.get_secret(string)
                 return self.api_key
-            
+
             except Exception:
                 return None
-            
+
         return self.api_key
 
     def get_api(self) -> tp.Any:
@@ -284,7 +285,7 @@ class Agent:
             case "speech":
                 self.api = self.module_api.SpeechAPI(
                     api_key=self.api_key, model=self.model, **self.kwargs
-                )                                   
+                )
             case _:
                 raise Exception(self.model_type + " API not found")
 
@@ -294,9 +295,11 @@ class Agent:
         return self.price
 
     def calculate_cost(
-        self, tokens: tp.Union[tp.Dict[str, int], int, None] = None, as_string: str = False
+        self,
+        tokens: tp.Union[tp.Dict[str, int], int, None] = None,
+        as_string: str = False,
     ) -> tp.Union[float, str]:
-        
+
         if not tokens:
             if self.api:
                 if tokens := self.api.tokens:
@@ -320,10 +323,8 @@ class Agent:
                 total = (input_cost + output_cost) / 1_000_000
         else:
             total = self.price * tokens
-            
+
         if as_string:
             return f"U${total:.5f}"
 
         return round(total, 5) + 0.00001
-
-

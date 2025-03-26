@@ -14,18 +14,11 @@ def audio():
 @pytest.mark.parametrize("model", AUDIO)
 def test_audio_task(model, audio):
 
-    agent = Agent(
-        model=model, 
-        model_type="audio",
-        language="pt"
-    )
+    agent = Agent(model=model, model_type="audio", language="pt")
 
-    task = Task(
-        agent=agent,
-        audio_key="teste"
-    )
+    task = Task(agent=agent, audio_key="teste")
 
     response = task.run({"teste": audio})
 
-    assert "teste" in response.get('response').lower()
-    assert response.get('cost') > 0
+    assert "teste" in response.get("response").lower()
+    assert response.get("cost") > 0

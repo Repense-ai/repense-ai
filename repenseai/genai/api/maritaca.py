@@ -1,5 +1,4 @@
-from io import BufferedReader
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from openai import OpenAI
 
@@ -146,13 +145,13 @@ class ImageAPI:
         _ = prompt
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
-    
+
 
 class AudioAPI:
     def __init__(self, api_key: str, model: str, **kwargs):
@@ -163,9 +162,9 @@ class AudioAPI:
         _ = audio
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"  
+        return "Not Implemented"
 
     def get_tokens(self):
         return {"completion_tokens": 0, "prompt_tokens": 0, "total_tokens": 0}
@@ -180,9 +179,9 @@ class SpeechAPI:
         _ = text
 
         return self.get_output()
-    
+
     def get_output(self):
-        return "Not Implemented"    
+        return "Not Implemented"
 
     def get_tokens(self):
         return 0

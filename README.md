@@ -699,6 +699,139 @@ results = analyze_image("path/to/your/image.jpg")
 print(json.dumps(results, indent=2))
 ```
 
+### Async Workflow with MCP Server
+
+```python
+import os
+import asyncio
+import random
+
+from repenseai.genai.mcp.server import Server
+
+from repenseai.genai.agent import AsyncAgent
+from repenseai.genai.tasks.api import AsyncTask
+from repenseai.genai.tasks.workflow import AsyncWorkflow
+from repenseai.genai.tasks.function import AsyncFunctionTask
+
+from repenseai.genai.tasks.conditional import (
+    AsyncBooleanConditionalTask, 
+    AsyncConditionalTask, 
+    AsyncDummyTask
+)
+
+# Use this command to run asyncio in Jupyter notebooks
+import nest_asyncio
+nest_asyncio.apply()
+
+# Async function to analyze message sentiment
+async def analyze_sentiment(context):
+    _ = context.get("slack_message", "")
+    # This would normally be a more complex analysis
+    sentiment_list = ["positive", "neutral", "negative"]
+    return random.choice(sentiment_list)
+
+# Conditional function must be synchronous
+# Condition function to check if there are messages
+def has_messages(context):
+    return "slack_message" in context and context.get("slack_message") is not None
+
+# Conditional function must be synchronous
+# Condition function to determine message sentiment
+def get_sentiment(context):
+    return context.get("sentiment", "neutral")
+
+async def main():
+    # Define the server for the Slack bot
+    args = [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "SLACK_BOT_TOKEN=" + os.getenv("SLACK_BOT_TOKEN"),
+        "-e",
+        "SLACK_TEAM_ID=" + os.getenv("SLACK_TEAM_ID"),
+        "mcp/slack"
+    ]
+
+    server = Server(name="slack", command='docker', args=args)
+
+    # Create an async agents
+    slack_agent = AsyncAgent(
+        model="claude-3-5-haiku-20241022",
+        model_type="chat",
+        server=server
+    )
+
+    common_agent = AsyncAgent(
+        model="gpt-4o",
+        model_type="chat",
+    )
+    
+    # Task to fetch Slack messages
+    slack_task = AsyncTask(
+        user="Get the last message from Slack channel ID={slack_id}",
+        agent=slack_agent
+    )
+    
+    # Task to analyze sentiment of the message
+    analyze_task = AsyncFunctionTask(analyze_sentiment)
+    
+    # Create response tasks for different sentiments
+    positive_response_task = AsyncTask(
+        user="Generate a cheerful response to this positive message: {slack_message}",
+        agent=common_agent
+    )
+    
+    neutral_response_task = AsyncTask(
+        user="Generate a neutral response to this message: {slack_message}",
+        agent=common_agent
+    )
+    
+    negative_response_task = AsyncTask(
+        user="Generate a supportive response to this negative message: {slack_message}",
+        agent=common_agent
+    )
+    
+    # Create a conditional task for message handling
+    message_conditional = AsyncBooleanConditionalTask(
+        condition=has_messages,
+        true_task=analyze_task,
+        false_task=AsyncDummyTask()
+    )
+    
+    # Create a conditional task for response generation based on sentiment
+    sentiment_tasks = {
+        "positive": positive_response_task,
+        "neutral": neutral_response_task,
+        "negative": negative_response_task
+    }
+    
+    response_conditional = AsyncConditionalTask(
+        condition=get_sentiment,
+        tasks=sentiment_tasks
+    )
+    
+    # Define the workflow steps
+    workflow_steps = [
+        [slack_task, "slack_message"],
+        [message_conditional, "sentiment"],
+        [response_conditional, "response"]
+    ]
+    
+    # Create and run the workflow
+    workflow = AsyncWorkflow(workflow_steps)
+    result = await workflow.run({"slack_id": "ID"})
+    
+    # Print the workflow results
+    print("\nWorkflow Results:")
+    print(f"Slack Message: {result.get('slack_message')}")
+    print(f"Sentiment: {result.get('sentiment')}")
+    print(f"Response: {result.get('response')}")
+
+
+# Run the main function
+asyncio.run(main())
+```
 ## Development
 
 This project uses several development tools:

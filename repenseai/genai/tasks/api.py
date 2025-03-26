@@ -1,5 +1,5 @@
 from copy import deepcopy
-import json
+
 from typing import Any
 from repenseai.genai.tasks.base import BaseTask
 
@@ -14,8 +14,8 @@ class Task(BaseTask):
         history: list | None = None,
         vision_key: str = "image",
         audio_key: str = "audio",
-        speech_key: str = "speech",      
-        base_image_key: str = "base_image"
+        speech_key: str = "speech",
+        base_image_key: str = "base_image",
     ) -> None:
 
         self.user = user
@@ -32,7 +32,6 @@ class Task(BaseTask):
         self.prompt = None
         self.api = self.agent.get_api()
 
-
     def __replace_tokens(self, text: str, tokens: dict) -> str:
         for key, value in tokens.items():
             text = text.replace("{" + key + "}", str(value))
@@ -42,18 +41,13 @@ class Task(BaseTask):
     def __build_prompt(self, **kwargs):
         content = self.__replace_tokens(self.user, kwargs)
 
-        self.prompt = [
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": content}]
-            }
-        ]
-        
+        self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+
         if self.history:
             self.prompt = self.history + self.prompt
-        
+
         return self.prompt
-        
+
     def __process_chat_or_search(self) -> dict:
         prompt = deepcopy(self.prompt)
 
@@ -66,9 +60,9 @@ class Task(BaseTask):
         }
 
         if self.agent.model_type == "search":
-            final_response["citations"] = self.api.response.json().get("citations", [])   
+            final_response["citations"] = self.api.response.json().get("citations", [])
 
-        return final_response       
+        return final_response
 
     def __process_vision(self, context: dict) -> dict:
         prompt = deepcopy(self.prompt)
@@ -82,7 +76,7 @@ class Task(BaseTask):
             "tokens": self.api.tokens,
             "cost": self.agent.calculate_cost(self.api.tokens),
         }
-    
+
     def __process_audio(self, context: dict) -> dict:
         audio = context.get(self.audio_key)
 
@@ -93,7 +87,7 @@ class Task(BaseTask):
             "tokens": self.api.tokens,
             "cost": self.agent.calculate_cost(self.api.tokens),
         }
-    
+
     def __process_speech(self, context: dict) -> dict:
         speech = context.get(self.speech_key)
         response = self.api.call_api(speech)
@@ -102,8 +96,8 @@ class Task(BaseTask):
             "response": response,
             "tokens": self.api.tokens,
             "cost": self.agent.calculate_cost(self.api.tokens),
-        }    
-    
+        }
+
     def __process_image(self, context: dict) -> dict:
         image = context.get(self.base_image_key)
         user = self.prompt[-1]["content"][0]["text"]
@@ -125,10 +119,10 @@ class Task(BaseTask):
             case "audio":
                 return self.__process_audio(context)
             case "speech":
-                return self.__process_speech(context)            
+                return self.__process_speech(context)
             case "image":
-                return self.__process_image(context)                           
-    
+                return self.__process_image(context)
+
     def run(self, context: dict | None = None) -> str:
         if not context:
             context = {}
@@ -137,50 +131,39 @@ class Task(BaseTask):
             if not self.prompt:
                 self.__build_prompt(**context)
 
-            response = self._process_api_call(context)                 
+            response = self._process_api_call(context)
 
             if self.agent.model_type == "chat":
 
                 while self.api.tool_flag:
                     tools_response = self.api.process_tool_calls(response["response"])
 
-                    self.prompt.append(response["response"])   
+                    self.prompt.append(response["response"])
                     self.prompt += tools_response
 
                     response = self._process_api_call(context)
 
-            self.prompt.append(
-                {
-                    "role": "assistant",
-                    "content": response["response"]
-                }
-            )   
+            self.prompt.append({"role": "assistant", "content": response["response"]})
 
             if self.simple_response:
                 return response["response"]
-            
+
             return response
 
         except Exception as e:
             raise e
-        
+
     def add_user_message(self, message: str) -> None:
         self.prompt.append(
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": message}]
-            }
+            {"role": "user", "content": [{"type": "text", "text": message}]}
         )
 
     def add_assistant_message(self, message: str) -> bool:
         self.prompt.append(
-            {
-                "role": "assistant",
-                "content": [{"type": "text", "text": message}]
-            }
+            {"role": "assistant", "content": [{"type": "text", "text": message}]}
         )
 
-        
+
 class AsyncTask(BaseTask):
     def __init__(
         self,
@@ -189,7 +172,7 @@ class AsyncTask(BaseTask):
         simple_response: bool = False,
         history: list | None = None,
     ) -> None:
-        
+
         self.user = user
         self.history = history
         self.agent = agent
@@ -205,12 +188,7 @@ class AsyncTask(BaseTask):
 
     def __build_prompt(self, **kwargs):
         content = self.__replace_tokens(self.user, kwargs)
-        self.prompt = [
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": content}]
-            }
-        ]
+        self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
         if self.history:
             self.prompt = self.history + self.prompt
         return self.prompt
@@ -218,9 +196,11 @@ class AsyncTask(BaseTask):
     async def __process_chat(self) -> dict:
         prompt = deepcopy(self.prompt)
 
-        self.api = await self.agent.get_api()
+        if not self.api:
+            self.api = await self.agent.get_api()
+
         response = await self.api.call_api(prompt)
-        
+
         final_response = {
             "response": response,
             "tokens": self.api.tokens,
@@ -234,7 +214,9 @@ class AsyncTask(BaseTask):
             case "chat":
                 return await self.__process_chat()
             case _:
-                raise NotImplementedError(f"Model type {self.agent.model_type} not implemented for async")
+                raise NotImplementedError(
+                    f"Model type {self.agent.model_type} not implemented for async"
+                )
 
     async def run(self, context: dict | None = None) -> str:
         if not context:
@@ -249,22 +231,20 @@ class AsyncTask(BaseTask):
             while self.api.tool_flag:
                 tools_response = await self.api.process_tool_calls(response["response"])
 
-                self.prompt.append(response["response"])   
+                self.prompt.append(response["response"])
                 self.prompt += tools_response
-                
+
                 response = await self._process_api_call(context)
 
-            self.prompt.append(
-                {
-                    "role": "assistant",
-                    "content": response["response"]
-                }
-            )   
+            self.prompt.append({"role": "assistant", "content": response["response"]})
+
+            if self.agent.server:
+                await self.agent.server.cleanup()
 
             if self.simple_response:
                 return response["response"]
-            
+
             return response
 
         except Exception as e:
-            raise e    
+            raise e

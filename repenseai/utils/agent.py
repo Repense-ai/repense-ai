@@ -29,7 +29,7 @@ def merge_chunk(final_response: dict, delta: dict) -> None:
 
 
 def function_to_json(func) -> dict:
-    
+
     type_map = {
         str: "string",
         int: "integer",

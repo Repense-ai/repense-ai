@@ -18,12 +18,12 @@ def test_streaming_doc_type(model, image):
 
     agent = Agent(
         model=model,
-        model_type="vision", 
-        temperature=0.0, 
+        model_type="vision",
+        temperature=0.0,
         stream=True,
         max_tokens=100,
     )
-    
+
     task = Task(
         user="Escreva apenas qual o tipo do documento em português",
         agent=agent,
@@ -33,7 +33,7 @@ def test_streaming_doc_type(model, image):
 
     string = ""
 
-    for chunk in response['response']:
+    for chunk in response["response"]:
         text = agent.api.process_stream_chunk(chunk)
 
         if text:

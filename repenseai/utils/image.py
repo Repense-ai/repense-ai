@@ -11,6 +11,7 @@ def display_base64_image(base64_str: str) -> None:
     image = Image.open(io.BytesIO(image_data))
     image.show()
 
+
 def display_bytes_image(image_bytes: bytes) -> None:
 
     image = Image.open(io.BytesIO(image_bytes))

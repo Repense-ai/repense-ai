@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 4.0.5
+
+### New Features
+
+#### Async Workflow Capabilities
+- Added async workflow engine for task orchestration
+- Implemented conditional branching in async workflows
+
+#### MCP Server Integration
+- Enhanced MCP server with workflow support
+- Added async task handlers for MCP operations
+
+### Changes
+
+#### Architecture
+- Refactored workflow engine to support async patterns
+
+### Bug Fixes
+- No specific bug fixes in this release
+
+### Removals
+- No features or methods were removed
+
 ## Version 4.0.4
 
 ### New Features

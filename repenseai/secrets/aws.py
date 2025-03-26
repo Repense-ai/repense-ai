@@ -17,13 +17,14 @@ class AWSSecrets(BaseSecrets):
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self, 
-        secret_name: str, 
-        region_name: str, 
+    def __init__(
+        self,
+        secret_name: str,
+        region_name: str,
         profile_name: str = None,
         aws_access_key_id=None,
         aws_secret_access_key=None,
-        aws_session_token=None
+        aws_session_token=None,
     ):
         if not self._initialized:
             self._secrets = {}
@@ -59,9 +60,7 @@ class AWSSecrets(BaseSecrets):
             return self._secrets.get(secret_key)
 
         try:
-            response = self.client.get_secret_value(
-                SecretId=self.secret_name
-            )
+            response = self.client.get_secret_value(SecretId=self.secret_name)
 
             secrets = json.loads(response["SecretString"])
         except ClientError as e:

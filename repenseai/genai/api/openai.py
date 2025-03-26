@@ -46,7 +46,7 @@ class AsyncChatAPI:
         self.json_tools = []
 
         self.tool_flag = False
-        self.server_tools = None        
+        self.server_tools = None
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
@@ -55,18 +55,18 @@ class AsyncChatAPI:
         self.client = OpenAI(api_key=self.api_key)
 
     def __mcp_tool_to_json(self, tool: Tool) -> dict:
-                
+
         return {
             "type": "function",
             "function": {
                 "name": tool.name,
                 "description": tool.description,
-                "parameters": tool.inputSchema
+                "parameters": tool.inputSchema,
             },
-        }  
+        }
 
     def __function_to_json(self, func: callable) -> dict:
-        
+
         type_map = {
             str: "string",
             int: "integer",
@@ -111,14 +111,17 @@ class AsyncChatAPI:
                     "required": required,
                 },
             },
-        }        
+        }
 
     async def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
 
         if self.server is not None:
-            self.server_tools = await self.server.connect()
-            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in self.server_tools]  
-                    
+            if self.server_tools is None:
+                self.server_tools = await self.server.list_tools()
+                self.json_tools += [
+                    self.__mcp_tool_to_json(tool) for tool in self.server_tools
+                ]
+
         json_data = {
             "model": self.model,
             "temperature": self.temperature,
@@ -168,10 +171,10 @@ class AsyncChatAPI:
         if self.response is not None:
             dump = self.response.model_dump()
 
-            if dump["choices"][0]['finish_reason'] == "tool_calls":
+            if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True
                 return dump["choices"][0]["message"]
-            
+
             self.tool_flag = False
             if self.json_schema:
                 return dump["choices"][0]["message"].get("parsed")
@@ -202,10 +205,10 @@ class AsyncChatAPI:
 
         for tool in tools:
 
-            config = tool.get('function')
+            config = tool.get("function")
 
-            args = json.loads(config.get('arguments'))
-            tool_name = config.get('name')
+            args = json.loads(config.get("arguments"))
+            tool_name = config.get("name")
 
             output = None
 
@@ -215,17 +218,14 @@ class AsyncChatAPI:
                     output = tool_output.content
 
             if not output:
-                output = await self.tools[tool_name](**args)            
+                output = await self.tools[tool_name](**args)
 
             tool_messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tool.get('id'),
-                    "content": str(output)
-                }
-            ) 
+                {"role": "tool", "tool_call_id": tool.get("id"), "content": str(output)}
+            )
 
         return tool_messages
+
 
 class ChatAPI:
     def __init__(
@@ -273,18 +273,18 @@ class ChatAPI:
         return tool_list
 
     def __mcp_tool_to_json(self, tool: Tool) -> dict:
-                
+
         return {
             "type": "function",
             "function": {
                 "name": tool.name,
                 "description": tool.description,
-                "parameters": tool.inputSchema
+                "parameters": tool.inputSchema,
             },
-        }  
+        }
 
     def __function_to_json(self, func: callable) -> dict:
-        
+
         type_map = {
             str: "string",
             int: "integer",
@@ -329,7 +329,7 @@ class ChatAPI:
                     "required": required,
                 },
             },
-        }        
+        }
 
     def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
         json_data = {
@@ -381,10 +381,10 @@ class ChatAPI:
         if self.response is not None:
             dump = self.response.model_dump()
 
-            if dump["choices"][0]['finish_reason'] == "tool_calls":
+            if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True
                 return dump["choices"][0]["message"]
-            
+
             self.tool_flag = False
             if self.json_schema:
                 return dump["choices"][0]["message"].get("parsed")
@@ -415,20 +415,16 @@ class ChatAPI:
 
         for tool in tools:
 
-            config = tool.get('function')
-            args = json.loads(config.get('arguments'))
+            config = tool.get("function")
+            args = json.loads(config.get("arguments"))
 
-            output = self.tools[config.get('name')](**args)
+            output = self.tools[config.get("name")](**args)
 
             tool_messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tool.get('id'),
-                    "content": str(output)
-                }
-            ) 
+                {"role": "tool", "tool_call_id": tool.get("id"), "content": str(output)}
+            )
 
-        return tool_messages  
+        return tool_messages
 
 
 class AudioAPI:
@@ -454,22 +450,20 @@ class AudioAPI:
         if language := self.kwargs.get("language"):
             parameters["language"] = language
 
-        self.response = self.client.audio.transcriptions.create(
-            **parameters
-        )
+        self.response = self.client.audio.transcriptions.create(**parameters)
 
         self.tokens = self.get_tokens()
         return self.get_output()
-    
+
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
-            return self.response.model_dump().get('text')
+            return self.response.model_dump().get("text")
         else:
             return None
 
     def get_tokens(self) -> Union[None, str]:
         if self.response is not None:
-            duration = self.response.model_dump().get('duration')
+            duration = self.response.model_dump().get("duration")
             duration = round(duration / 60, 2)
 
             return duration
@@ -478,13 +472,7 @@ class AudioAPI:
 
 
 class SpeechAPI:
-    def __init__(
-            self, 
-            api_key: str, 
-            model: str, 
-            voice: str,
-            **kwargs
-        ):
+    def __init__(self, api_key: str, model: str, voice: str, **kwargs):
 
         self.client = OpenAI(api_key=api_key)
 
@@ -498,34 +486,36 @@ class SpeechAPI:
         self.response_format = None
 
         self.allowed_voices = [
-            'alloy', 'ash', 'coral', 
-            'echo', 'fable', 'onyx', 
-            'nova', 'sage', 'shimmer'
+            "alloy",
+            "ash",
+            "coral",
+            "echo",
+            "fable",
+            "onyx",
+            "nova",
+            "sage",
+            "shimmer",
         ]
 
-        self.allowed_format = [
-            'mp3', 'opus', 'aac', 
-            'flac', 'wav', 'pcm'
-        ]
+        self.allowed_format = ["mp3", "opus", "aac", "flac", "wav", "pcm"]
 
         self.__validate_voice()
         self.__validate_format()
 
     def __validate_voice(self) -> None:
-        if not self.voice in self.allowed_voices:
+        if self.voice not in self.allowed_voices:
             raise ValueError(f"Voice {self.voice} not allowed for model {self.model}")
-        
+
     def __validate_format(self) -> None:
         if format := self.kwargs.get("response_format"):
-            if not format in self.allowed_format:
+            if format not in self.allowed_format:
 
                 logger(f"Format {format} not allowed for model {self.model}")
-                logger(f"Setting format to 'mp3'")
+                logger("Setting format to 'mp3'")
 
-                self.response_format = 'mp3'
+                self.response_format = "mp3"
             else:
                 self.response_format = format
-
 
     def call_api(self, text: str) -> bytes:
 
@@ -543,14 +533,14 @@ class SpeechAPI:
                 logger("Setting speed to 1.0")
 
                 speed = 1.0
-            
-            parameters["speed"] = speed         
+
+            parameters["speed"] = speed
 
         self.response = self.client.audio.speech.create(**parameters)
         self.tokens = self.get_tokens(text)
 
         return self.get_output()
-    
+
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             return self.response.content
@@ -600,7 +590,7 @@ class VisionAPI:
             return f"data:image/png;base64,{image_string}"
         else:
             raise Exception("Incorrect image type! Accepted: img_string or Image")
-        
+
     def __create_content_image(self, image: Any) -> Dict[str, Any]:
         img = self.__process_image(image)
 
@@ -613,7 +603,7 @@ class VisionAPI:
         }
 
         return img_dict
-        
+
     def __process_prompt_content(self, prompt: str | list) -> list:
         if isinstance(prompt, str):
             content = [{"type": "text", "text": prompt}]
@@ -635,7 +625,7 @@ class VisionAPI:
         else:
             raise Exception(
                 "Incorrect image type! Accepted: img_string or list[img_string]"
-            )                
+            )
 
         return content
 
@@ -653,7 +643,7 @@ class VisionAPI:
         content = self.__process_content_image(content, image)
 
         prompt = self.__process_prompt(prompt, content)
-           
+
         json_data = {
             "model": self.model,
             "messages": prompt,
@@ -685,18 +675,18 @@ class VisionAPI:
                 return self.get_output()
 
             return self.response
-        
+
         except Exception as e:
-            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")        
+            logger(f"Erro na chamada da API - modelo {json_data['model']}: {e}")
 
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
 
-            if dump["choices"][0]['finish_reason'] == "tool_calls":
+            if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True
                 return dump["choices"][0]["message"]
-            
+
             if self.json_schema:
                 return dump["choices"][0]["message"].get("parsed")
             return dump["choices"][0]["message"].get("content")
