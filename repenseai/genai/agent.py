@@ -49,14 +49,14 @@ class AsyncAgent:
         model_type: str,
         api_key: str = None,
         secrets_manager: BaseSecrets = None,
-        server: Server = None,
+        server: Server | tp.List[Server] = None,
         **kwargs,
     ) -> None:
         self.model = model
         self.model_type = model_type
         self.api_key = api_key
         self.secrets_manager = secrets_manager
-        self.server = server
+        self.server = server if isinstance(server, list) else [server]
         self.tokens = None
         self.api = None
         self.kwargs = kwargs

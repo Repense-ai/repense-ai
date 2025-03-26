@@ -31,7 +31,7 @@ class AsyncChatAPI:
         thinking: bool = False,
         tools: List[Callable] = None,
         json_schema: BaseModel = None,
-        server: Server = None,
+        server: List[Server] = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -153,10 +153,13 @@ class AsyncChatAPI:
 
         if self.server is not None:
             if self.server_tools is None:
-                self.server_tools = await self.server.list_tools()
-                self.json_tools += [
-                    self.__mcp_tool_to_json(tool) for tool in self.server_tools
-                ]
+                for server in self.server:
+
+                    self.server_tools = await server.list_tools()
+
+                    self.json_tools += [
+                        self.__mcp_tool_to_json(tool) for tool in self.server_tools
+                    ]
 
         json_data = {
             "model": self.model,
@@ -210,9 +213,11 @@ class AsyncChatAPI:
                 output = None
 
                 if self.server_tools:
-                    if tool_name in self.server.tools_list:
-                        tool_output = await self.server.call_tool(tool_name, args)
-                        output = tool_output.content
+                    for server in self.server:
+                        if tool_name in server.tools_list:
+                            tool_output = await server.call_tool(tool_name, args)
+                            output = tool_output.content
+                            break
 
                 if not output:
                     output = await self.tools[tool_name](**args)
