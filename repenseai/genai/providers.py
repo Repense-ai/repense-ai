@@ -30,6 +30,10 @@ TEXT_MODELS = {
         "provider": "anthropic",
         "cost": {"input": 3.0, "output": 15.0},
     },
+    "gemini-2.5-pro-exp-03-25": {
+        "provider": "google",
+        "cost": {"input": 2.50, "output": 10.0},
+    },
     "gemini-1.5-pro": {"provider": "google", "cost": {"input": 2.50, "output": 10.0}},
     "gemini-1.5-flash": {"provider": "google", "cost": {"input": 0.15, "output": 0.60}},
     "gemini-2.0-flash": {"provider": "google", "cost": {"input": 0.10, "output": 0.70}},
