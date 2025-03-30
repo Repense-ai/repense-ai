@@ -21,7 +21,6 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
-        json_mode: bool = False,
         json_schema: BaseModel = None,
         tools: List[Callable] = None,
         **kwargs,
@@ -32,7 +31,6 @@ class ChatAPI:
         self.stream = stream
         self.max_tokens = max_tokens
 
-        self.json_mode = json_mode
         self.json_schema = json_schema
 
         self.tools = None
@@ -116,7 +114,7 @@ class ChatAPI:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 
         try:
-            if self.json_mode:
+            if self.json_schema:
                 json_data["response_format"] = {
                     "type": "json_object",
                     "schema": self.json_schema.model_json_schema(),
@@ -139,13 +137,19 @@ class ChatAPI:
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
+            print(dump)
 
             if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True
                 return dump["choices"][0]["message"]
 
             self.tool_flag = False
-            return dump["choices"][0]["message"].get("content")
+            content = dump["choices"][0]["message"].get("content")
+
+            if self.json_schema:
+                return json.loads(content)
+            
+            return content
         else:
             return None
 

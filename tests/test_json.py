@@ -16,7 +16,6 @@ def test_json_mode(model):
     agent = Agent(
         model=model,
         model_type="chat",
-        json_mode=True,
         json_schema=Response,
     )
 

@@ -117,8 +117,6 @@ class ChatAPI:
         else:
             json_data["messages"] = [{"role": "user", "content": prompt}]
 
-        print(json_data["messages"])
-
         try:
             if self.stream and not self.json_mode:
                 json_data["stream_options"] = {"include_usage": True}
@@ -139,7 +137,6 @@ class ChatAPI:
 
             if not self.stream:
                 self.tokens = self.get_tokens()
-                print(self.response)
                 return self.get_output()
 
             return self.response
