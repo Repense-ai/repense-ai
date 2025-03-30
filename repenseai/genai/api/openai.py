@@ -217,9 +217,11 @@ class AsyncChatAPI:
                     # Tool not found in server, try local tools
                     pass
 
-            # If not found or no output, try local tools
-            if not output and tool_name in self.tools:
-                output = await self.tools[tool_name](**args)
+            try:
+                if not output and self.tools:
+                    output = await self.tools[tool_name](**args)
+            except Exception as e:
+                logger(f"Error calling tool {tool_name}: {str(e)}")
 
             if not output:
                 output = f"Error: Tool '{tool_name}' not found or failed to execute"
@@ -261,31 +263,9 @@ class ChatAPI:
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
-            self.json_tools = self.__process_tools(tools)
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
 
         self.client = OpenAI(api_key=self.api_key)
-
-    def __process_tools(self, tools: List[Callable | Tool]) -> list:
-        tool_list = []
-
-        for tool in tools:
-            if isinstance(tool, Tool):
-                tool_list.append(self.__mcp_tool_to_json(tool))
-            else:
-                tool_list.append(self.__function_to_json(tool))
-
-        return tool_list
-
-    def __mcp_tool_to_json(self, tool: Tool) -> dict:
-
-        return {
-            "type": "function",
-            "function": {
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": tool.inputSchema,
-            },
-        }
 
     def __function_to_json(self, func: callable) -> dict:
 

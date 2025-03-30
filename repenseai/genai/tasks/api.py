@@ -238,9 +238,8 @@ class AsyncTask(BaseTask):
 
             self.prompt.append({"role": "assistant", "content": response["response"]})
 
-            if self.agent.server:
-                for server in self.agent.server:
-                    await server.cleanup()
+            if hasattr(self.agent, 'server_manager') and self.agent.server_manager:
+                await self.agent.server_manager.cleanup()
 
             if self.simple_response:
                 return response["response"]

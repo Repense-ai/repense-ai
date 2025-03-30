@@ -5,7 +5,7 @@ import inspect
 import json
 
 from repenseai.genai.providers import VISION_MODELS
-from repenseai.genai.mcp.server import Server
+from repenseai.genai.mcp.server import ServerManager
 
 from mcp.types import Tool
 
@@ -31,7 +31,7 @@ class AsyncChatAPI:
         thinking: bool = False,
         tools: List[Callable] = None,
         json_schema: BaseModel = None,
-        server: List[Server] = None,
+        server: ServerManager = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -41,15 +41,16 @@ class AsyncChatAPI:
         self.stream = stream
         self.thinking = thinking
         self.json_schema = json_schema
-        self.server = server
+        self.server_manager = server
 
         self.response = None
         self.tokens = None
         self.tools = None
-        self.server_tools = None
 
         self.json_tools = []
+
         self.tool_flag = False
+        self.server_tools_initialized = False
 
         self.client = Anthropic(api_key=api_key)
 
@@ -151,15 +152,10 @@ class AsyncChatAPI:
 
     async def call_api(self, prompt: list | str) -> Any:
 
-        if self.server is not None:
-            if self.server_tools is None:
-                for server in self.server:
-
-                    self.server_tools = await server.list_tools()
-
-                    self.json_tools += [
-                        self.__mcp_tool_to_json(tool) for tool in self.server_tools
-                    ]
+        if self.server_manager is not None and not self.server_tools_initialized:
+            server_tools = await self.server_manager.get_all_tools()
+            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in server_tools]
+            self.server_tools_initialized = True
 
         json_data = {
             "model": self.model,
@@ -202,33 +198,48 @@ class AsyncChatAPI:
             logger(f"Error in API call - model {json_data['model']}: {e}")
 
     async def process_tool_calls(self, message: dict) -> list:
-        tools = message.get("content")
+        tools = []
+        
+        # Verificar o formato da mensagem
+        if isinstance(message, dict) and message.get("content"):
+            for content_item in message.get("content", []):
+                if content_item.get("type") == "tool_use":
+                    tools.append(content_item)
+        
         tool_messages = []
 
         for tool in tools:
-            if tool["type"] == "tool_use":
-                args = tool.get("input")
-                tool_name = tool.get("name")
+            args = tool.get("input")
+            tool_name = tool.get("name")
 
-                output = None
+            output = None
 
-                if self.server_tools:
-                    for server in self.server:
-                        if tool_name in server.tools_list:
-                            tool_output = await server.call_tool(tool_name, args)
-                            output = tool_output.content
-                            break
+            # Try to call server tool first
+            if self.server_manager is not None:
+                try:
+                    tool_output = await self.server_manager.call_tool(tool_name, args)
+                    output = tool_output.content
+                except ValueError:
+                    # Tool not found in server, try local tools
+                    pass
 
-                if not output:
+            # If not found in server, try local tools
+            if not output and self.tools and tool_name in self.tools:
+                try:
                     output = await self.tools[tool_name](**args)
+                except Exception as e:
+                    logger(f"Error calling tool {tool_name}: {str(e)}")
 
-                tool_messages.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tool.get("id"),
-                        "content": str(output),
-                    }
-                )
+            if output is None:
+                output = f"Error: Tool '{tool_name}' not found or failed to execute"
+
+            tool_messages.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": tool.get("id"),
+                    "content": str(output),
+                }
+            )
 
         return [{"role": "user", "content": tool_messages}]
 
@@ -240,6 +251,8 @@ class AsyncChatAPI:
             dump = self.response.model_dump()
             if dump["stop_reason"] == "tool_use":
                 self.tool_flag = True
+                
+                # Garantir que retornamos a estrutura que o AsyncTask espera
                 return {"role": "assistant", "content": dump["content"]}
 
             self.tool_flag = False
@@ -300,7 +313,6 @@ class ChatAPI:
         thinking: bool = False,
         tools: List[Callable] = None,
         json_schema: BaseModel = None,
-        server: Server = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -311,7 +323,6 @@ class ChatAPI:
         self.thinking = thinking
 
         self.json_schema = json_schema
-        self.server = server
 
         self.response = None
         self.tokens = None
@@ -534,16 +545,8 @@ class ChatAPI:
             if tool["type"] == "tool_use":
                 args = tool.get("input")
                 tool_name = tool.get("name")
-
-                output = None
-
-                if self.server_tools:
-                    if tool_name in self.server.tools_list:
-                        tool_output = self.server.call_tool(tool_name, args)
-                        output = tool_output.content
-
-                if not output:
-                    output = self.tools[tool_name](**args)
+                
+                output = self.tools[tool_name](**args)
 
                 tool_messages.append(
                     {
