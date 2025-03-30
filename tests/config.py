@@ -39,7 +39,7 @@ TOOL = [
 
 MCP = [
     "gpt-4o",
-    "claude-3-5-haiku-20241022",
+    # "claude-3-5-haiku-20241022",
 ]
 
 JSON = [

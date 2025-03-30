@@ -3,7 +3,7 @@ import importlib
 import typing as tp
 
 from repenseai.secrets.base import BaseSecrets
-from repenseai.genai.mcp.server import Server
+from repenseai.genai.mcp.server import Server, ServerManager
 
 from repenseai.genai.providers import (
     TEXT_MODELS,
@@ -57,6 +57,7 @@ class AsyncAgent:
         self.api_key = api_key
         self.secrets_manager = secrets_manager
         self.server = server if isinstance(server, list) else [server]
+        self.server_manager = ServerManager(self.server)
         self.tokens = None
         self.api = None
         self.kwargs = kwargs
@@ -137,7 +138,7 @@ class AsyncAgent:
                 self.api = self.module_api.AsyncChatAPI(
                     api_key=self.api_key,
                     model=self.model,
-                    server=self.server,
+                    server=self.server_manager,
                     **self.kwargs,
                 )
             case _:
