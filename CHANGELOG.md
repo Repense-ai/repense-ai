@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 4.0.8
+
+### New Features
+
+#### Parallel Task Execution
+- Added `ParallelTask` class for concurrent task execution in workflows
+- Implemented thread pool-based parallel processing using `concurrent.futures`
+- Added support for both single and list-based context handling
+- Introduced flexible task execution with automatic task replication for list contexts
+
+### Changes
+
+#### Architecture
+- Enhanced workflow engine with parallel execution capabilities
+- Added thread-safe context handling for parallel tasks
+- Improved error handling and logging for parallel task execution
+
+### Bug Fixes
+- No specific bug fixes in this release
+
+### Removals
+- No features or methods were removed
+
 ## Version 4.0.7
 
 #### Multiple MCP Server Support
