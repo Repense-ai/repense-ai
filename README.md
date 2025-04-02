@@ -252,6 +252,94 @@ print(f"Reasoning:\n\n{response['thinking']}\n\n")  # Outputs the model's reason
 print(f"Response:\n\n{response['output']}")  # Outputs the model's response
 ```
 
+## Parallel Task
+
+ParallelTask allows you to execute multiple tasks concurrently, either with shared or unique contexts for each task.
+
+### Shared Context Example
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+from repenseai.genai.tasks.parallel import ParallelTask
+
+# Initialize agents with different models
+agent1 = Agent(
+    model="gpt-4o",
+    model_type="chat",
+    temperature=0.0,
+)
+
+agent2 = Agent(
+    model="claude-3-5-sonnet-20241022",
+    model_type="chat",
+    temperature=0.0,
+)
+
+# Create tasks that will analyze the same text
+task1 = Task(
+    user="Summarize this text in one sentence: {text}",
+    agent=agent1,
+    simple_response=True,
+)
+
+task2 = Task(
+    user="List the main topics in this text: {text}",
+    agent=agent2,
+    simple_response=True,
+)
+
+# Create parallel task
+parallel_task = ParallelTask([task1, task2])
+
+# Run with shared context
+shared_context = {
+    "text": "Artificial Intelligence has transformed many industries. From healthcare to finance, AI applications are becoming increasingly common. Machine learning models can now perform complex tasks that once required human expertise."
+}
+
+results = parallel_task.run(shared_context)
+
+print("Summary:", results[0])
+print("Topics:", results[1])
+```
+
+### Unique Context Example
+
+```python
+from repenseai.genai.agent import Agent
+from repenseai.genai.tasks.api import Task
+from repenseai.genai.tasks.parallel import ParallelTask
+
+# Initialize agent
+agent = Agent(
+    model="gpt-4o",
+    model_type="chat",
+    temperature=0.0,
+)
+
+# Create task template
+analysis_task = Task(
+    user="Analyze the sentiment of this text: {text}",
+    agent=agent,
+    simple_response=True,
+)
+
+# Create parallel task with multiple instances of the same task
+parallel_task = ParallelTask(analysis_task)
+
+# Run with unique contexts
+unique_contexts = [
+    {"text": "I love this product! It's amazing!"},
+    {"text": "This service is terrible, would not recommend."},
+    {"text": "The weather is quite nice today."}
+]
+
+results = parallel_task.run(unique_contexts)
+
+for i, sentiment in enumerate(results):
+    print(f"Text {i + 1} Sentiment:", sentiment)
+```
+
 ### Vision Tasks
 
 ```python

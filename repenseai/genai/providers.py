@@ -77,10 +77,24 @@ TEXT_MODELS = {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
     },
-    "grok-beta": {"provider": "x", "cost": {"input": 5.0, "output": 15.0}},
-    "grok-vision-beta": {"provider": "x", "cost": {"input": 5.0, "output": 15.0}},
-    "grok-2-1212": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
-    "grok-2-vision-1212": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
+    "meta-llama/Llama-3.3-70B-Instruct-Turbo": {
+        "provider": "together",
+        "cost": {"input": 0.88, "output": 0.88},
+    },
+    "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": {
+        "provider": "together",
+        "cost": {"input": 0.88, "output": 0.88},
+    },    
+    "Qwen/Qwen2-VL-72B-Instruct": {
+        "provider": "together",
+        "cost": {"input": 1.20, "output": 1.20},
+    },
+    "mistralai/Mistral-7B-Instruct-v0.2": {
+        "provider": "together",
+        "cost": {"input": 0.20, "output": 0.20},
+    },        
+    "grok-2": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
+    "grok-2-vision": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
     "amazon.nova-pro-v1:0": {"provider": "aws", "cost": {"input": 0.8, "output": 3.2}},
     "amazon.nova-lite-v1:0": {
         "provider": "aws",
