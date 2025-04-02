@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Union, Callable
 from openai import OpenAI
 
 from mcp.types import Tool
-from repenseai.genai.mcp.server import Server
+from repenseai.genai.mcp.server import ServerManager
 
 from PIL import Image
 
@@ -27,7 +27,7 @@ class AsyncChatAPI:
         stream: bool = False,
         json_schema: BaseModel = None,
         tools: List[Callable] = None,
-        server: Server = None,
+        server: ServerManager = None,
         **kwargs,
     ):
         self.api_key = api_key
@@ -37,7 +37,7 @@ class AsyncChatAPI:
         self.max_tokens = max_tokens
 
         self.json_schema = json_schema
-        self.server = server
+        self.server_manager = server
 
         self.response = None
         self.tokens = None
@@ -46,7 +46,7 @@ class AsyncChatAPI:
         self.json_tools = []
 
         self.tool_flag = False
-        self.server_tools = None
+        self.server_tools_initialized = False
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
@@ -115,12 +115,10 @@ class AsyncChatAPI:
 
     async def call_api(self, prompt: Union[List[Dict[str, str]], str]) -> Any:
 
-        if self.server is not None:
-            if self.server_tools is None:
-                self.server_tools = await self.server.list_tools()
-                self.json_tools += [
-                    self.__mcp_tool_to_json(tool) for tool in self.server_tools
-                ]
+        if self.server_manager is not None and not self.server_tools_initialized:
+            server_tools = await self.server_manager.get_all_tools()
+            self.json_tools += [self.__mcp_tool_to_json(tool) for tool in server_tools]
+            self.server_tools_initialized = True
 
         json_data = {
             "model": self.model,
@@ -204,21 +202,29 @@ class AsyncChatAPI:
         tool_messages = []
 
         for tool in tools:
-
             config = tool.get("function")
-
             args = json.loads(config.get("arguments"))
             tool_name = config.get("name")
 
             output = None
 
-            if self.server_tools:
-                if tool_name in self.server.tools_list:
-                    tool_output = await self.server.call_tool(tool_name, args)
+            # Try to call server tool first
+            if self.server_manager is not None:
+                try:
+                    tool_output = await self.server_manager.call_tool(tool_name, args)
                     output = tool_output.content
+                except ValueError:
+                    # Tool not found in server, try local tools
+                    pass
+
+            try:
+                if not output and self.tools:
+                    output = await self.tools[tool_name](**args)
+            except Exception as e:
+                logger(f"Error calling tool {tool_name}: {str(e)}")
 
             if not output:
-                output = await self.tools[tool_name](**args)
+                output = f"Error: Tool '{tool_name}' not found or failed to execute"
 
             tool_messages.append(
                 {"role": "tool", "tool_call_id": tool.get("id"), "content": str(output)}
@@ -257,31 +263,9 @@ class ChatAPI:
 
         if tools:
             self.tools = {tool.__name__: tool for tool in tools}
-            self.json_tools = self.__process_tools(tools)
+            self.json_tools = [self.__function_to_json(tool) for tool in tools]
 
         self.client = OpenAI(api_key=self.api_key)
-
-    def __process_tools(self, tools: List[Callable | Tool]) -> list:
-        tool_list = []
-
-        for tool in tools:
-            if isinstance(tool, Tool):
-                tool_list.append(self.__mcp_tool_to_json(tool))
-            else:
-                tool_list.append(self.__function_to_json(tool))
-
-        return tool_list
-
-    def __mcp_tool_to_json(self, tool: Tool) -> dict:
-
-        return {
-            "type": "function",
-            "function": {
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": tool.inputSchema,
-            },
-        }
 
     def __function_to_json(self, func: callable) -> dict:
 
