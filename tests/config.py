@@ -33,9 +33,9 @@ SPEECH = [
 ]
 
 TOOL = [
-    # "gpt-4o",
-    # "claude-3-5-haiku-20241022",
-    # "gemini-2.0-flash",
+    "gpt-4o",
+    "claude-3-5-haiku-20241022",
+    "gemini-2.0-flash",
 ]
 
 MCP = [
@@ -44,9 +44,9 @@ MCP = [
 ]
 
 JSON = [
-    # "gpt-4o",
-    # "claude-3-5-sonnet-20241022",
-    # "gemini-2.0-flash",
+    "gpt-4o",
+    "claude-3-5-sonnet-20241022",
+    "gemini-2.0-flash",
     "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
 ]
 
