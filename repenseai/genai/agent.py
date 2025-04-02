@@ -3,7 +3,7 @@ import importlib
 import typing as tp
 
 from repenseai.secrets.base import BaseSecrets
-from repenseai.genai.mcp.server import Server
+from repenseai.genai.mcp.server import Server, ServerManager
 
 from repenseai.genai.providers import (
     TEXT_MODELS,
@@ -49,14 +49,27 @@ class AsyncAgent:
         model_type: str,
         api_key: str = None,
         secrets_manager: BaseSecrets = None,
-        server: Server = None,
+        server: tp.Union[Server, tp.List[Server]] = None,
         **kwargs,
     ) -> None:
         self.model = model
         self.model_type = model_type
         self.api_key = api_key
         self.secrets_manager = secrets_manager
-        self.server = server
+        
+        # Inicializa o server_manager com os servidores fornecidos
+        if server is not None:
+            if not isinstance(server, list):
+                servers = [server]
+            else:
+                servers = server
+            
+            # Filtrar servidores None
+            servers = [s for s in servers if s is not None]
+            self.server_manager = ServerManager(servers) if servers else None
+        else:
+            self.server_manager = None
+            
         self.tokens = None
         self.api = None
         self.kwargs = kwargs
@@ -88,7 +101,7 @@ class AsyncAgent:
                 raise Exception(f"API_KEY not found for provider {self.provider}.")
 
     def __check_server(self) -> None:
-        if self.server is not None and self.model_type != "chat":
+        if self.server_manager is not None and self.model_type != "chat":
             raise Exception("MCP servers only works with chat models")
 
     def __gather_models(self) -> None:
@@ -137,7 +150,7 @@ class AsyncAgent:
                 self.api = self.module_api.AsyncChatAPI(
                     api_key=self.api_key,
                     model=self.model,
-                    server=self.server,
+                    server=self.server_manager,
                     **self.kwargs,
                 )
             case _:

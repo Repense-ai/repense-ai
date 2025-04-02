@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 4.0.7
+
+#### Multiple MCP Server Support
+- Added support for running multiple MCP servers for OpenAI and Anthropic APIs
+- Enhanced server configuration for multi-server environments
+
+### Changes
+
+#### Architecture
+- Updated server management to handle multiple instances
+
+### Bug Fixes
+- No specific bug fixes in this release
+
+### Removals
+- No features or methods were removed
+
 ## Version 4.0.6
 
 ### New Features
