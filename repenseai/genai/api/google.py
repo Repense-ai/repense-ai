@@ -1,7 +1,15 @@
-from typing import Any, List, Union
+import io
+import json
+
 from google import genai
 from google.genai import types
-import io
+
+from pydantic import BaseModel
+
+from typing import Any, List, Union, Callable
+
+from repenseai.utils.text import extract_json_text
+
 
 
 class ChatAPI:
@@ -12,13 +20,19 @@ class ChatAPI:
         temperature: float = 0.0,
         max_tokens: int = 3500,
         stream: bool = False,
+        tools: List[Callable] = None,
+        json_schema: BaseModel = None,
         **kwargs,
     ):
         self.api_key = api_key
         self.stream = stream
+        self.json_schema = json_schema
+
         self.response = None
         self.tokens = None
+
         self.tool_flag = False
+        self.tools = tools
 
         self.client = genai.Client(api_key=self.api_key)
         self.model = model
@@ -26,6 +40,9 @@ class ChatAPI:
         self.config = types.GenerateContentConfig(
             temperature=temperature,
             max_output_tokens=max_tokens,
+            tools=self.tools,
+            response_mime_type='application/json' if self.json_schema else None,
+            response_schema=self.json_schema,
         )
 
     def __convert_image_to_bytes(self, img):
@@ -145,6 +162,8 @@ class ChatAPI:
 
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
+            if self.json_schema:
+                return json.loads(extract_json_text(self.response.text))
             return self.response.text
         else:
             return None

@@ -132,6 +132,9 @@ class AsyncChatAPI:
         for history in prompt:
             content = history.get("content", [])
 
+            if isinstance(content, str):
+                continue
+
             if content[0].get("type") == "image_url":
                 image_url = content[0].get("image_url")
                 img_dict = {
@@ -411,6 +414,9 @@ class ChatAPI:
     def __process_prompt_list(self, prompt: list) -> list:
         for history in prompt:
             content = history.get("content", [])
+
+            if isinstance(content, str):
+                continue
 
             if content[0].get("type") == "image_url":
                 if self.model not in VISION_MODELS:

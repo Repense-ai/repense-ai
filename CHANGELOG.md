@@ -1,8 +1,6 @@
 # Changelog
 
-## Version 4.0.6
-
-### New Features
+## Version 4.0.7
 
 #### Multiple MCP Server Support
 - Added support for running multiple MCP servers for OpenAI and Anthropic APIs
@@ -18,6 +16,23 @@
 
 ### Removals
 - No features or methods were removed
+
+## Version 4.0.6
+
+### New Features
+
+#### Model Updates
+- Added support for 'gemini-2.5-pro-exp-03-25' model
+- Enhanced Google API with JSON schema support
+- Enhanced Google API with Tool Usage
+
+### Changes
+
+#### Dependencies
+- Updated dependencies
+
+### Bug Fixes
+- Fixed Anthropic chat loop issue
 
 ## Version 4.0.5
 
