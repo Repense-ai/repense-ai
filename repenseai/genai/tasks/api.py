@@ -39,9 +39,11 @@ class Task(BaseTask):
         return text
 
     def __build_prompt(self, **kwargs):
-        content = self.__replace_tokens(self.user, kwargs)
-
-        self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+        if self.user:
+            content = self.__replace_tokens(self.user, kwargs)
+            self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+        else:
+            self.prompt = []
 
         if self.history:
             self.prompt = self.history + self.prompt
@@ -154,11 +156,17 @@ class Task(BaseTask):
             raise e
 
     def add_user_message(self, message: str) -> None:
+        if not self.prompt:
+            self.__build_prompt()
+
         self.prompt.append(
             {"role": "user", "content": [{"type": "text", "text": message}]}
         )
 
     def add_assistant_message(self, message: str) -> bool:
+        if not self.prompt:
+            self.__build_prompt()
+
         self.prompt.append(
             {"role": "assistant", "content": [{"type": "text", "text": message}]}
         )
@@ -186,11 +194,17 @@ class AsyncTask(BaseTask):
             text = text.replace("{" + key + "}", str(value))
         return text
 
+
     def __build_prompt(self, **kwargs):
-        content = self.__replace_tokens(self.user, kwargs)
-        self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+        if self.user:
+            content = self.__replace_tokens(self.user, kwargs)
+            self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+        else:
+            self.prompt = []
+
         if self.history:
             self.prompt = self.history + self.prompt
+
         return self.prompt
 
     async def __process_chat(self) -> dict:

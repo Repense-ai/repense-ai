@@ -1,5 +1,22 @@
 # Changelog
 
+# Changelog
+
+## Version 4.0.9
+
+### Changes
+
+#### Task Class Prompt Handling
+- Modified Task class to make initial user message optional
+- Improved prompt handling in `add_user_message` method
+- Removed dependency on template-based first user message
+- Simplified prompt initialization process
+
+### Bug Fixes
+- Fixed issue where `add_user_message` required an initial template message
+- Resolved prompt building inconsistency when no initial user message is provided
+
+
 ## Version 4.0.8
 
 ### New Features
