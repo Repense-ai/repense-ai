@@ -33,7 +33,7 @@ class ParallelTask(BaseTask):
         """Helper method to execute a single task with the given context."""
         return task.run(context.copy() if context else {})
     
-    def run(self, context: List[dict] | dict | None = None):
+    def run(self, context: List[dict] | dict | None = None) -> list:
         """
         Execute all tasks in parallel and merge their results.
         
