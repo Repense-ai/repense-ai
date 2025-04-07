@@ -137,7 +137,6 @@ class ChatAPI:
     def get_output(self) -> Union[None, str]:
         if self.response is not None:
             dump = self.response.model_dump()
-            print(dump)
 
             if dump["choices"][0]["finish_reason"] == "tool_calls":
                 self.tool_flag = True

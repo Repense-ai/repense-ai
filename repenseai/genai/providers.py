@@ -89,6 +89,14 @@ TEXT_MODELS = {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
     },
+    "meta-llama/Llama-4-Scout-17B-16E-Instruct": {
+        "provider": "together",
+        "cost": {"input": 0.18, "output": 0.59},
+    },
+    "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
+        "provider": "together",
+        "cost": {"input": 0.27, "output": 0.85},
+    },        
     "mistralai/Mistral-7B-Instruct-v0.2": {
         "provider": "together",
         "cost": {"input": 0.20, "output": 0.20},

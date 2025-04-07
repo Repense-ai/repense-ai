@@ -1,6 +1,13 @@
 # Changelog
 
-# Changelog
+## Version 4.0.10
+
+### New Features
+
+#### Model Updates
+- Added support for 'meta-llama/Llama-4-Scout-17B-16E-Instruct' model
+- Added support for 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8' model
+- Enhanced Together AI provider with new Llama 4 models
 
 ## Version 4.0.9
 
