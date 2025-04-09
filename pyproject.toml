@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repenseai"
-version = "4.0.10"
+version = "4.0.11"
 description = "Repense package to support AI solutions"
 authors = ["Samuel Baptista <samuel.baptista@repense.ai>"]
 readme = "README.md"
@@ -9,10 +9,10 @@ packages = [{ include = "repenseai" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 google-genai = "^1.2.0"
-anthropic = "0.47.1"
-boto3 = "1.36.24"
+anthropic = "^0.47.1"
+boto3 = "^1.36.24"
 cohere = "^5.8.1"
-groq = "0.18.0"
+groq = "^0.18.0"
 mistralai = "^1.0.2"
 openai = "^1.42.0"
 pillow = "^10.4.0"

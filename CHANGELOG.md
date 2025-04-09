@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 4.0.11
+
+### Bugfix
+
+#### Dependencies
+- Fix locked versions dependencies 
+
 ## Version 4.0.10
 
 ### New Features
