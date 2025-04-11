@@ -103,6 +103,10 @@ TEXT_MODELS = {
     },        
     "grok-2": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
     "grok-2-vision": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
+    "grok-3": {"provider": "x", "cost": {"input": 3.0, "output": 15.0}},
+    "grok-3-fast": {"provider": "x", "cost": {"input": 5.0, "output": 25.0}},
+    "grok-3-mini": {"provider": "x", "cost": {"input": 0.30, "output": 0.50}},
+    "grok-3-mini-fast": {"provider": "x", "cost": {"input": 0.60, "output": 4.0}},          
     "amazon.nova-pro-v1:0": {"provider": "aws", "cost": {"input": 0.8, "output": 3.2}},
     "amazon.nova-lite-v1:0": {
         "provider": "aws",

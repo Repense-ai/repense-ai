@@ -8,9 +8,9 @@ TEXT = [
     "llama-3.3-70b-versatile",
     "Meta-Llama-3.1-405B-Instruct",
     "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
-    "grok-beta",
     "amazon.nova-lite-v1:0",
     "deepseek-chat",
+    "grok-3",
 ]
 
 

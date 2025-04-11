@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 4.0.12
+
+### New Features
+
+#### Model Updates
+- Added support for 'grok-3' model
+- Added support for 'grok-3-fast' model
+- Added support for 'grok-3-mini' model
+- Added support for 'grok-3-mini-fast' model
+
 ## Version 4.0.11
 
 ### Bugfix
