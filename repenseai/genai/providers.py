@@ -11,13 +11,15 @@ TEXT_MODELS = {
     "sabiazinho-3": {"provider": "maritaca", "cost": {"input": 0.2, "output": 0.6}},
     "gpt-4o-mini": {"provider": "openai", "cost": {"input": 0.15, "output": 0.6}},
     "gpt-4o": {"provider": "openai", "cost": {"input": 2.50, "output": 10.0}},
-    "gpt-4.5-preview": {
-        "provider": "openai",
-        "cost": {"input": 75.00, "output": 150.00},
-    },
-    "o1-preview": {"provider": "openai", "cost": {"input": 15.00, "output": 60.0}},
+    "gpt-4.1": {"provider": "openai", "cost": {"input": 2.0, "output": 8.0}},
+    "gpt-4.1-mini": {"provider": "openai", "cost": {"input": 0.40, "output": 1.60}},
+    "gpt-4.1-nano": {"provider": "openai", "cost": {"input": 0.10, "output": 0.40}},
+    "o1": {"provider": "openai", "cost": {"input": 15.00, "output": 60.0}},
     "o1-mini": {"provider": "openai", "cost": {"input": 1.10, "output": 4.40}},
+    "o1-pro": {"provider": "openai", "cost": {"input": 150.00, "output": 600.0}},
     "o3-mini": {"provider": "openai", "cost": {"input": 1.10, "output": 4.40}},
+    "o3": {"provider": "openai", "cost": {"input": 10.0, "output": 40.0}},
+    "o4-mini": {"provider": "openai", "cost": {"input": 1.10, "output": 4.40}},
     "claude-3-5-haiku-20241022": {
         "provider": "anthropic",
         "cost": {"input": 1.0, "output": 5.0},
@@ -84,7 +86,7 @@ TEXT_MODELS = {
     "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": {
         "provider": "together",
         "cost": {"input": 0.88, "output": 0.88},
-    },    
+    },
     "Qwen/Qwen2-VL-72B-Instruct": {
         "provider": "together",
         "cost": {"input": 1.20, "output": 1.20},
@@ -96,17 +98,17 @@ TEXT_MODELS = {
     "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
         "provider": "together",
         "cost": {"input": 0.27, "output": 0.85},
-    },        
+    },
     "mistralai/Mistral-7B-Instruct-v0.2": {
         "provider": "together",
         "cost": {"input": 0.20, "output": 0.20},
-    },        
+    },
     "grok-2": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
     "grok-2-vision": {"provider": "x", "cost": {"input": 2.0, "output": 10.0}},
     "grok-3": {"provider": "x", "cost": {"input": 3.0, "output": 15.0}},
     "grok-3-fast": {"provider": "x", "cost": {"input": 5.0, "output": 25.0}},
     "grok-3-mini": {"provider": "x", "cost": {"input": 0.30, "output": 0.50}},
-    "grok-3-mini-fast": {"provider": "x", "cost": {"input": 0.60, "output": 4.0}},          
+    "grok-3-mini-fast": {"provider": "x", "cost": {"input": 0.60, "output": 4.0}},
     "amazon.nova-pro-v1:0": {"provider": "aws", "cost": {"input": 0.8, "output": 3.2}},
     "amazon.nova-lite-v1:0": {
         "provider": "aws",
@@ -130,6 +132,15 @@ TEXT_MODELS = {
 VISION_MODELS = {
     "gpt-4o-mini": {"provider": "openai", "cost": {"input": 0.15, "output": 0.6}},
     "gpt-4o": {"provider": "openai", "cost": {"input": 2.50, "output": 10.0}},
+    "gpt-4.1": {"provider": "openai", "cost": {"input": 2.0, "output": 8.0}},
+    "gpt-4.1-mini": {"provider": "openai", "cost": {"input": 0.40, "output": 1.60}},
+    "gpt-4.1-nano": {"provider": "openai", "cost": {"input": 0.10, "output": 0.40}},
+    "o1": {"provider": "openai", "cost": {"input": 15.00, "output": 60.0}},
+    "o1-mini": {"provider": "openai", "cost": {"input": 1.10, "output": 4.40}},
+    "o1-pro": {"provider": "openai", "cost": {"input": 150.00, "output": 600.0}},
+    "o3-mini": {"provider": "openai", "cost": {"input": 1.10, "output": 4.40}},
+    "o3": {"provider": "openai", "cost": {"input": 10.0, "output": 40.0}},
+    "o4-mini": {"provider": "openai", "cost": {"input": 1.10, "output": 4.40}},
     "claude-3-5-sonnet-20240620": {
         "provider": "anthropic",
         "cost": {"input": 3.0, "output": 15.0},

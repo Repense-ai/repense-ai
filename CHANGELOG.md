@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 4.0.13
+
+### New Features
+
+#### Model Updates
+- Added support for 'o3' model
+- Added support for 'o4-mini' model
+- Added support for 'gpt-4.1' model
+- Added support for 'gpt-4.1-mini' model
+- Added support for 'gpt-4.1-nano' model
+
 ## Version 4.0.12
 
 ### New Features

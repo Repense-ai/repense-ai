@@ -11,7 +11,6 @@ from typing import Any, List, Union, Callable
 from repenseai.utils.text import extract_json_text
 
 
-
 class ChatAPI:
     def __init__(
         self,
@@ -41,7 +40,7 @@ class ChatAPI:
             temperature=temperature,
             max_output_tokens=max_tokens,
             tools=self.tools,
-            response_mime_type='application/json' if self.json_schema else None,
+            response_mime_type="application/json" if self.json_schema else None,
             response_schema=self.json_schema,
         )
 

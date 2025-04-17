@@ -1,4 +1,7 @@
 TEXT = [
+    "o3-mini",
+    "o4-mini",
+    "gpt-4.1-nano",
     "gpt-4o-mini",
     "claude-3-5-haiku-20241022",
     "gemini-2.0-flash",

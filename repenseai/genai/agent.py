@@ -56,20 +56,20 @@ class AsyncAgent:
         self.model_type = model_type
         self.api_key = api_key
         self.secrets_manager = secrets_manager
-        
+
         # Inicializa o server_manager com os servidores fornecidos
         if server is not None:
             if not isinstance(server, list):
                 servers = [server]
             else:
                 servers = server
-            
+
             # Filtrar servidores None
             servers = [s for s in servers if s is not None]
             self.server_manager = ServerManager(servers) if servers else None
         else:
             self.server_manager = None
-            
+
         self.tokens = None
         self.api = None
         self.kwargs = kwargs

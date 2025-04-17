@@ -39,8 +39,7 @@ async def test_async_chat_with_two_servers(model):
         agent = AsyncAgent(model=model, model_type="chat", server=[server1, server2])
 
         task = AsyncTask(
-            user="qual a minha dieta? altura: {altura}, peso: {peso}",
-            agent=agent
+            user="qual a minha dieta? altura: {altura}, peso: {peso}", agent=agent
         )
 
         try:
@@ -53,7 +52,9 @@ async def test_async_chat_with_two_servers(model):
         assert isinstance(response, dict), "Response should be a dictionary"
         assert response["response"] is not None, "Response should not be None"
         assert response["cost"] > 0, "Tokens should be greater than 0"
-        assert "frutas" in response["response"].lower(), "Response should contain 'frutas'"
+        assert (
+            "frutas" in response["response"].lower()
+        ), "Response should contain 'frutas'"
 
         logger.info(response)
 
@@ -76,8 +77,7 @@ async def test_async_chat_api(model):
         agent = AsyncAgent(model=model, model_type="chat", server=server)
 
         task = AsyncTask(
-            user="qual o meu bmi? altura: {altura}, peso: {peso}",
-            agent=agent
+            user="qual o meu bmi? altura: {altura}, peso: {peso}", agent=agent
         )
 
         try:

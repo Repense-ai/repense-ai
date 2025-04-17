@@ -41,7 +41,9 @@ class Task(BaseTask):
     def __build_prompt(self, **kwargs):
         if self.user:
             content = self.__replace_tokens(self.user, kwargs)
-            self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+            self.prompt = [
+                {"role": "user", "content": [{"type": "text", "text": content}]}
+            ]
         else:
             self.prompt = []
 
@@ -194,11 +196,12 @@ class AsyncTask(BaseTask):
             text = text.replace("{" + key + "}", str(value))
         return text
 
-
     def __build_prompt(self, **kwargs):
         if self.user:
             content = self.__replace_tokens(self.user, kwargs)
-            self.prompt = [{"role": "user", "content": [{"type": "text", "text": content}]}]
+            self.prompt = [
+                {"role": "user", "content": [{"type": "text", "text": content}]}
+            ]
         else:
             self.prompt = []
 
@@ -252,7 +255,7 @@ class AsyncTask(BaseTask):
 
             self.prompt.append({"role": "assistant", "content": response["response"]})
 
-            if hasattr(self.agent, 'server_manager') and self.agent.server_manager:
+            if hasattr(self.agent, "server_manager") and self.agent.server_manager:
                 await self.agent.server_manager.cleanup()
 
             if self.simple_response:

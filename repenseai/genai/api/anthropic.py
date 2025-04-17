@@ -202,13 +202,13 @@ class AsyncChatAPI:
 
     async def process_tool_calls(self, message: dict) -> list:
         tools = []
-        
+
         # Verificar o formato da mensagem
         if isinstance(message, dict) and message.get("content"):
             for content_item in message.get("content", []):
                 if content_item.get("type") == "tool_use":
                     tools.append(content_item)
-        
+
         tool_messages = []
 
         for tool in tools:
@@ -254,7 +254,7 @@ class AsyncChatAPI:
             dump = self.response.model_dump()
             if dump["stop_reason"] == "tool_use":
                 self.tool_flag = True
-                
+
                 # Garantir que retornamos a estrutura que o AsyncTask espera
                 return {"role": "assistant", "content": dump["content"]}
 
@@ -551,7 +551,7 @@ class ChatAPI:
             if tool["type"] == "tool_use":
                 args = tool.get("input")
                 tool_name = tool.get("name")
-                
+
                 output = self.tools[tool_name](**args)
 
                 tool_messages.append(

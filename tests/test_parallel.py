@@ -49,6 +49,7 @@ def test_parallel_shared_context(model):
     assert isinstance(results[0], str)
     assert isinstance(results[1], str)
 
+
 @pytest.mark.parametrize("model", ["gpt-4o-mini"])
 def test_parallel_unique_contexts(model):
     # Initialize agent
@@ -72,7 +73,7 @@ def test_parallel_unique_contexts(model):
     unique_contexts = [
         {"text": "I love this product! It's amazing!"},
         {"text": "This service is terrible, would not recommend."},
-        {"text": "The weather is quite nice today."}
+        {"text": "The weather is quite nice today."},
     ]
 
     # Run tasks
@@ -81,6 +82,7 @@ def test_parallel_unique_contexts(model):
     # Assertions
     assert len(results) == 3
     assert all(isinstance(result, str) for result in results)
+
 
 @pytest.mark.parametrize("model", ["gpt-4o-mini"])
 def test_parallel_single_task(model):
@@ -103,6 +105,7 @@ def test_parallel_single_task(model):
     assert isinstance(result, list)
     assert len(result) == 1
     assert "hello" in result[0].lower()
+
 
 @pytest.mark.parametrize("model", ["gpt-4o-mini"])
 def test_parallel_empty_context(model):

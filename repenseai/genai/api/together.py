@@ -147,7 +147,7 @@ class ChatAPI:
 
             if self.json_schema:
                 return json.loads(content)
-            
+
             return content
         else:
             return None
