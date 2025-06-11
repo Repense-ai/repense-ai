@@ -169,19 +169,26 @@ class ChatAPI:
 
     def get_tokens(self) -> Union[None, dict]:
         if self.response is not None:
-            prompt_tokens = self.client.models.count_tokens(
-                model=self.model, contents=self.prompt
-            ).total_tokens
+            try:
+                prompt_tokens = self.client.models.count_tokens(
+                    model=self.model, contents=self.prompt
+                ).total_tokens
 
-            output_tokens = self.client.models.count_tokens(
-                model=self.model, contents=self.response.text
-            ).total_tokens
+                output_tokens = self.client.models.count_tokens(
+                    model=self.model, contents=self.response.text
+                ).total_tokens
 
-            return {
-                "completion_tokens": output_tokens,
-                "prompt_tokens": prompt_tokens,
-                "total_tokens": output_tokens + prompt_tokens,
-            }
+                return {
+                    "completion_tokens": output_tokens,
+                    "prompt_tokens": prompt_tokens,
+                    "total_tokens": output_tokens + prompt_tokens,
+                }
+            except Exception as e:
+                return {
+                    "completion_tokens": 0,
+                    "prompt_tokens": 0,
+                    "total_tokens": 0,
+                }
         else:
             return None
 

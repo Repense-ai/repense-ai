@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 4.0.14
+
+### New Features
+
+#### Model Updates
+- Added support for 'claude-sonnet-4-0' model
+- Added support for 'claude-opus-4-0' model
+- Added support for 'gemini-2.5-pro-preview-06-05' model
+- Added support for 'gemini-2.5-flash-preview-05-20' model
+- Update 'o3' model pricing
+
 ## Version 4.0.13
 
 ### New Features
